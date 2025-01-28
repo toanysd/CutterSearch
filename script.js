@@ -1,6 +1,6 @@
 const API_KEY = 'AIzaSyD2sBEWzaaqOdBAsQWoOo0lD1aBdC2sXWU';
 const SPREADSHEET_ID = '1JG-CZBM1wdmXvfSSwsyAph7KoZpsWtDF4MD2p-ZK91w';
-const RANGE = 'Sheet1!A:D'; // Phạm vi dữ liệu trong Google Sheets
+const RANGE = 'Sheet1!A:X'; // Phạm vi dữ liệu trong Google Sheets
 
 
 
