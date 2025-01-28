@@ -3,32 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tra cứu khuôn dùng chung</title>
+    <title>Tra cứu khuôn và dao cắt</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-        }
-        th {
-            background-color: #f4f4f4;
-        }
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        input { margin: 5px; padding: 10px; width: 200px; }
+        button { padding: 10px 20px; }
+        table { margin-top: 20px; border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 8px; }
+        th { background-color: #f4f4f4; }
     </style>
 </head>
 <body>
-    <h1>Tra cứu khuôn dùng chung</h1>
+    <h1>Tra cứu khuôn và dao cắt</h1>
     <form id="searchForm">
-        <label for="moldCode">Mã khuôn:</label>
-        <input type="text" id="moldCode" placeholder="Nhập mã khuôn">
-        <label for="cutterNo">Mã dao:</label>
-        <input type="text" id="cutterNo" placeholder="Nhập mã dao">
+        <input type="text" id="cutterNo" placeholder="Nhập CutterNo">
+        <input type="text" id="moldName" placeholder="Nhập MoldDesignName">
         <button type="submit">Tìm kiếm</button>
     </form>
     <table id="resultsTable">
@@ -37,7 +26,7 @@
                 <th>Mã khuôn</th>
                 <th>Tên khuôn</th>
                 <th>Mã dao</th>
-                <th>Kích thước dao</th>
+                <th>Kích thước</th>
             </tr>
         </thead>
         <tbody></tbody>
