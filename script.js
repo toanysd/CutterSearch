@@ -1,26 +1,26 @@
 let data = []; // Chứa dữ liệu từ Google Sheets
 
-// Tải dữ liệu từ Google Sheets
+// Tải dữ liệu từ Google CSV
 async function loadData() {
-    const url = "https://sheets.googleapis.com/v4/spreadsheets/1WwG6VlbgEhPnvRYNfjO_7ZjnwEt_Rw8u6IVGofJQasU/values/Sheet1?key=AIzaSyD2sBEWzaaqOdBAsQWoOo0lD1aBdC2sXWU"; // Thay URL với Spreadsheet ID và API Key
+    const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRznifvae0x2DxXkshp6Udqn68kiOSF8BQ_eEsdUQoPoRNCxBYbq_4yXo6Zmz6dgkivd2vAmCw1kJgB/pub?gid=54626089&single=true&output=csv";
+
     try {
         const response = await fetch(url);
-        const result = await response.json();
+        const csvData = await response.text();
 
-        // Chuyển dữ liệu từ Google Sheets thành mảng JSON
-        const headers = result.values[0]; // Dòng tiêu đề
-        data = result.values.slice(1).map(row => {
-            const rowObject = {};
-            headers.forEach((header, index) => {
-                rowObject[header] = row[index] || ""; // Gán giá trị hoặc để trống nếu không có
-            });
-            return rowObject;
+        const rows = csvData.split("\n");
+        const headers = rows[0].split(",");
+        data = rows.slice(1).map(row => {
+            const values = row.split(",");
+            return headers.reduce((obj, header, index) => {
+                obj[header] = values[index] || "";
+                return obj;
+            }, {});
         });
 
-        displayData(data); // Hiển thị dữ liệu lên bảng
+        displayData(data); // Hiển thị dữ liệu
     } catch (error) {
         console.error("Lỗi khi tải dữ liệu:", error);
-        alert("Không thể tải dữ liệu từ Google Sheets!");
     }
 }
 
