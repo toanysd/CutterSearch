@@ -1,36 +1,79 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tra cứu khuôn và dao cắt</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        input { margin: 5px; padding: 10px; width: 200px; }
-        button { padding: 10px 20px; }
-        table { margin-top: 20px; border-collapse: collapse; width: 100%; }
-        th, td { border: 1px solid #ddd; padding: 8px; }
-        th { background-color: #f4f4f4; }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 10px;
+            text-align: center;
+        }
+        input, select, button {
+            padding: 10px;
+            margin: 5px;
+            width: 90%;
+            font-size: 16px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 5px;
+            text-align: left;
+        }
+        th {
+            background-color: #f0f0f0;
+        }
+        .container {
+            max-width: 500px;
+            margin: auto;
+        }
     </style>
 </head>
 <body>
-    <h1>Tra cứu khuôn và dao cắt</h1>
-    <form id="searchForm">
-        <input type="text" id="cutterNo" placeholder="Nhập CutterNo">
-        <input type="text" id="moldName" placeholder="Nhập MoldDesignName">
-        <button type="submit">Tìm kiếm</button>
-    </form>
-    <table id="resultsTable">
+    <h2>🔍 Tra cứu khuôn và dao cắt</h2>
+    
+    <div class="container">
+        <label>🔎 Nhập từ khóa (キーワード検索):</label>
+        <input type="text" id="searchInput" placeholder="Nhập từ khóa...">
+        
+        <label>📂 Bộ lọc theo cột (フィルター):</label>
+        <select id="columnFilter">
+            <option value="all">Tất cả (すべて)</option>
+            <option value="CutterNo">Mã dao (カッター番号)</option>
+            <option value="MoldDesignName">Tên khuôn (金型名)</option>
+            <option value="CutterType">Loại dao (カッタータイプ)</option>
+            <option value="RackLayerID">Vị trí (ラック層ID)</option>
+        </select>
+        
+        <button onclick="searchData()">🔍 Tìm kiếm (検索)</button>
+    </div>
+
+    <table>
         <thead>
             <tr>
-                <th>Mã khuôn</th>
-                <th>Tên khuôn</th>
-                <th>Mã dao</th>
-                <th>Kích thước</th>
+                <th>CutterID</th>
+                <th>Mã dao (カッター番号)</th>
+                <th>Tên khuôn (金型名)</th>
+                <th>Mã khuôn (金型コード)</th>
+                <th>Loại dao (カッタータイプ)</th>
+                <th>Vị trí (ラック層ID)</th>
             </tr>
         </thead>
-        <tbody></tbody>
+        <tbody id="dataTable">
+            <!-- Dữ liệu từ Excel sẽ được hiển thị ở đây -->
+        </tbody>
     </table>
+
+    <input type="file" id="uploadExcel" accept=".xlsx" onchange="loadExcel(event)" />
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
