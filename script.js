@@ -1,24 +1,27 @@
-let data = []; // Chứa dữ liệu từ Excel
+let data = []; // Chứa dữ liệu từ Google Sheets
 
-// Đọc file Excel và chuyển thành JSON
-function loadExcel(event) {
-    const file = event.target.files[0];
-    const reader = new FileReader();
+// Tải dữ liệu từ Google Sheets
+async function loadData() {
+    const url = "https://sheets.googleapis.com/v4/spreadsheets/1WwG6VlbgEhPnvRYNfjO_7ZjnwEt_Rw8u6IVGofJQasU/values/Sheet1?key=AIzaSyD2sBEWzaaqOdBAsQWoOo0lD1aBdC2sXWU"; // Thay URL với Spreadsheet ID và API Key
+    try {
+        const response = await fetch(url);
+        const result = await response.json();
 
-    reader.onload = function (e) {
-        const dataArray = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(dataArray, { type: 'array' });
+        // Chuyển dữ liệu từ Google Sheets thành mảng JSON
+        const headers = result.values[0]; // Dòng tiêu đề
+        data = result.values.slice(1).map(row => {
+            const rowObject = {};
+            headers.forEach((header, index) => {
+                rowObject[header] = row[index] || ""; // Gán giá trị hoặc để trống nếu không có
+            });
+            return rowObject;
+        });
 
-        // Lấy dữ liệu từ sheet đầu tiên
-        const sheetName = workbook.SheetNames[0];
-        const sheet = workbook.Sheets[sheetName];
-        data = XLSX.utils.sheet_to_json(sheet); // Chuyển sheet thành JSON
-
-        // Hiển thị dữ liệu lên bảng
-        displayData(data);
-    };
-
-    reader.readAsArrayBuffer(file);
+        displayData(data); // Hiển thị dữ liệu lên bảng
+    } catch (error) {
+        console.error("Lỗi khi tải dữ liệu:", error);
+        alert("Không thể tải dữ liệu từ Google Sheets!");
+    }
 }
 
 // Hiển thị dữ liệu trong bảng
@@ -57,3 +60,6 @@ function searchData() {
 
     displayData(filteredData);
 }
+
+// Gọi hàm loadData khi trang được tải
+window.onload = loadData;
