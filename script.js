@@ -1,34 +1,59 @@
-const API_KEY = 'AIzaSyD2sBEWzaaqOdBAsQWoOo0lD1aBdC2sXWU';
-const SPREADSHEET_ID = '1JG-CZBM1wdmXvfSSwsyAph7KoZpsWtDF4MD2p-ZK91w';
-const RANGE = 'Sheet1!A:X'; // Phạm vi dữ liệu trong Google Sheets
+let data = []; // Chứa dữ liệu từ Excel
 
+// Đọc file Excel và chuyển thành JSON
+function loadExcel(event) {
+    const file = event.target.files[0];
+    const reader = new FileReader();
 
+    reader.onload = function (e) {
+        const dataArray = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(dataArray, { type: 'array' });
 
-document.getElementById('searchForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const cutterNo = document.getElementById('cutterNo').value.toLowerCase();
-    const moldName = document.getElementById('moldName').value.toLowerCase();
+        // Lấy dữ liệu từ sheet đầu tiên
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+        data = XLSX.utils.sheet_to_json(sheet); // Chuyển sheet thành JSON
 
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${RANGE}?key=${API_KEY}`;
-    const response = await fetch(url);
-    const data = await response.json();
-    const rows = data.values;
+        // Hiển thị dữ liệu lên bảng
+        displayData(data);
+    };
 
-    const filteredRows = rows.filter(row => {
-        const matchesCutterNo = cutterNo ? row[0]?.toLowerCase().includes(cutterNo) : true;
-        const matchesMoldName = moldName ? row[1]?.toLowerCase().includes(moldName) : true;
-        return matchesCutterNo && matchesMoldName;
+    reader.readAsArrayBuffer(file);
+}
+
+// Hiển thị dữ liệu trong bảng
+function displayData(data) {
+    const tableBody = document.getElementById("dataTable");
+    tableBody.innerHTML = ""; // Xóa bảng cũ
+
+    data.forEach(row => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${row.CutterID || ""}</td>
+            <td>${row.CutterNo || ""}</td>
+            <td>${row.MoldDesignName || ""}</td>
+            <td>${row.MoldDesignCode || ""}</td>
+            <td>${row.CutterType || ""}</td>
+            <td>${row.RackLayerID || ""}</td>
+        `;
+        tableBody.appendChild(tr);
+    });
+}
+
+// Tìm kiếm dữ liệu
+function searchData() {
+    const query = document.getElementById("searchInput").value.toLowerCase();
+    const columnFilter = document.getElementById("columnFilter").value;
+
+    let filteredData = data.filter(row => {
+        if (columnFilter === "all") {
+            return Object.values(row).some(value =>
+                value && value.toString().toLowerCase().includes(query)
+            );
+        } else {
+            return row[columnFilter] && row[columnFilter].toString().toLowerCase().includes(query);
+        }
     });
 
-    const tbody = document.querySelector('#resultsTable tbody');
-    tbody.innerHTML = '';
-    filteredRows.forEach(row => {
-        const tr = document.createElement('tr');
-        row.forEach(cell => {
-            const td = document.createElement('td');
-            td.textContent = cell || '';
-            tr.appendChild(td);
-        });
-        tbody.appendChild(tr);
-    });
-});
+    displayData(filteredData);
+}
