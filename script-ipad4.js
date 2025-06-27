@@ -18,7 +18,6 @@
   var filteredResults = [];
   var selectedIdx = -1;
 
-  // ==== DOM Ready ====
   document.addEventListener('DOMContentLoaded', function() {
     setupUI();
     showLoading(true);
@@ -28,14 +27,12 @@
     });
   });
 
-  // ==== UI Setup ====
   function setupUI() {
     var searchInput = document.getElementById('searchInput');
     var clearBtn = document.getElementById('clearBtn');
     var resultsList = document.getElementById('resultsList');
     var historyBox = document.getElementById('searchHistory');
 
-    // Tìm kiếm realtime
     searchInput.addEventListener('input', function() {
       updateClearBtn();
       renderSearchHistory();
@@ -46,7 +43,6 @@
       setTimeout(function() { historyBox.innerHTML = ''; }, 200);
     });
 
-    // Clear
     clearBtn.addEventListener('click', function() {
       searchInput.value = '';
       updateClearBtn();
@@ -54,7 +50,6 @@
       searchInput.focus();
     });
 
-    // Thao tác chọn kết quả
     resultsList.addEventListener('click', function(e) {
       var li = e.target.closest('.result-item');
       if (!li) return;
@@ -63,7 +58,6 @@
       selectResult(idx);
     });
 
-    // Nút cập nhật (chưa triển khai modal nhập liệu)
     document.getElementById('updateLocationBtn').addEventListener('click', function() {
       if (selectedIdx >= 0) alert('Chức năng cập nhật vị trí sẽ triển khai sau');
     });
@@ -75,25 +69,25 @@
     });
   }
 
-  // ==== Loading ====
   function showLoading(show) {
     var el = document.getElementById('loadingIndicator');
     if (el) el.style.display = show ? 'flex' : 'none';
   }
 
-  // ==== Dữ liệu ====
   function loadAllData(callback) {
     var loaded = 0;
-    DATA_FILES.forEach(function(df) {
-      loadCSVFile(df.file, function(data) {
-        allData[df.key] = data;
-        loaded++;
-        if (loaded === DATA_FILES.length) {
-          processData();
-          callback && callback();
-        }
-      });
-    });
+    for (var i = 0; i < DATA_FILES.length; i++) {
+      (function(df){
+        loadCSVFile(df.file, function(data) {
+          allData[df.key] = data;
+          loaded++;
+          if (loaded === DATA_FILES.length) {
+            processData();
+            callback && callback();
+          }
+        });
+      })(DATA_FILES[i]);
+    }
   }
 
   function loadCSVFile(filename, cb) {
@@ -110,33 +104,38 @@
   }
 
   function parseCSV(csvText) {
-    var lines = csvText.split('\n').filter(function(l){return l.trim()!=='';});
+    var lines = csvText.split('\n');
     if (lines.length < 2) return [];
     var headers = lines[0].split(',').map(function(h){return h.trim().replace(/"/g,'');});
-    return lines.slice(1).map(function(line) {
-      var values = []; var current = ''; var inQuotes = false;
-      for (var i=0; i<line.length; i++) {
-        var c = line[i];
-        if (c === '"' && (i===0 || line[i-1]!=='\\')) inQuotes = !inQuotes;
+    var arr = [];
+    for (var i=1; i<lines.length; i++) {
+      var line = lines[i];
+      if (!line.trim()) continue;
+      var values = [];
+      var current = ''; var inQuotes = false;
+      for (var j=0; j<line.length; j++) {
+        var c = line[j];
+        if (c === '"' && (j===0 || line[j-1]!=='\\')) inQuotes = !inQuotes;
         else if (c === ',' && !inQuotes) { values.push(current.trim().replace(/"/g,'')); current=''; }
         else current += c;
       }
       values.push(current.trim().replace(/"/g,''));
       var obj = {};
-      headers.forEach(function(h,idx){ obj[h]=values[idx]||''; });
-      return obj;
-    });
+      for (var k=0; k<headers.length; k++) obj[headers[k]] = values[k]!==undefined ? values[k] : '';
+      arr.push(obj);
+    }
+    return arr;
   }
 
-  // ==== Xử lý dữ liệu liên kết (join) ====
   function processData() {
-    // Map công ty
     var companyMap = {};
-    (allData.companies||[]).forEach(function(c){ companyMap[c.CompanyID]=c; });
-    // Map rack/racklayer
-    var rackMap = {}; (allData.racks||[]).forEach(function(r){ rackMap[r.RackID]=r; });
-    var rackLayerMap = {}; (allData.racklayers||[]).forEach(function(rl){ rackLayerMap[rl.RackLayerID]=rl; });
-    // Xử lý molds
+    for (var i=0; i<(allData.companies||[]).length; i++) {
+      var c = allData.companies[i];
+      companyMap[c.CompanyID]=c;
+    }
+    var rackMap = {}; for (var i=0; i<(allData.racks||[]).length; i++) rackMap[allData.racks[i].RackID]=allData.racks[i];
+    var rackLayerMap = {}; for (var i=0; i<(allData.racklayers||[]).length; i++) rackLayerMap[allData.racklayers[i].RackLayerID]=allData.racklayers[i];
+
     allData.molds = (allData.molds||[]).map(function(m){
       var storageCompany = companyMap[m.storagecompany];
       var rackLayer = rackLayerMap[m.RackLayerID];
@@ -151,7 +150,6 @@
         itemType: 'mold'
       };
     });
-    // Xử lý cutters
     allData.cutters = (allData.cutters||[]).map(function(c){
       var storageCompany = companyMap[c.storagecompany];
       var rackLayer = rackLayerMap[c.RackLayerID];
@@ -168,7 +166,6 @@
     });
   }
 
-  // ==== Tìm kiếm & hiển thị ====
   function doSearch() {
     var q = document.getElementById('searchInput').value.trim().toLowerCase();
     filteredResults = [];
@@ -176,10 +173,13 @@
       filteredResults = allData.molds.concat(allData.cutters).slice(0,5);
     } else {
       var arr = allData.molds.concat(allData.cutters);
-      filteredResults = arr.filter(function(item){
+      filteredResults = [];
+      for (var i=0; i<arr.length; i++) {
+        var item = arr[i];
         var s = (item.displayNameJP + ' ' + item.displayNameVI + ' ' + item.location + ' ' + item.storageCompanyName).toLowerCase();
-        return s.indexOf(q) !== -1;
-      }).slice(0,5);
+        if (s.indexOf(q) !== -1) filteredResults.push(item);
+        if (filteredResults.length >= 5) break;
+      }
     }
     selectedIdx = -1;
     renderResults();
@@ -194,17 +194,18 @@
       updateActionBtns();
       return;
     }
-    filteredResults.forEach(function(item, idx){
+    for (var i=0; i<filteredResults.length; i++) {
+      var item = filteredResults[i];
       var li = document.createElement('li');
-      li.className = 'result-item' + (idx===selectedIdx?' selected':'');
-      li.setAttribute('data-idx', idx);
+      li.className = 'result-item' + (i===selectedIdx?' selected':'');
+      li.setAttribute('data-idx', i);
       li.innerHTML =
         '<div class="jp">'+escapeHtml(item.displayNameJP)+'</div>'+
         '<div class="vi">'+escapeHtml(item.displayNameVI)+'</div>'+
         '<div class="location">'+escapeHtml(item.location)+'</div>'+
         '<div class="status-badge">'+escapeHtml(item.storageCompanyName)+'</div>';
       ul.appendChild(li);
-    });
+    }
     updateActionBtns();
     renderDetailPanel();
   }
@@ -218,37 +219,37 @@
 
   function updateActionBtns() {
     var hasSel = selectedIdx >= 0 && filteredResults[selectedIdx];
-    ['updateLocationBtn','updateShipBtn','addNoteBtn'].forEach(function(id){
-      var btn = document.getElementById(id);
-      if (btn) btn.disabled = !hasSel;
-    });
+    document.getElementById('updateLocationBtn').disabled = !hasSel;
+    document.getElementById('updateShipBtn').disabled = !hasSel;
+    document.getElementById('addNoteBtn').disabled = !hasSel;
   }
 
-  // ==== Lịch sử tìm kiếm ====
   function renderSearchHistory() {
     var box = document.getElementById('searchHistory');
     var q = document.getElementById('searchInput').value.trim();
     if (!q && searchHistory.length) {
-      box.innerHTML = searchHistory.slice(-10).reverse().map(function(item,idx){
-        return '<div class="search-history-item" data-idx="'+idx+'">'+
-          '<span>'+escapeHtml(item)+'</span>'+
-          '<button class="search-history-remove" data-idx="'+idx+'">×</button></div>';
-      }).join('');
-      // Chọn lại lịch sử
-      box.querySelectorAll('.search-history-item').forEach(function(el){
-        el.onclick = function(e){
+      var html = '';
+      for (var i=searchHistory.length-1; i>=0; i--) {
+        html += '<div class="search-history-item" data-idx="'+i+'">'+
+          '<span>'+escapeHtml(searchHistory[i])+'</span>'+
+          '<button class="search-history-remove" data-idx="'+i+'">×</button></div>';
+      }
+      box.innerHTML = html;
+      var items = box.querySelectorAll('.search-history-item');
+      for (var j=0; j<items.length; j++) {
+        items[j].onclick = function(e){
           if (e.target.classList.contains('search-history-remove')) {
             var idx = parseInt(e.target.getAttribute('data-idx'),10);
-            searchHistory.splice(searchHistory.length-1-idx,1);
+            searchHistory.splice(idx,1);
             saveSearchHistory();
             renderSearchHistory();
             return false;
           }
           var idx = parseInt(this.getAttribute('data-idx'),10);
-          document.getElementById('searchInput').value = searchHistory[searchHistory.length-1-idx];
+          document.getElementById('searchInput').value = searchHistory[idx];
           doSearch();
         };
-      });
+      }
     } else {
       box.innerHTML = '';
     }
@@ -272,14 +273,12 @@
   }
   loadSearchHistory();
 
-  // ==== Nút clear ====
   function updateClearBtn() {
     var inp = document.getElementById('searchInput');
     var btn = document.getElementById('clearBtn');
     btn.style.display = inp.value ? 'block' : 'none';
   }
 
-  // ==== Chi tiết kết quả (triển khai sau, demo hiển thị tên/mã/vị trí) ====
   function renderDetailPanel() {
     var panel = document.getElementById('detailPanel');
     if (selectedIdx < 0 || !filteredResults[selectedIdx]) {
@@ -295,14 +294,18 @@
       '<div style="margin-top:4px;"><i>Chi tiết sẽ bổ sung sau...</i></div>';
   }
 
-  // ==== Thoát toàn màn hình ====
+  // Toàn màn hình
+  window.enterFullscreen = function() {
+    var el = document.documentElement;
+    if (el.requestFullscreen) el.requestFullscreen();
+    else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+  };
   window.exitFullscreen = function() {
     if (document.exitFullscreen) document.exitFullscreen();
     else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
     else window.close();
   };
 
-  // ==== Tiện ích ====
   function escapeHtml(txt) {
     var div = document.createElement('div');
     div.textContent = txt || '';

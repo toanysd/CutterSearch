@@ -18,7 +18,12 @@ body.ipad4-fullscreen {
   overflow: hidden;
 }
 
-/* Nút thoát toàn màn hình */
+.fullscreen-btn {
+  position: fixed; top: 10px; left: 16px; z-index: 1001;
+  background: #fff; color: #2563eb; border: 2px solid #2563eb;
+  border-radius: 50%; width: 44px; height: 44px;
+  font-size: 2rem; font-weight: bold; cursor: pointer; box-shadow: var(--shadow);
+}
 .exit-fullscreen-btn {
   position: fixed;
   top: 10px;
@@ -35,7 +40,6 @@ body.ipad4-fullscreen {
   box-shadow: var(--shadow);
 }
 
-/* Main content chia 2 phần: trên (3 cột), dưới (detail) */
 .main-ipad4-content {
   width: 100vw;
   height: 100vh;
@@ -44,7 +48,6 @@ body.ipad4-fullscreen {
   justify-content: flex-start;
 }
 
-/* Hàng trên: 3 cột */
 .ipad4-row {
   display: flex;
   flex-direction: row;
@@ -82,7 +85,6 @@ body.ipad4-fullscreen {
   gap: 24px;
 }
 
-/* Ô tìm kiếm */
 .search-box {
   display: flex;
   align-items: center;
@@ -117,7 +119,6 @@ body.ipad4-fullscreen {
   display: none;
 }
 
-/* Lịch sử tìm kiếm */
 .search-history {
   margin-top: 4px;
   max-height: 120px;
@@ -147,7 +148,6 @@ body.ipad4-fullscreen {
   margin-left: 8px;
 }
 
-/* Danh sách kết quả */
 .results-list {
   list-style: none;
   padding: 0;
@@ -199,7 +199,6 @@ body.ipad4-fullscreen {
   font-weight: 600;
 }
 
-/* Nút thao tác */
 .action-btn {
   width: 100%;
   min-height: 72px;
@@ -250,7 +249,6 @@ body.ipad4-fullscreen {
   padding: 18px 16px 12px 16px;
 }
 
-/* Loading */
 .loading-ipad4 {
   position: fixed;
   left: 0; top: 0; width: 100vw; height: 100vh;
@@ -269,7 +267,6 @@ body.ipad4-fullscreen {
 }
 @keyframes spin { 0% {transform: rotate(0);} 100% {transform: rotate(360deg);} }
 
-/* Responsive cho iPad 4 */
 @media (max-width: 1024px) {
   .main-ipad4-content { font-size: 16px; }
   .ipad4-row { min-height: 240px; }

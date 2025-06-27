@@ -2,13 +2,14 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>Quản lý Khuôn Dao Cắt - iPad4</title>
+  <title>Quản lý Khuôn Dao Cắt - iPad 4</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <link rel="stylesheet" href="styles-ipad4.css">
 </head>
 <body class="ipad4-fullscreen">
 
-  <!-- Toàn màn hình, có nút thoát -->
+  <!-- Nút toàn màn hình & Thoát toàn màn hình -->
+  <button class="fullscreen-btn" onclick="enterFullscreen()">⛶</button>
   <button class="exit-fullscreen-btn" onclick="exitFullscreen()">⤫</button>
 
   <div class="main-ipad4-content">
@@ -43,9 +44,7 @@
     </div>
 
     <!-- PHẦN DƯỚI: Chi tiết kết quả đã chọn (sẽ bổ sung sau), luôn nằm trên bàn phím -->
-    <div id="detailPanel" class="detail-panel">
-      <!-- Nội dung chi tiết sẽ được render JS khi chọn kết quả -->
-    </div>
+    <div id="detailPanel" class="detail-panel"></div>
   </div>
 
   <!-- Loading -->
