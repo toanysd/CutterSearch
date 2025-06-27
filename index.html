@@ -1,47 +1,59 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Quản lý Khuôn Dao Cắt - iPad 4</title>
-    <link rel="stylesheet" href="styles-ipad4.css">
+  <meta charset="UTF-8">
+  <title>Quản lý Khuôn Dao Cắt - iPad4</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <link rel="stylesheet" href="styles-ipad4.css">
 </head>
-<body class="ipad4-optimized">
-    <!-- Header tối ưu cho iPad 4 -->
-    <header class="header-ipad4">
-        <div class="container">
-            <h1 class="title-ipad4">金型管理システム / Quản lý Khuôn</h1>
-            <div class="search-container-ipad4">
-                <input type="text" id="searchInput" class="search-input-ipad4" 
-                       placeholder="検索 / Tìm kiếm..." autocomplete="off">
-                <button id="clearSearchBtn" class="clear-btn-ipad4">×</button>
-            </div>
+<body class="ipad4-fullscreen">
+
+  <!-- Toàn màn hình, có nút thoát -->
+  <button class="exit-fullscreen-btn" onclick="exitFullscreen()">⤫</button>
+
+  <div class="main-ipad4-content">
+    <!-- PHẦN TRÊN: Chia 3 cột -->
+    <div class="ipad4-row">
+      <!-- Cột 1: Tìm kiếm + lịch sử -->
+      <div class="ipad4-col search-col">
+        <div class="search-box">
+          <input id="searchInput" type="text" placeholder="検索 / Tìm kiếm..." autocomplete="off" autofocus>
+          <button id="clearBtn" class="clear-btn">×</button>
         </div>
-    </header>
+        <div id="searchHistory" class="search-history"></div>
+      </div>
 
-    <!-- Bộ lọc đơn giản -->
-    <div class="filters-ipad4">
-        <select id="categoryFilter" class="filter-select-ipad4">
-            <option value="all">全て / Tất cả</option>
-            <option value="mold">金型 / Khuôn</option>
-            <option value="cutter">カッター / Dao cắt</option>
-        </select>
-        <button id="resetBtn" class="reset-btn-ipad4">リセット / Reset</button>
+      <!-- Cột 2: Danh sách kết quả -->
+      <div class="ipad4-col results-col">
+        <ul id="resultsList" class="results-list"></ul>
+      </div>
+
+      <!-- Cột 3: Các nút thao tác -->
+      <div class="ipad4-col actions-col">
+        <button id="updateLocationBtn" class="action-btn location" disabled>
+          位置更新<br><span>Vị trí</span>
+        </button>
+        <button id="updateShipBtn" class="action-btn shipment" disabled>
+          搬送更新<br><span>Vận chuyển</span>
+        </button>
+        <button id="addNoteBtn" class="action-btn note" disabled>
+          メモ<br><span>Ghi chú</span>
+        </button>
+      </div>
     </div>
 
-    <!-- Kết quả -->
-    <div class="results-container-ipad4">
-        <div id="resultsTable" class="table-container-ipad4">
-            <!-- Bảng kết quả sẽ được tạo bởi JavaScript -->
-        </div>
+    <!-- PHẦN DƯỚI: Chi tiết kết quả đã chọn (sẽ bổ sung sau), luôn nằm trên bàn phím -->
+    <div id="detailPanel" class="detail-panel">
+      <!-- Nội dung chi tiết sẽ được render JS khi chọn kết quả -->
     </div>
+  </div>
 
-    <!-- Loading indicator -->
-    <div id="loadingIndicator" class="loading-ipad4" style="display: none;">
-        <div class="spinner-ipad4"></div>
-        <p>読み込み中... / Đang tải...</p>
-    </div>
+  <!-- Loading -->
+  <div id="loadingIndicator" class="loading-ipad4" style="display:none">
+    <div class="spinner-ipad4"></div>
+    <p>読み込み中... / Đang tải...</p>
+  </div>
 
-    <script src="script-ipad4.js"></script>
+  <script src="script-ipad4.js"></script>
 </body>
 </html>

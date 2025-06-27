@@ -1,393 +1,311 @@
-// script-ipad4.js - Tương thích với iOS 10.3.4
+// script-ipad4.js
 (function() {
-    'use strict';
-    
-    // Polyfills cho iPad 4
-    if (!Array.prototype.find) {
-        Array.prototype.find = function(predicate) {
-            for (var i = 0; i < this.length; i++) {
-                if (predicate(this[i], i, this)) {
-                    return this[i];
-                }
-            }
-            return undefined;
-        };
-    }
-    
-    if (!Array.prototype.includes) {
-        Array.prototype.includes = function(searchElement) {
-            return this.indexOf(searchElement) !== -1;
-        };
-    }
-    
-    // Constants
-    var GITHUB_BASE_URL = 'https://raw.githubusercontent.com/toanysd/MoldCutterSearch/main/Data/';
-    
-    // Global variables
-    var allData = {
-        molds: [],
-        cutters: [],
-        molddesign: [],
-        companies: [],
-        racklayers: [],
-        racks: []
-    };
-    
-    var filteredData = [];
-    var searchTimeout = null;
-    
-    // Initialize when DOM is ready
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('Initializing iPad 4 version...');
-        setupEventListeners();
-        loadAllData();
+  'use strict';
+
+  // ==== Cấu hình dữ liệu ====
+  var GITHUB_BASE_URL = 'https://raw.githubusercontent.com/toanysd/MoldCutterSearch/main/Data/';
+  var DATA_FILES = [
+    {key: 'molds', file: 'molds.csv'},
+    {key: 'cutters', file: 'cutters.csv'},
+    {key: 'molddesign', file: 'molddesign.csv'},
+    {key: 'companies', file: 'companies.csv'},
+    {key: 'racklayers', file: 'racklayers.csv'},
+    {key: 'racks', file: 'racks.csv'}
+  ];
+
+  var allData = {};
+  var searchHistory = [];
+  var filteredResults = [];
+  var selectedIdx = -1;
+
+  // ==== DOM Ready ====
+  document.addEventListener('DOMContentLoaded', function() {
+    setupUI();
+    showLoading(true);
+    loadAllData(function() {
+      showLoading(false);
+      renderResults();
     });
-    
-    function setupEventListeners() {
-        var searchInput = document.getElementById('searchInput');
-        var clearBtn = document.getElementById('clearSearchBtn');
-        var categoryFilter = document.getElementById('categoryFilter');
-        var resetBtn = document.getElementById('resetBtn');
-        
-        if (searchInput) {
-            searchInput.addEventListener('input', handleSearchInput);
-            searchInput.addEventListener('focus', function() {
-                this.scrollIntoView({behavior: 'smooth', block: 'center'});
-            });
+  });
+
+  // ==== UI Setup ====
+  function setupUI() {
+    var searchInput = document.getElementById('searchInput');
+    var clearBtn = document.getElementById('clearBtn');
+    var resultsList = document.getElementById('resultsList');
+    var historyBox = document.getElementById('searchHistory');
+
+    // Tìm kiếm realtime
+    searchInput.addEventListener('input', function() {
+      updateClearBtn();
+      renderSearchHistory();
+      doSearch();
+    });
+    searchInput.addEventListener('focus', renderSearchHistory);
+    searchInput.addEventListener('blur', function() {
+      setTimeout(function() { historyBox.innerHTML = ''; }, 200);
+    });
+
+    // Clear
+    clearBtn.addEventListener('click', function() {
+      searchInput.value = '';
+      updateClearBtn();
+      doSearch();
+      searchInput.focus();
+    });
+
+    // Thao tác chọn kết quả
+    resultsList.addEventListener('click', function(e) {
+      var li = e.target.closest('.result-item');
+      if (!li) return;
+      var idx = parseInt(li.getAttribute('data-idx'), 10);
+      if (isNaN(idx)) return;
+      selectResult(idx);
+    });
+
+    // Nút cập nhật (chưa triển khai modal nhập liệu)
+    document.getElementById('updateLocationBtn').addEventListener('click', function() {
+      if (selectedIdx >= 0) alert('Chức năng cập nhật vị trí sẽ triển khai sau');
+    });
+    document.getElementById('updateShipBtn').addEventListener('click', function() {
+      if (selectedIdx >= 0) alert('Chức năng cập nhật vận chuyển sẽ triển khai sau');
+    });
+    document.getElementById('addNoteBtn').addEventListener('click', function() {
+      if (selectedIdx >= 0) alert('Chức năng ghi chú sẽ triển khai sau');
+    });
+  }
+
+  // ==== Loading ====
+  function showLoading(show) {
+    var el = document.getElementById('loadingIndicator');
+    if (el) el.style.display = show ? 'flex' : 'none';
+  }
+
+  // ==== Dữ liệu ====
+  function loadAllData(callback) {
+    var loaded = 0;
+    DATA_FILES.forEach(function(df) {
+      loadCSVFile(df.file, function(data) {
+        allData[df.key] = data;
+        loaded++;
+        if (loaded === DATA_FILES.length) {
+          processData();
+          callback && callback();
         }
-        
-        if (clearBtn) {
-            clearBtn.addEventListener('click', clearSearch);
-        }
-        
-        if (categoryFilter) {
-            categoryFilter.addEventListener('change', performSearch);
-        }
-        
-        if (resetBtn) {
-            resetBtn.addEventListener('click', resetFilters);
-        }
+      });
+    });
+  }
+
+  function loadCSVFile(filename, cb) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', GITHUB_BASE_URL + filename + '?t=' + Date.now(), true);
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4) {
+        if (xhr.status === 200) cb(parseCSV(xhr.responseText));
+        else cb([]);
+      }
+    };
+    xhr.onerror = function() { cb([]); };
+    xhr.send();
+  }
+
+  function parseCSV(csvText) {
+    var lines = csvText.split('\n').filter(function(l){return l.trim()!=='';});
+    if (lines.length < 2) return [];
+    var headers = lines[0].split(',').map(function(h){return h.trim().replace(/"/g,'');});
+    return lines.slice(1).map(function(line) {
+      var values = []; var current = ''; var inQuotes = false;
+      for (var i=0; i<line.length; i++) {
+        var c = line[i];
+        if (c === '"' && (i===0 || line[i-1]!=='\\')) inQuotes = !inQuotes;
+        else if (c === ',' && !inQuotes) { values.push(current.trim().replace(/"/g,'')); current=''; }
+        else current += c;
+      }
+      values.push(current.trim().replace(/"/g,''));
+      var obj = {};
+      headers.forEach(function(h,idx){ obj[h]=values[idx]||''; });
+      return obj;
+    });
+  }
+
+  // ==== Xử lý dữ liệu liên kết (join) ====
+  function processData() {
+    // Map công ty
+    var companyMap = {};
+    (allData.companies||[]).forEach(function(c){ companyMap[c.CompanyID]=c; });
+    // Map rack/racklayer
+    var rackMap = {}; (allData.racks||[]).forEach(function(r){ rackMap[r.RackID]=r; });
+    var rackLayerMap = {}; (allData.racklayers||[]).forEach(function(rl){ rackLayerMap[rl.RackLayerID]=rl; });
+    // Xử lý molds
+    allData.molds = (allData.molds||[]).map(function(m){
+      var storageCompany = companyMap[m.storagecompany];
+      var rackLayer = rackLayerMap[m.RackLayerID];
+      var rack = rackLayer ? rackMap[rackLayer.RackID] : null;
+      var location = rack && rackLayer ? (rack.RackLocation + ' ' + rack.RackID + '-' + rackLayer.RackLayerNumber) : '';
+      return {
+        ...m,
+        displayNameJP: m.MoldName || '',
+        displayNameVI: m.MoldCode || '',
+        storageCompanyName: storageCompany ? (storageCompany.CompanyShortName + ' / ' + storageCompany.CompanyName) : '',
+        location: location,
+        itemType: 'mold'
+      };
+    });
+    // Xử lý cutters
+    allData.cutters = (allData.cutters||[]).map(function(c){
+      var storageCompany = companyMap[c.storagecompany];
+      var rackLayer = rackLayerMap[c.RackLayerID];
+      var rack = rackLayer ? rackMap[rackLayer.RackID] : null;
+      var location = rack && rackLayer ? (rack.RackLocation + ' ' + rack.RackID + '-' + rackLayer.RackLayerNumber) : '';
+      return {
+        ...c,
+        displayNameJP: c.CutterName || '',
+        displayNameVI: c.CutterNo || '',
+        storageCompanyName: storageCompany ? (storageCompany.CompanyShortName + ' / ' + storageCompany.CompanyName) : '',
+        location: location,
+        itemType: 'cutter'
+      };
+    });
+  }
+
+  // ==== Tìm kiếm & hiển thị ====
+  function doSearch() {
+    var q = document.getElementById('searchInput').value.trim().toLowerCase();
+    filteredResults = [];
+    if (!q) {
+      filteredResults = allData.molds.concat(allData.cutters).slice(0,5);
+    } else {
+      var arr = allData.molds.concat(allData.cutters);
+      filteredResults = arr.filter(function(item){
+        var s = (item.displayNameJP + ' ' + item.displayNameVI + ' ' + item.location + ' ' + item.storageCompanyName).toLowerCase();
+        return s.indexOf(q) !== -1;
+      }).slice(0,5);
     }
-    
-    function handleSearchInput() {
-        updateClearButton();
-        
-        if (searchTimeout) {
-            clearTimeout(searchTimeout);
-        }
-        
-        searchTimeout = setTimeout(function() {
-            performSearch();
-        }, 500); // Tăng delay cho iPad 4
+    selectedIdx = -1;
+    renderResults();
+    addToSearchHistory(q);
+  }
+
+  function renderResults() {
+    var ul = document.getElementById('resultsList');
+    ul.innerHTML = '';
+    if (!filteredResults.length) {
+      ul.innerHTML = '<li class="result-item">Không tìm thấy kết quả</li>';
+      updateActionBtns();
+      return;
     }
-    
-    function updateClearButton() {
-        var searchInput = document.getElementById('searchInput');
-        var clearBtn = document.getElementById('clearSearchBtn');
-        
-        if (searchInput && clearBtn) {
-            var hasValue = searchInput.value.trim().length > 0;
-            clearBtn.style.display = hasValue ? 'block' : 'none';
-        }
-    }
-    
-    function clearSearch() {
-        var searchInput = document.getElementById('searchInput');
-        if (searchInput) {
-            searchInput.value = '';
-            updateClearButton();
-            performSearch();
-            searchInput.focus();
-        }
-    }
-    
-    function resetFilters() {
-        var searchInput = document.getElementById('searchInput');
-        var categoryFilter = document.getElementById('categoryFilter');
-        
-        if (searchInput) searchInput.value = '';
-        if (categoryFilter) categoryFilter.value = 'all';
-        
-        updateClearButton();
-        performSearch();
-    }
-    
-    // Load data using XMLHttpRequest (tương thích với iPad 4)
-    function loadAllData() {
-        showLoading(true);
-        
-        var filesToLoad = [
-            'molds.csv',
-            'cutters.csv',
-            'molddesign.csv',
-            'companies.csv',
-            'racklayers.csv',
-            'racks.csv'
-        ];
-        
-        var loadedCount = 0;
-        var totalFiles = filesToLoad.length;
-        
-        filesToLoad.forEach(function(file) {
-            loadCSVFile(file, function(data) {
-                var key = file.replace('.csv', '');
-                allData[key] = data || [];
-                loadedCount++;
-                
-                if (loadedCount === totalFiles) {
-                    processDataRelationships();
-                    performSearch();
-                    showLoading(false);
-                    console.log('Data loaded successfully for iPad 4');
-                }
-            });
-        });
-    }
-    
-    function loadCSVFile(filename, callback) {
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET', GITHUB_BASE_URL + filename + '?t=' + Date.now(), true);
-        
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState === 4) {
-                if (xhr.status === 200) {
-                    var data = parseCSV(xhr.responseText);
-                    callback(data);
-                } else {
-                    console.warn('Failed to load ' + filename);
-                    callback([]);
-                }
-            }
+    filteredResults.forEach(function(item, idx){
+      var li = document.createElement('li');
+      li.className = 'result-item' + (idx===selectedIdx?' selected':'');
+      li.setAttribute('data-idx', idx);
+      li.innerHTML =
+        '<div class="jp">'+escapeHtml(item.displayNameJP)+'</div>'+
+        '<div class="vi">'+escapeHtml(item.displayNameVI)+'</div>'+
+        '<div class="location">'+escapeHtml(item.location)+'</div>'+
+        '<div class="status-badge">'+escapeHtml(item.storageCompanyName)+'</div>';
+      ul.appendChild(li);
+    });
+    updateActionBtns();
+    renderDetailPanel();
+  }
+
+  function selectResult(idx) {
+    selectedIdx = idx;
+    renderResults();
+    updateActionBtns();
+    renderDetailPanel();
+  }
+
+  function updateActionBtns() {
+    var hasSel = selectedIdx >= 0 && filteredResults[selectedIdx];
+    ['updateLocationBtn','updateShipBtn','addNoteBtn'].forEach(function(id){
+      var btn = document.getElementById(id);
+      if (btn) btn.disabled = !hasSel;
+    });
+  }
+
+  // ==== Lịch sử tìm kiếm ====
+  function renderSearchHistory() {
+    var box = document.getElementById('searchHistory');
+    var q = document.getElementById('searchInput').value.trim();
+    if (!q && searchHistory.length) {
+      box.innerHTML = searchHistory.slice(-10).reverse().map(function(item,idx){
+        return '<div class="search-history-item" data-idx="'+idx+'">'+
+          '<span>'+escapeHtml(item)+'</span>'+
+          '<button class="search-history-remove" data-idx="'+idx+'">×</button></div>';
+      }).join('');
+      // Chọn lại lịch sử
+      box.querySelectorAll('.search-history-item').forEach(function(el){
+        el.onclick = function(e){
+          if (e.target.classList.contains('search-history-remove')) {
+            var idx = parseInt(e.target.getAttribute('data-idx'),10);
+            searchHistory.splice(searchHistory.length-1-idx,1);
+            saveSearchHistory();
+            renderSearchHistory();
+            return false;
+          }
+          var idx = parseInt(this.getAttribute('data-idx'),10);
+          document.getElementById('searchInput').value = searchHistory[searchHistory.length-1-idx];
+          doSearch();
         };
-        
-        xhr.onerror = function() {
-            console.error('Error loading ' + filename);
-            callback([]);
-        };
-        
-        xhr.send();
+      });
+    } else {
+      box.innerHTML = '';
     }
-    
-    // CSV Parser tương thích với iPad 4
-    function parseCSV(csvText) {
-        var lines = csvText.split('\n').filter(function(line) {
-            return line.trim() !== '';
-        });
-        
-        if (lines.length < 2) return [];
-        
-        var headers = lines[0].split(',').map(function(h) {
-            return h.trim().replace(/"/g, '');
-        });
-        
-        return lines.slice(1).map(function(line) {
-            var values = [];
-            var current = '';
-            var inQuotes = false;
-            
-            for (var i = 0; i < line.length; i++) {
-                var char = line[i];
-                if (char === '"' && (i === 0 || line[i-1] !== '\\')) {
-                    inQuotes = !inQuotes;
-                } else if (char === ',' && !inQuotes) {
-                    values.push(current.trim().replace(/"/g, ''));
-                    current = '';
-                } else {
-                    current += char;
-                }
-            }
-            values.push(current.trim().replace(/"/g, ''));
-            
-            var obj = {};
-            headers.forEach(function(header, index) {
-                obj[header] = values[index] !== undefined ? values[index] : '';
-            });
-            return obj;
-        });
+  }
+
+  function addToSearchHistory(q) {
+    if (!q || q.length < 2) return;
+    if (searchHistory.indexOf(q) >= 0) return;
+    searchHistory.push(q);
+    if (searchHistory.length > 20) searchHistory = searchHistory.slice(-20);
+    saveSearchHistory();
+  }
+  function saveSearchHistory() {
+    try { localStorage.setItem('ipad4SearchHistory', JSON.stringify(searchHistory)); } catch(e){}
+  }
+  function loadSearchHistory() {
+    try {
+      var arr = JSON.parse(localStorage.getItem('ipad4SearchHistory')||'[]');
+      if (Array.isArray(arr)) searchHistory = arr;
+    } catch(e){}
+  }
+  loadSearchHistory();
+
+  // ==== Nút clear ====
+  function updateClearBtn() {
+    var inp = document.getElementById('searchInput');
+    var btn = document.getElementById('clearBtn');
+    btn.style.display = inp.value ? 'block' : 'none';
+  }
+
+  // ==== Chi tiết kết quả (triển khai sau, demo hiển thị tên/mã/vị trí) ====
+  function renderDetailPanel() {
+    var panel = document.getElementById('detailPanel');
+    if (selectedIdx < 0 || !filteredResults[selectedIdx]) {
+      panel.innerHTML = '<div style="color:#999;text-align:center;">Chọn một kết quả để xem chi tiết</div>';
+      return;
     }
-    
-    function processDataRelationships() {
-        // Tạo maps cho performance
-        var moldDesignMap = {};
-        var companyMap = {};
-        var rackLayerMap = {};
-        var rackMap = {};
-        
-        allData.molddesign.forEach(function(d) {
-            moldDesignMap[d.MoldDesignID] = d;
-        });
-        
-        allData.companies.forEach(function(c) {
-            companyMap[c.CompanyID] = c;
-        });
-        
-        allData.racklayers.forEach(function(rl) {
-            rackLayerMap[rl.RackLayerID] = rl;
-        });
-        
-        allData.racks.forEach(function(r) {
-            rackMap[r.RackID] = r;
-        });
-        
-        // Process molds
-        allData.molds = allData.molds.map(function(mold) {
-            var design = moldDesignMap[mold.MoldDesignID];
-            var storageCompany = companyMap[mold.storagecompany];
-            var rackLayer = rackLayerMap[mold.RackLayerID];
-            var rack = rackLayer ? rackMap[rackLayer.RackID] : null;
-            
-            // Create display fields
-            var displayCode = mold.MoldCode || '';
-            var displayName = mold.MoldName || mold.MoldCode || '';
-            var displayDimensions = '';
-            
-            if (design && design.CutlineX && design.CutlineY) {
-                displayDimensions = design.CutlineX + 'x' + design.CutlineY;
-            }
-            
-            var displayLocation = '';
-            if (rack && rackLayer) {
-                displayLocation = rack.RackLocation + ' ' + rack.RackID + '-' + rackLayer.RackLayerNumber;
-            }
-            
-            var displayCompany = storageCompany ? storageCompany.CompanyShortName : 'N/A';
-            
-            return {
-                MoldID: mold.MoldID,
-                MoldCode: mold.MoldCode,
-                MoldName: mold.MoldName,
-                displayCode: displayCode,
-                displayName: displayName,
-                displayDimensions: displayDimensions,
-                displayLocation: displayLocation,
-                displayCompany: displayCompany,
-                itemType: 'mold',
-                designInfo: design,
-                storageCompanyInfo: storageCompany,
-                rackLayerInfo: rackLayer,
-                rackInfo: rack
-            };
-        });
-        
-        // Process cutters
-        allData.cutters = allData.cutters.map(function(cutter) {
-            var storageCompany = companyMap[cutter.storagecompany];
-            var rackLayer = rackLayerMap[cutter.RackLayerID];
-            var rack = rackLayer ? rackMap[rackLayer.RackID] : null;
-            
-            var displayCode = cutter.CutterNo || '';
-            var displayName = cutter.CutterName || '';
-            var displayDimensions = '';
-            
-            if (cutter.CutlineLength && cutter.CutlineWidth) {
-                displayDimensions = cutter.CutlineLength + 'x' + cutter.CutlineWidth;
-                if (cutter.CutterCorner) displayDimensions += '-' + cutter.CutterCorner;
-                if (cutter.CutterChamfer) displayDimensions += '-' + cutter.CutterChamfer;
-            }
-            
-            var displayLocation = '';
-            if (rack && rackLayer) {
-                displayLocation = rack.RackLocation + ' ' + rack.RackID + '-' + rackLayer.RackLayerNumber;
-            }
-            
-            var displayCompany = storageCompany ? storageCompany.CompanyShortName : 'N/A';
-            
-            return {
-                CutterID: cutter.CutterID,
-                CutterNo: cutter.CutterNo,
-                CutterName: cutter.CutterName,
-                displayCode: displayCode,
-                displayName: displayName,
-                displayDimensions: displayDimensions,
-                displayLocation: displayLocation,
-                displayCompany: displayCompany,
-                itemType: 'cutter',
-                storageCompanyInfo: storageCompany,
-                rackLayerInfo: rackLayer,
-                rackInfo: rack
-            };
-        });
-        
-        console.log('Processed ' + allData.molds.length + ' molds and ' + allData.cutters.length + ' cutters');
-    }
-    
-    function performSearch() {
-        var searchInput = document.getElementById('searchInput');
-        var categoryFilter = document.getElementById('categoryFilter');
-        
-        var query = searchInput ? searchInput.value.trim().toLowerCase() : '';
-        var category = categoryFilter ? categoryFilter.value : 'all';
-        
-        // Combine data based on category
-        var dataToSearch = [];
-        if (category === 'all' || category === 'mold') {
-            dataToSearch = dataToSearch.concat(allData.molds);
-        }
-        if (category === 'all' || category === 'cutter') {
-            dataToSearch = dataToSearch.concat(allData.cutters);
-        }
-        
-        // Filter data
-        if (query === '') {
-            filteredData = dataToSearch;
-        } else {
-            filteredData = dataToSearch.filter(function(item) {
-                var searchFields = [
-                    item.displayCode,
-                    item.displayName,
-                    item.displayDimensions,
-                    item.displayLocation,
-                    item.displayCompany
-                ].join(' ').toLowerCase();
-                
-                return searchFields.indexOf(query) !== -1;
-            });
-        }
-        
-        displayResults();
-    }
-    
-    function displayResults() {
-        var container = document.getElementById('resultsTable');
-        if (!container) return;
-        
-        if (filteredData.length === 0) {
-            container.innerHTML = '<div class="no-results-ipad4"><p>結果が見つかりません / Không tìm thấy kết quả</p></div>';
-            return;
-        }
-        
-        var html = '<table class="table-ipad4">';
-        html += '<thead><tr>';
-        html += '<th>コード / Mã</th>';
-        html += '<th>名前 / Tên</th>';
-        html += '<th>サイズ / Kích thước</th>';
-        html += '<th>位置 / Vị trí</th>';
-        html += '<th>会社 / Công ty</th>';
-        html += '</tr></thead><tbody>';
-        
-        filteredData.forEach(function(item) {
-            var rowClass = item.itemType === 'mold' ? 'mold-row' : 'cutter-row';
-            var codeClass = item.itemType === 'mold' ? 'mold-code' : 'cutter-code';
-            var nameClass = item.itemType === 'mold' ? 'mold-name' : 'cutter-name';
-            
-            html += '<tr class="' + rowClass + '">';
-            html += '<td><span class="' + codeClass + '">' + (item.displayCode || '') + '</span></td>';
-            html += '<td><span class="' + nameClass + '">' + (item.displayName || '') + '</span></td>';
-            html += '<td>' + (item.displayDimensions || '') + '</td>';
-            html += '<td>' + (item.displayLocation || '') + '</td>';
-            html += '<td>' + (item.displayCompany || '') + '</td>';
-            html += '</tr>';
-        });
-        
-        html += '</tbody></table>';
-        container.innerHTML = html;
-    }
-    
-    function showLoading(show) {
-        var loading = document.getElementById('loadingIndicator');
-        if (loading) {
-            loading.style.display = show ? 'flex' : 'none';
-        }
-    }
-    
+    var item = filteredResults[selectedIdx];
+    panel.innerHTML =
+      '<div style="font-size:1.3rem;font-weight:700;color:#2563eb;">'+escapeHtml(item.displayNameJP)+'</div>'+
+      '<div style="font-size:1.1rem;color:#6b7280;">'+escapeHtml(item.displayNameVI)+'</div>'+
+      '<div style="margin-top:8px;font-size:1.1rem;"><b>Vị trí:</b> '+escapeHtml(item.location)+'</div>'+
+      '<div style="margin-top:4px;"><b>Công ty lưu trữ:</b> '+escapeHtml(item.storageCompanyName)+'</div>'+
+      '<div style="margin-top:4px;"><i>Chi tiết sẽ bổ sung sau...</i></div>';
+  }
+
+  // ==== Thoát toàn màn hình ====
+  window.exitFullscreen = function() {
+    if (document.exitFullscreen) document.exitFullscreen();
+    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+    else window.close();
+  };
+
+  // ==== Tiện ích ====
+  function escapeHtml(txt) {
+    var div = document.createElement('div');
+    div.textContent = txt || '';
+    return div.innerHTML;
+  }
 })();
