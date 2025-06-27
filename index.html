@@ -2,79 +2,46 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tra cứu khuôn và dao cắt</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 10px;
-            text-align: center;
-        }
-        input, select, button {
-            padding: 10px;
-            margin: 5px;
-            width: 90%;
-            font-size: 16px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-            font-size: 14px;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 5px;
-            text-align: left;
-        }
-        th {
-            background-color: #f0f0f0;
-        }
-        .container {
-            max-width: 500px;
-            margin: auto;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Quản lý Khuôn Dao Cắt - iPad 4</title>
+    <link rel="stylesheet" href="styles-ipad4.css">
 </head>
-<body>
-    <h2>🔍 Tra cứu khuôn và dao cắt</h2>
-    
-    <div class="container">
-        <label>🔎 Nhập từ khóa (キーワード検索):</label>
-        <input type="text" id="searchInput" placeholder="Nhập từ khóa...">
-        
-        <label>📂 Bộ lọc theo cột (フィルター):</label>
-        <select id="columnFilter">
-            <option value="all">Tất cả (すべて)</option>
-            <option value="CutterNo">Mã dao (カッター番号)</option>
-            <option value="MoldDesignName">Tên khuôn (金型名)</option>
-            <option value="CutterType">Loại dao (カッタータイプ)</option>
-            <option value="RackLayerID">Vị trí (ラック層ID)</option>
+<body class="ipad4-optimized">
+    <!-- Header tối ưu cho iPad 4 -->
+    <header class="header-ipad4">
+        <div class="container">
+            <h1 class="title-ipad4">金型管理システム / Quản lý Khuôn</h1>
+            <div class="search-container-ipad4">
+                <input type="text" id="searchInput" class="search-input-ipad4" 
+                       placeholder="検索 / Tìm kiếm..." autocomplete="off">
+                <button id="clearSearchBtn" class="clear-btn-ipad4">×</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Bộ lọc đơn giản -->
+    <div class="filters-ipad4">
+        <select id="categoryFilter" class="filter-select-ipad4">
+            <option value="all">全て / Tất cả</option>
+            <option value="mold">金型 / Khuôn</option>
+            <option value="cutter">カッター / Dao cắt</option>
         </select>
-        
-        <button onclick="searchData()">🔍 Tìm kiếm (検索)</button>
+        <button id="resetBtn" class="reset-btn-ipad4">リセット / Reset</button>
     </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th>CutterID</th>
-                <th>Mã dao (カッター番号)</th>
-                <th>Tên khuôn (金型名)</th>
-                <th>Mã khuôn (金型コード)</th>
-                <th>Loại dao (カッタータイプ)</th>
-                <th>Vị trí (ラック層ID)</th>
-            </tr>
-        </thead>
-        <tbody id="dataTable">
-            <!-- Dữ liệu từ Excel sẽ được hiển thị ở đây -->
-        </tbody>
-    </table>
+    <!-- Kết quả -->
+    <div class="results-container-ipad4">
+        <div id="resultsTable" class="table-container-ipad4">
+            <!-- Bảng kết quả sẽ được tạo bởi JavaScript -->
+        </div>
+    </div>
 
-    <input type="file" id="uploadExcel" accept=".xlsx" onchange="loadExcel(event)" style="display: none;" /> <!-- Ẩn nút tải file -->
+    <!-- Loading indicator -->
+    <div id="loadingIndicator" class="loading-ipad4" style="display: none;">
+        <div class="spinner-ipad4"></div>
+        <p>読み込み中... / Đang tải...</p>
+    </div>
 
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="script.js"></script>
+    <script src="script-ipad4.js"></script>
 </body>
 </html>

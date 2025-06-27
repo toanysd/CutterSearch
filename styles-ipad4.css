@@ -1,0 +1,237 @@
+/* styles-ipad4.css - Tối ưu cho iPad 4 */
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background: #f5f5f5;
+    font-size: 16px; /* Tránh zoom trên iPad 4 */
+    line-height: 1.4;
+}
+
+.ipad4-optimized {
+    max-width: 1024px;
+    margin: 0 auto;
+}
+
+/* Header tối ưu */
+.header-ipad4 {
+    background: linear-gradient(135deg, #2196F3, #FF9800);
+    color: white;
+    padding: 15px 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.container {
+    max-width: 95%;
+    margin: 0 auto;
+    padding: 0 10px;
+}
+
+.title-ipad4 {
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0 0 15px 0;
+    text-align: center;
+}
+
+/* Search container */
+.search-container-ipad4 {
+    position: relative;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.search-input-ipad4 {
+    width: 100%;
+    padding: 12px 50px 12px 15px;
+    font-size: 18px; /* Lớn để tránh zoom */
+    border: none;
+    border-radius: 25px;
+    outline: none;
+    background: rgba(255,255,255,0.95);
+    color: #333;
+}
+
+.clear-btn-ipad4 {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #FF5722;
+    color: white;
+    border: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    font-size: 18px;
+    cursor: pointer;
+    display: none;
+}
+
+/* Filters */
+.filters-ipad4 {
+    background: white;
+    padding: 15px;
+    margin: 10px;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.filter-select-ipad4 {
+    flex: 1;
+    padding: 12px;
+    font-size: 16px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    background: white;
+}
+
+.reset-btn-ipad4 {
+    padding: 12px 20px;
+    background: #FF5722;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+/* Results table */
+.results-container-ipad4 {
+    margin: 10px;
+}
+
+.table-container-ipad4 {
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.table-ipad4 {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.table-ipad4 th {
+    background: #2196F3;
+    color: white;
+    padding: 12px 8px;
+    text-align: left;
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+}
+
+.table-ipad4 td {
+    padding: 12px 8px;
+    border-bottom: 1px solid #eee;
+    vertical-align: top;
+}
+
+.table-ipad4 tr:hover {
+    background: #f8f9fa;
+}
+
+/* Mold styling */
+.mold-row {
+    border-left: 4px solid #2196F3;
+}
+
+.mold-code {
+    color: #2196F3;
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.mold-name {
+    color: #333;
+    font-size: 14px;
+}
+
+/* Cutter styling */
+.cutter-row {
+    border-left: 4px solid #FF9800;
+}
+
+.cutter-code {
+    color: #FF9800;
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.cutter-name {
+    color: #333;
+    font-size: 14px;
+}
+
+/* Loading */
+.loading-ipad4 {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    color: white;
+}
+
+.spinner-ipad4 {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(255,255,255,0.3);
+    border-top: 4px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive cho iPad 4 */
+@media screen and (max-width: 1024px) {
+    .title-ipad4 {
+        font-size: 20px;
+    }
+    
+    .table-ipad4 {
+        font-size: 13px;
+    }
+    
+    .table-ipad4 th,
+    .table-ipad4 td {
+        padding: 10px 6px;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .filters-ipad4 {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .filter-select-ipad4,
+    .reset-btn-ipad4 {
+        width: 100%;
+    }
+}
