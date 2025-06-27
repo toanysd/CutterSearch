@@ -1,18 +1,13 @@
-// script-ipad4.js
 (function() {
-  'use strict';
-
-  // ==== Cấu hình dữ liệu ====
+  // Không dùng ES6, Promise, fetch, chỉ dùng var, function, XMLHttpRequest
   var GITHUB_BASE_URL = 'https://raw.githubusercontent.com/toanysd/MoldCutterSearch/main/Data/';
   var DATA_FILES = [
     {key: 'molds', file: 'molds.csv'},
     {key: 'cutters', file: 'cutters.csv'},
-    {key: 'molddesign', file: 'molddesign.csv'},
     {key: 'companies', file: 'companies.csv'},
     {key: 'racklayers', file: 'racklayers.csv'},
     {key: 'racks', file: 'racks.csv'}
   ];
-
   var allData = {};
   var searchHistory = [];
   var filteredResults = [];
@@ -32,6 +27,8 @@
     var clearBtn = document.getElementById('clearBtn');
     var resultsList = document.getElementById('resultsList');
     var historyBox = document.getElementById('searchHistory');
+    var fullscreenBtn = document.getElementById('fullscreenBtn');
+    var exitFullscreenBtn = document.getElementById('exitFullscreenBtn');
 
     searchInput.addEventListener('input', function() {
       updateClearBtn();
@@ -39,39 +36,42 @@
       doSearch();
     });
     searchInput.addEventListener('focus', renderSearchHistory);
-    searchInput.addEventListener('blur', function() {
-      setTimeout(function() { historyBox.innerHTML = ''; }, 200);
-    });
-
-    clearBtn.addEventListener('click', function() {
+    searchInput.addEventListener('blur', function() { setTimeout(function() { historyBox.innerHTML = ''; }, 200); });
+    clearBtn.onclick = function() {
       searchInput.value = '';
       updateClearBtn();
       doSearch();
       searchInput.focus();
-    });
-
-    resultsList.addEventListener('click', function(e) {
-      var li = e.target.closest('.result-item');
+    };
+    resultsList.onclick = function(e) {
+      var li = e.target;
+      while (li && li.tagName !== 'LI') li = li.parentNode;
       if (!li) return;
       var idx = parseInt(li.getAttribute('data-idx'), 10);
       if (isNaN(idx)) return;
       selectResult(idx);
-    });
-
-    document.getElementById('updateLocationBtn').addEventListener('click', function() {
-      if (selectedIdx >= 0) alert('Chức năng cập nhật vị trí sẽ triển khai sau');
-    });
-    document.getElementById('updateShipBtn').addEventListener('click', function() {
-      if (selectedIdx >= 0) alert('Chức năng cập nhật vận chuyển sẽ triển khai sau');
-    });
-    document.getElementById('addNoteBtn').addEventListener('click', function() {
-      if (selectedIdx >= 0) alert('Chức năng ghi chú sẽ triển khai sau');
-    });
+    };
+    document.getElementById('updateLocationBtn').onclick = function() { if (selectedIdx >= 0) alert('Cập nhật vị trí: sẽ bổ sung sau'); };
+    document.getElementById('updateShipBtn').onclick = function() { if (selectedIdx >= 0) alert('Cập nhật vận chuyển: sẽ bổ sung sau'); };
+    document.getElementById('addNoteBtn').onclick = function() { if (selectedIdx >= 0) alert('Ghi chú: sẽ bổ sung sau'); };
+    fullscreenBtn.onclick = function() {
+      var el = document.documentElement;
+      if (el.requestFullscreen) el.requestFullscreen();
+      else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+      fullscreenBtn.style.display = 'none';
+      exitFullscreenBtn.style.display = '';
+    };
+    exitFullscreenBtn.onclick = function() {
+      if (document.exitFullscreen) document.exitFullscreen();
+      else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+      fullscreenBtn.style.display = '';
+      exitFullscreenBtn.style.display = 'none';
+    };
   }
 
   function showLoading(show) {
     var el = document.getElementById('loadingIndicator');
-    if (el) el.style.display = show ? 'flex' : 'none';
+    if (el) el.style.display = show ? 'block' : 'none';
   }
 
   function loadAllData(callback) {
@@ -92,7 +92,7 @@
 
   function loadCSVFile(filename, cb) {
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', GITHUB_BASE_URL + filename + '?t=' + Date.now(), true);
+    xhr.open('GET', GITHUB_BASE_URL + filename + '?t=' + (new Date()).getTime(), true);
     xhr.onreadystatechange = function() {
       if (xhr.readyState === 4) {
         if (xhr.status === 200) cb(parseCSV(xhr.responseText));
@@ -106,20 +106,20 @@
   function parseCSV(csvText) {
     var lines = csvText.split('\n');
     if (lines.length < 2) return [];
-    var headers = lines[0].split(',').map(function(h){return h.trim().replace(/"/g,'');});
+    var headers = lines[0].split(',');
     var arr = [];
     for (var i=1; i<lines.length; i++) {
       var line = lines[i];
       if (!line.trim()) continue;
       var values = [];
-      var current = ''; var inQuotes = false;
+      var current = '', inQuotes = false;
       for (var j=0; j<line.length; j++) {
         var c = line[j];
         if (c === '"' && (j===0 || line[j-1]!=='\\')) inQuotes = !inQuotes;
-        else if (c === ',' && !inQuotes) { values.push(current.trim().replace(/"/g,'')); current=''; }
+        else if (c === ',' && !inQuotes) { values.push(current.replace(/"/g,'')); current=''; }
         else current += c;
       }
-      values.push(current.trim().replace(/"/g,''));
+      values.push(current.replace(/"/g,''));
       var obj = {};
       for (var k=0; k<headers.length; k++) obj[headers[k]] = values[k]!==undefined ? values[k] : '';
       arr.push(obj);
@@ -128,11 +128,7 @@
   }
 
   function processData() {
-    var companyMap = {};
-    for (var i=0; i<(allData.companies||[]).length; i++) {
-      var c = allData.companies[i];
-      companyMap[c.CompanyID]=c;
-    }
+    var companyMap = {}; for (var i=0; i<(allData.companies||[]).length; i++) companyMap[allData.companies[i].CompanyID]=allData.companies[i];
     var rackMap = {}; for (var i=0; i<(allData.racks||[]).length; i++) rackMap[allData.racks[i].RackID]=allData.racks[i];
     var rackLayerMap = {}; for (var i=0; i<(allData.racklayers||[]).length; i++) rackLayerMap[allData.racklayers[i].RackLayerID]=allData.racklayers[i];
 
@@ -142,7 +138,6 @@
       var rack = rackLayer ? rackMap[rackLayer.RackID] : null;
       var location = rack && rackLayer ? (rack.RackLocation + ' ' + rack.RackID + '-' + rackLayer.RackLayerNumber) : '';
       return {
-        ...m,
         displayNameJP: m.MoldName || '',
         displayNameVI: m.MoldCode || '',
         storageCompanyName: storageCompany ? (storageCompany.CompanyShortName + ' / ' + storageCompany.CompanyName) : '',
@@ -156,7 +151,6 @@
       var rack = rackLayer ? rackMap[rackLayer.RackID] : null;
       var location = rack && rackLayer ? (rack.RackLocation + ' ' + rack.RackID + '-' + rackLayer.RackLayerNumber) : '';
       return {
-        ...c,
         displayNameJP: c.CutterName || '',
         displayNameVI: c.CutterNo || '',
         storageCompanyName: storageCompany ? (storageCompany.CompanyShortName + ' / ' + storageCompany.CompanyName) : '',
@@ -167,13 +161,12 @@
   }
 
   function doSearch() {
-    var q = document.getElementById('searchInput').value.trim().toLowerCase();
+    var q = document.getElementById('searchInput').value.toLowerCase();
     filteredResults = [];
     if (!q) {
       filteredResults = allData.molds.concat(allData.cutters).slice(0,5);
     } else {
       var arr = allData.molds.concat(allData.cutters);
-      filteredResults = [];
       for (var i=0; i<arr.length; i++) {
         var item = arr[i];
         var s = (item.displayNameJP + ' ' + item.displayNameVI + ' ' + item.location + ' ' + item.storageCompanyName).toLowerCase();
@@ -226,7 +219,7 @@
 
   function renderSearchHistory() {
     var box = document.getElementById('searchHistory');
-    var q = document.getElementById('searchInput').value.trim();
+    var q = document.getElementById('searchInput').value;
     if (!q && searchHistory.length) {
       var html = '';
       for (var i=searchHistory.length-1; i>=0; i--) {
@@ -235,10 +228,10 @@
           '<button class="search-history-remove" data-idx="'+i+'">×</button></div>';
       }
       box.innerHTML = html;
-      var items = box.querySelectorAll('.search-history-item');
+      var items = box.getElementsByClassName('search-history-item');
       for (var j=0; j<items.length; j++) {
         items[j].onclick = function(e){
-          if (e.target.classList.contains('search-history-remove')) {
+          if (e.target.className.indexOf('search-history-remove') >= 0) {
             var idx = parseInt(e.target.getAttribute('data-idx'),10);
             searchHistory.splice(idx,1);
             saveSearchHistory();
@@ -268,7 +261,7 @@
   function loadSearchHistory() {
     try {
       var arr = JSON.parse(localStorage.getItem('ipad4SearchHistory')||'[]');
-      if (Array.isArray(arr)) searchHistory = arr;
+      if (arr && typeof arr.length === 'number') searchHistory = arr;
     } catch(e){}
   }
   loadSearchHistory();
@@ -287,24 +280,12 @@
     }
     var item = filteredResults[selectedIdx];
     panel.innerHTML =
-      '<div style="font-size:1.3rem;font-weight:700;color:#2563eb;">'+escapeHtml(item.displayNameJP)+'</div>'+
-      '<div style="font-size:1.1rem;color:#6b7280;">'+escapeHtml(item.displayNameVI)+'</div>'+
-      '<div style="margin-top:8px;font-size:1.1rem;"><b>Vị trí:</b> '+escapeHtml(item.location)+'</div>'+
+      '<div style="font-size:1.25em;font-weight:bold;color:#2563eb;">'+escapeHtml(item.displayNameJP)+'</div>'+
+      '<div style="font-size:1.1em;color:#6b7280;">'+escapeHtml(item.displayNameVI)+'</div>'+
+      '<div style="margin-top:8px;font-size:1.1em;"><b>Vị trí:</b> '+escapeHtml(item.location)+'</div>'+
       '<div style="margin-top:4px;"><b>Công ty lưu trữ:</b> '+escapeHtml(item.storageCompanyName)+'</div>'+
       '<div style="margin-top:4px;"><i>Chi tiết sẽ bổ sung sau...</i></div>';
   }
-
-  // Toàn màn hình
-  window.enterFullscreen = function() {
-    var el = document.documentElement;
-    if (el.requestFullscreen) el.requestFullscreen();
-    else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
-  };
-  window.exitFullscreen = function() {
-    if (document.exitFullscreen) document.exitFullscreen();
-    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-    else window.close();
-  };
 
   function escapeHtml(txt) {
     var div = document.createElement('div');
