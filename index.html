@@ -7,36 +7,27 @@
   <link rel="stylesheet" href="styles-ipad4.css">
 </head>
 <body>
-  <!-- Pseudo Fullscreen Controls -->
-  <div class="fullscreen-controls">
-    <button id="enterPseudoFullscreen" class="fullscreen-btn">⛶ 全画面</button>
-    <button id="exitPseudoFullscreen" class="exit-fullscreen-btn">⤫ 終了</button>
-  </div>
-
-  <!-- Main Container -->
-  <div class="main-container">
-    <!-- Top Section: 3 Columns -->
-    <div class="top-section">
-      <!-- Column 1: Search & History -->
-      <div class="search-column">
-        <div class="search-box">
-          <input id="searchInput" type="text" placeholder="検索キーワード / Từ khóa..." autocomplete="off" autofocus>
-          <button id="clearSearchBtn" class="clear-btn">×</button>
+  <div class="main-ipad4">
+    <!-- PHẦN TRÊN: 3 cột, cố định nửa trên màn hình -->
+    <div class="top-panel">
+      <!-- Cột 1: Nhóm tìm kiếm -->
+      <div class="col search-col">
+        <div class="search-group">
+          <input id="searchInput" type="text" class="search-input" placeholder="検索 / Tìm kiếm..." autocomplete="off" autofocus>
+          <button id="clearBtn" class="clear-btn">×</button>
         </div>
         <button id="resetBtn" class="reset-btn">リセット / Reset</button>
         <div id="searchHistory" class="search-history"></div>
       </div>
-
-      <!-- Column 2: Results -->
-      <div class="results-column">
+      <!-- Cột 2: Kết quả -->
+      <div class="col results-col">
         <div class="results-header">
           <span id="resultsCount">0 件 / 0 kết quả</span>
         </div>
         <ul id="resultsList" class="results-list"></ul>
       </div>
-
-      <!-- Column 3: Actions -->
-      <div class="actions-column">
+      <!-- Cột 3: Thao tác -->
+      <div class="col actions-col">
         <button id="updateLocationBtn" class="action-btn location" disabled>
           位置更新<br><span>Vị trí</span>
         </button>
@@ -48,21 +39,17 @@
         </button>
       </div>
     </div>
-
-    <!-- Bottom Section: Details -->
+    <!-- PHẦN DƯỚI: Panel chi tiết, luôn nằm trên bàn phím ảo -->
     <div id="detailPanel" class="detail-panel">
       <div class="detail-placeholder">アイテムを選択 / Chọn một kết quả</div>
     </div>
   </div>
-
-  <!-- Loading Indicator -->
   <div id="loadingIndicator" class="loading-overlay">
     <div class="loading-content">
       <div class="spinner"></div>
       <p>読み込み中... / Đang tải...</p>
     </div>
   </div>
-
   <script src="script-ipad4.js"></script>
 </body>
 </html>
