@@ -1,279 +1,380 @@
-:root {
-  --main-blue: #2563eb;
-  --main-orange: #f97316;
-  --gray-bg: #f3f4f6;
-  --gray-border: #e5e7eb;
-  --gray-text: #374151;
-  --radius: 12px;
-  --shadow: 0 2px 8px rgba(30,64,175,.08);
-}
-
-body.ipad4-fullscreen {
+/* Reset và base styles */
+* {
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
-  background: var(--gray-bg);
-  font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
-  font-size: 18px;
-  min-height: 100vh;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  font-size: 16px;
+  background: #f5f5f5;
   overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* Nút fullscreen */
+.fullscreen-btn, .exit-fullscreen-btn {
+  position: fixed;
+  top: 8px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid #2563eb;
+  background: #fff;
+  color: #2563eb;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  z-index: 1001;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .fullscreen-btn {
-  position: fixed; top: 10px; left: 16px; z-index: 1001;
-  background: #fff; color: #2563eb; border: 2px solid #2563eb;
-  border-radius: 50%; width: 44px; height: 44px;
-  font-size: 2rem; font-weight: bold; cursor: pointer; box-shadow: var(--shadow);
-}
-.exit-fullscreen-btn {
-  position: fixed;
-  top: 10px;
-  right: 16px;
-  z-index: 1001;
-  background: #fff;
-  color: #dc2626;
-  border: 2px solid #dc2626;
-  border-radius: 50%;
-  width: 44px; height: 44px;
-  font-size: 2rem;
-  font-weight: bold;
-  cursor: pointer;
-  box-shadow: var(--shadow);
+  left: 8px;
 }
 
-.main-ipad4-content {
+.exit-fullscreen-btn {
+  right: 8px;
+  border-color: #dc2626;
+  color: #dc2626;
+}
+
+/* Container chính */
+.main-container {
   width: 100vw;
   height: 100vh;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
 }
 
-.ipad4-row {
+/* Phần trên: 3 cột */
+.top-section {
   display: flex;
-  flex-direction: row;
-  width: 100%;
-  height: 48vh;
-  min-height: 320px;
+  height: 45vh;
+  min-height: 300px;
   background: #fff;
-  border-bottom: 2px solid var(--gray-border);
-  box-shadow: var(--shadow);
-  z-index: 2;
+  border-bottom: 2px solid #e5e7eb;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-.ipad4-col {
-  flex: 1 1 0;
-  padding: 18px 12px 8px 12px;
+/* Cột 1: Tìm kiếm */
+.search-column {
+  flex: 0 0 280px;
+  padding: 16px 12px;
+  border-right: 1px solid #e5e7eb;
   display: flex;
   flex-direction: column;
-  align-items: stretch;
-  justify-content: flex-start;
+  gap: 12px;
 }
 
-.search-col {
-  max-width: 320px;
-  border-right: 1.5px solid var(--gray-border);
-}
-.results-col {
-  min-width: 240px;
-  max-width: 500px;
-  border-right: 1.5px solid var(--gray-border);
-}
-.actions-col {
-  min-width: 160px;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 24px;
-}
-
-.search-box {
+.search-box-wrapper {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
 }
-#searchInput {
-  flex: 1;
-  font-size: 1.25rem;
-  padding: 18px 48px 18px 18px;
-  border-radius: var(--radius);
-  border: 2px solid var(--gray-border);
+
+.search-input {
+  width: 100%;
+  font-size: 18px;
+  padding: 14px 50px 14px 14px;
+  border: 2px solid #d1d5db;
+  border-radius: 10px;
   outline: none;
   background: #fff;
-  color: var(--gray-text);
-  font-weight: 500;
 }
-#searchInput:focus {
-  border-color: var(--main-blue);
-  box-shadow: 0 0 0 2px #2563eb33;
+
+.search-input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
 }
+
 .clear-btn {
-  width: 44px; height: 44px;
-  font-size: 2rem;
-  background: #eee;
-  color: #dc2626;
-  border: none;
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
+  border: none;
+  background: #ef4444;
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
   cursor: pointer;
-  margin-left: -44px;
-  z-index: 2;
-  display: none;
+}
+
+.reset-btn {
+  width: 100%;
+  padding: 12px;
+  background: #6b7280;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
 }
 
 .search-history {
-  margin-top: 4px;
-  max-height: 120px;
+  flex: 1;
   overflow-y: auto;
-  font-size: 1rem;
+  font-size: 14px;
 }
+
 .search-history-item {
   padding: 8px 10px;
-  border-radius: 7px;
+  margin-bottom: 4px;
   background: #f1f5f9;
-  margin-bottom: 2px;
+  border-radius: 6px;
   cursor: pointer;
   color: #2563eb;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
+
 .search-history-item:hover {
-  background: #e0e7ef;
+  background: #e0e7ff;
 }
+
 .search-history-remove {
   color: #dc2626;
-  font-size: 1.2rem;
+  font-size: 16px;
   background: none;
   border: none;
   cursor: pointer;
-  margin-left: 8px;
+  width: 20px;
+  height: 20px;
+}
+
+/* Cột 2: Kết quả */
+.results-column {
+  flex: 1;
+  padding: 16px 12px;
+  border-right: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+}
+
+.results-header {
+  margin-bottom: 12px;
+  font-size: 14px;
+  color: #6b7280;
+  font-weight: 600;
 }
 
 .results-list {
+  flex: 1;
   list-style: none;
-  padding: 0;
-  margin: 0;
   overflow-y: auto;
-  max-height: 38vh;
+  margin: 0;
+  padding: 0;
 }
+
 .result-item {
-  padding: 14px 10px 10px 10px;
-  border-radius: 9px;
+  padding: 12px 10px;
   margin-bottom: 8px;
   background: #f9fafb;
-  border: 2.5px solid transparent;
+  border: 2px solid transparent;
+  border-radius: 8px;
   cursor: pointer;
-  transition: background 0.18s, border 0.18s;
-  position: relative;
+  transition: all 0.2s;
 }
-.result-item.selected,
-.result-item:active {
+
+.result-item:hover,
+.result-item.selected {
   background: #e0f2fe;
-  border-color: var(--main-blue);
+  border-color: #2563eb;
 }
+
 .result-item .jp {
-  font-size: 1.18rem;
+  font-size: 16px;
   font-weight: 700;
-  color: var(--main-blue);
-  letter-spacing: 1px;
+  color: #2563eb;
+  margin-bottom: 2px;
 }
+
 .result-item .vi {
-  font-size: 0.95rem;
+  font-size: 14px;
   color: #6b7280;
-  opacity: 0.7;
-  margin-left: 7px;
+  margin-bottom: 4px;
 }
+
 .result-item .location {
-  font-size: 1.05rem;
+  font-size: 14px;
   font-weight: 600;
   color: #059669;
-  margin-top: 4px;
+  margin-bottom: 2px;
 }
-.result-item .status-badge {
+
+.result-item .company {
+  font-size: 12px;
+  color: #374151;
+  background: #e5e7eb;
+  padding: 2px 6px;
+  border-radius: 4px;
   display: inline-block;
-  margin-top: 3px;
-  padding: 2px 7px;
-  border-radius: 6px;
-  font-size: 0.95rem;
-  background: #dbeafe;
-  color: #1e40af;
-  font-weight: 600;
+}
+
+/* Cột 3: Thao tác */
+.actions-column {
+  flex: 0 0 160px;
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
 }
 
 .action-btn {
   width: 100%;
-  min-height: 72px;
-  margin-bottom: 18px;
-  border-radius: 12px;
-  font-size: 1.18rem;
-  font-weight: 700;
+  height: 70px;
+  border-radius: 10px;
   border: none;
+  font-size: 16px;
+  font-weight: 700;
   cursor: pointer;
-  box-shadow: var(--shadow);
-  transition: background 0.2s, color 0.2s;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: all 0.2s;
 }
+
 .action-btn span {
-  font-size: 0.9rem;
+  font-size: 12px;
   font-weight: 400;
-  color: #6b7280;
+  opacity: 0.8;
 }
+
 .action-btn.location {
   background: #e0f2fe;
   color: #2563eb;
 }
+
 .action-btn.shipment {
   background: #fff7ed;
   color: #f97316;
 }
+
 .action-btn.note {
   background: #f3f4f6;
   color: #374151;
 }
+
 .action-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
+.action-btn:not(:disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+/* Phần dưới: Chi tiết */
 .detail-panel {
   flex: 1;
-  min-height: 40vh;
-  max-height: 52vh;
-  overflow-y: auto;
   background: #fff;
-  border-top: 2px solid var(--gray-border);
-  box-shadow: var(--shadow);
-  z-index: 1;
-  padding: 18px 16px 12px 16px;
+  border-top: 2px solid #e5e7eb;
+  padding: 16px;
+  overflow-y: auto;
 }
 
-.loading-ipad4 {
+.detail-placeholder {
+  text-align: center;
+  color: #9ca3af;
+  font-style: italic;
+  margin-top: 20px;
+}
+
+/* Loading */
+.loading-overlay {
   position: fixed;
-  left: 0; top: 0; width: 100vw; height: 100vh;
-  background: rgba(0,0,0,0.4);
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   z-index: 2000;
 }
-.spinner-ipad4 {
-  width: 60px; height: 60px;
-  border: 6px solid #e5e7eb;
-  border-top: 6px solid #2563eb;
+
+.loading-content {
+  text-align: center;
+  color: white;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(255,255,255,0.3);
+  border-top: 4px solid white;
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin-bottom: 12px;
+  margin: 0 auto 16px;
 }
-@keyframes spin { 0% {transform: rotate(0);} 100% {transform: rotate(360deg);} }
 
-@media (max-width: 1024px) {
-  .main-ipad4-content { font-size: 16px; }
-  .ipad4-row { min-height: 240px; }
-  .results-list { max-height: 30vh; }
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
-@media (max-width: 768px) {
-  .ipad4-row { flex-direction: column; height: auto; }
-  .ipad4-col { max-width: 100%; border-right: none; }
-  .actions-col { flex-direction: row; gap: 8px; }
+
+/* Responsive cho iPad */
+@media screen and (max-width: 1024px) {
+  .search-column {
+    flex: 0 0 240px;
+  }
+  
+  .actions-column {
+    flex: 0 0 140px;
+  }
+  
+  .action-btn {
+    height: 60px;
+    font-size: 14px;
+  }
+}
+
+/* Mobile portrait */
+@media screen and (max-width: 768px) {
+  .top-section {
+    flex-direction: column;
+    height: auto;
+    min-height: 50vh;
+  }
+  
+  .search-column,
+  .results-column,
+  .actions-column {
+    flex: none;
+    border-right: none;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  
+  .search-column {
+    padding: 12px;
+  }
+  
+  .results-column {
+    min-height: 200px;
+  }
+  
+  .actions-column {
+    flex-direction: row;
+    padding: 12px;
+    gap: 8px;
+  }
+  
+  .action-btn {
+    flex: 1;
+    height: 50px;
+    font-size: 12px;
+  }
 }

@@ -6,32 +6,60 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <link rel="stylesheet" href="styles-ipad4.css">
 </head>
-<body style="margin:0;padding:0;overflow:hidden;">
-  <button id="fullscreenBtn" style="position:fixed;top:8px;left:12px;z-index:1001;width:40px;height:40px;font-size:22px;">⛶</button>
-  <button id="exitFullscreenBtn" style="position:fixed;top:8px;right:12px;z-index:1001;width:40px;height:40px;font-size:22px;display:none;">⤫</button>
-  <div id="mainContent" style="width:100vw;height:100vh;display:flex;flex-direction:column;">
-    <div style="display:flex;flex-direction:row;width:100%;height:45vh;background:#fff;">
-      <!-- Cột 1 -->
-      <div style="flex:1;max-width:200px;padding:12px;">
-        <input id="searchInput" type="text" style="width:100%;font-size:18px;padding:12px 40px 12px 12px;border-radius:8px;border:1.5px solid #ccc;" placeholder="検索 / Tìm kiếm..." autocomplete="off">
-        <button id="clearBtn" style="position:absolute;margin-left:-38px;width:36px;height:36px;font-size:24px;display:none;">×</button>
-        <div id="searchHistory" style="margin-top:8px;font-size:15px;"></div>
+<body>
+  <!-- Nút toàn màn hình & Thoát toàn màn hình -->
+  <button id="fullscreenBtn" class="fullscreen-btn">⛶</button>
+  <button id="exitFullscreenBtn" class="exit-fullscreen-btn" style="display:none;">⤫</button>
+
+  <div class="main-container">
+    <!-- PHẦN TRÊN: Chia 3 cột cố định -->
+    <div class="top-section">
+      <!-- Cột 1: Tìm kiếm + lịch sử -->
+      <div class="search-column">
+        <div class="search-box-wrapper">
+          <input id="searchInput" type="text" class="search-input" placeholder="検索 / Tìm kiếm..." autocomplete="off" autofocus>
+          <button id="clearBtn" class="clear-btn" style="display:none;">×</button>
+        </div>
+        <button id="resetBtn" class="reset-btn">Reset</button>
+        <div id="searchHistory" class="search-history"></div>
       </div>
-      <!-- Cột 2 -->
-      <div style="flex:2;max-width:400px;padding:12px;overflow-y:auto;">
-        <ul id="resultsList" style="list-style:none;padding:0;margin:0;"></ul>
+
+      <!-- Cột 2: Danh sách kết quả -->
+      <div class="results-column">
+        <div class="results-header">
+          <span id="resultsCount">0 kết quả</span>
+        </div>
+        <ul id="resultsList" class="results-list"></ul>
       </div>
-      <!-- Cột 3 -->
-      <div style="flex:1;min-width:120px;padding:12px;display:flex;flex-direction:column;align-items:center;">
-        <button id="updateLocationBtn" style="width:100%;height:60px;margin-bottom:14px;font-size:18px;background:#e0f2fe;color:#2563eb;border-radius:10px;border:none;" disabled>位置更新<br><span style="font-size:14px;">Vị trí</span></button>
-        <button id="updateShipBtn" style="width:100%;height:60px;margin-bottom:14px;font-size:18px;background:#fff7ed;color:#f97316;border-radius:10px;border:none;" disabled>搬送更新<br><span style="font-size:14px;">Vận chuyển</span></button>
-        <button id="addNoteBtn" style="width:100%;height:60px;font-size:18px;background:#f3f4f6;color:#374151;border-radius:10px;border:none;" disabled>メモ<br><span style="font-size:14px;">Ghi chú</span></button>
+
+      <!-- Cột 3: Các nút thao tác -->
+      <div class="actions-column">
+        <button id="updateLocationBtn" class="action-btn location" disabled>
+          位置更新<br><span>Vị trí</span>
+        </button>
+        <button id="updateShipBtn" class="action-btn shipment" disabled>
+          搬送更新<br><span>Vận chuyển</span>
+        </button>
+        <button id="addNoteBtn" class="action-btn note" disabled>
+          メモ<br><span>Ghi chú</span>
+        </button>
       </div>
     </div>
-    <!-- Chi tiết -->
-    <div id="detailPanel" style="flex:1;min-height:40vh;max-height:55vh;overflow-y:auto;background:#fff;padding:16px 10px 8px 10px;border-top:1.5px solid #eee;"></div>
+
+    <!-- PHẦN DƯỚI: Chi tiết kết quả đã chọn -->
+    <div id="detailPanel" class="detail-panel">
+      <div class="detail-placeholder">Chọn một kết quả để xem chi tiết</div>
+    </div>
   </div>
-  <div id="loadingIndicator" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.3);z-index:2000;text-align:center;font-size:20px;color:#2563eb;padding-top:30vh;">Đang tải...</div>
+
+  <!-- Loading -->
+  <div id="loadingIndicator" class="loading-overlay" style="display:none">
+    <div class="loading-content">
+      <div class="spinner"></div>
+      <p>読み込み中... / Đang tải...</p>
+    </div>
+  </div>
+
   <script src="script-ipad4.js"></script>
 </body>
 </html>
