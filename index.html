@@ -1,55 +1,119 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>金型管理システム / Quản lý Khuôn Dao Cắt</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <link rel="stylesheet" href="styles-ipad4.css">
+  <meta name="viewport" content="width=1024, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+  <title>MoldCutter Search V4.37 for iPad</title>
+  <link rel="stylesheet" href="styles-ipad-v4.37.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
 <body>
-  <div class="main-ipad4">
-    <!-- PHẦN TRÊN: 3 cột, cố định nửa trên màn hình -->
-    <div class="top-panel">
-      <!-- Cột 1: Nhóm tìm kiếm -->
-      <div class="col search-col">
-        <div class="search-group">
-          <input id="searchInput" type="text" class="search-input" placeholder="検索 / Tìm kiếm..." autocomplete="off" autofocus>
-          <button id="clearBtn" class="clear-btn">×</button>
-        </div>
-        <button id="resetBtn" class="reset-btn">リセット / Reset</button>
-        <div id="searchHistory" class="search-history"></div>
+  <!-- PHẦN TRÊN: Tìm kiếm, kết quả, cập nhật -->
+  <div class="main-top">
+    <!-- Cột 1: Tìm kiếm & lọc -->
+    <div class="col-search">
+      <div class="search-group">
+        <input id="searchInput" type="text" placeholder="Nhập mã, tên, vị trí..." autocomplete="off" autofocus>
+        <button id="clearSearchBtn" class="btn-clear" title="Xóa" aria-label="Xóa"><i class="fas fa-times"></i></button>
       </div>
-      <!-- Cột 2: Kết quả -->
-      <div class="col results-col">
-        <div class="results-header">
-          <span id="resultsCount">0 件 / 0 kết quả</span>
-        </div>
-        <ul id="resultsList" class="results-list"></ul>
-      </div>
-      <!-- Cột 3: Thao tác -->
-      <div class="col actions-col">
-        <button id="updateLocationBtn" class="action-btn location" disabled>
-          位置更新<br><span>Vị trí</span>
-        </button>
-        <button id="updateShipBtn" class="action-btn shipment" disabled>
-          搬送更新<br><span>Vận chuyển</span>
-        </button>
-        <button id="addNoteBtn" class="action-btn note" disabled>
-          メモ<br><span>Ghi chú</span>
-        </button>
+      <div class="filter-group">
+        <select id="fieldFilterA">
+          <option value="all">Tất cả trường</option>
+        </select>
+        <select id="valueFilterB">
+          <option value="all">Tất cả giá trị</option>
+        </select>
       </div>
     </div>
-    <!-- PHẦN DƯỚI: Panel chi tiết, luôn nằm trên bàn phím ảo -->
-    <div id="detailPanel" class="detail-panel">
-      <div class="detail-placeholder">アイテムを選択 / Chọn một kết quả</div>
+    <!-- Cột 2: Kết quả tìm kiếm -->
+    <div class="col-results">
+      <table id="resultTable">
+        <thead>
+          <tr>
+            <th>Tên</th>
+            <th>Vị trí</th>
+            <th>Giá-tầng</th>
+            <th>Công ty</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Kết quả sẽ được render ở đây -->
+        </tbody>
+      </table>
     </div>
-  </div>
-  <div id="loadingIndicator" class="loading-overlay">
-    <div class="loading-content">
-      <div class="spinner"></div>
-      <p>読み込み中... / Đang tải...</p>
+    <!-- Cột 3: Nhóm nút cập nhật -->
+    <div class="col-actions">
+      <button class="btn-update" id="btnUpdateLocation"><i class="fas fa-map-marker-alt"></i><span>Cập nhật vị trí</span></button>
+      <button class="btn-update" id="btnUpdateShipment"><i class="fas fa-truck"></i><span>Cập nhật vận chuyển</span></button>
+      <button class="btn-update" id="btnUpdateTeflon"><i class="fas fa-flask"></i><span>Teflon</span></button>
+      <button class="btn-update" id="btnUpdateComment"><i class="fas fa-comment"></i><span>Ghi chú</span></button>
     </div>
   </div>
-  <script src="script-ipad4.js"></script>
+
+  <!-- PHẦN DƯỚI: Chi tiết & bàn phím -->
+  <div class="main-bottom">
+    <!-- Lưới 6 cột: các nhóm thông tin -->
+    <div class="detail-grid">
+      <div class="detail-col" id="basicInfo"></div>
+      <div class="detail-col" id="designInfo"></div>
+      <div class="detail-col" id="productInfo"></div>
+      <div class="detail-col" id="relatedCutters"></div>
+      <div class="detail-col" id="historyInfo"></div>
+      <div class="detail-col" id="updateGroup"></div>
+    </div>
+    <!-- Bàn phím ảo (luôn hiển thị trên iPad) -->
+    <div class="virtual-keyboard" id="virtualKeyboard"></div>
+  </div>
+
+  <!-- Popups cập nhật -->
+  <div class="modal" id="modalUpdateLocation">
+    <div class="modal-content">
+      <h3>Cập nhật vị trí</h3>
+      <select id="rackSelect"></select>
+      <select id="rackLayerSelect"></select>
+      <input id="locationNotes" type="text" placeholder="Ghi chú (nếu có)">
+      <button id="saveLocationBtn" class="btn-save">Lưu</button>
+      <button onclick="closeModal('modalUpdateLocation')" class="btn-cancel">Đóng</button>
+    </div>
+  </div>
+  <div class="modal" id="modalUpdateShipment">
+    <div class="modal-content">
+      <h3>Cập nhật vận chuyển</h3>
+      <select id="toCompanySelect"></select>
+      <input id="shipmentDate" type="date">
+      <input id="shipmentHandler" type="text" placeholder="Người thực hiện">
+      <input id="shipmentNotes" type="text" placeholder="Ghi chú (nếu có)">
+      <button id="saveShipmentBtn" class="btn-save">Lưu</button>
+      <button onclick="closeModal('modalUpdateShipment')" class="btn-cancel">Đóng</button>
+    </div>
+  </div>
+  <div class="modal" id="modalUpdateTeflon">
+    <div class="modal-content">
+      <h3>Cập nhật trạng thái Teflon</h3>
+      <select id="teflonStatus">
+        <option value="none">Chưa mạ</option>
+        <option value="sent">Đã gửi đi</option>
+        <option value="received">Đã nhận về</option>
+      </select>
+      <input id="teflonDateSent" type="date" placeholder="Ngày gửi đi">
+      <input id="teflonDateReceived" type="date" placeholder="Ngày nhận về">
+      <button id="saveTeflonBtn" class="btn-save">Lưu</button>
+      <button onclick="closeModal('modalUpdateTeflon')" class="btn-cancel">Đóng</button>
+    </div>
+  </div>
+  <div class="modal" id="modalUpdateComment">
+    <div class="modal-content">
+      <h3>Ghi chú người dùng</h3>
+      <textarea id="userComment" rows="3" placeholder="Nhập ghi chú..."></textarea>
+      <button id="saveCommentBtn" class="btn-save">Lưu</button>
+      <button onclick="closeModal('modalUpdateComment')" class="btn-cancel">Đóng</button>
+    </div>
+  </div>
+
+  <!-- Loading & thông báo -->
+  <div class="loading" id="loadingIndicator"><span>Đang tải...</span></div>
+  <div class="notification" id="notification"></div>
+
+  <script src="script-ipad-v4.37.js"></script>
 </body>
 </html>
