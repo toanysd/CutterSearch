@@ -1,122 +1,126 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=1024, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-  <title>MoldCutter Search V4.37 for iPad</title>
-  <link rel="stylesheet" href="styles-v4.37-ipad.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <meta charset="UTF-8">
+    <title>MoldCutter iPad4 TouchPanel V4.37</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="styles-ipad4.css">
 </head>
-<body>
-  <!-- PHẦN TRÊN: Tìm kiếm, kết quả, cập nhật -->
-  <div class="main-top">
-    <!-- Cột 1: Tìm kiếm & lọc -->
-    <div class="col-search">
-      <div class="search-group">
-        <input id="searchInput" type="text" placeholder="検索/Tra cứu: コード・名前・位置..." autocomplete="off" autofocus aria-label="検索キーワード">
-        <button id="clearSearchBtn" class="btn-clear" title="クリア/Xóa"><i class="fas fa-times"></i></button>
-      </div>
-      <div class="filter-group">
-        <select id="fieldFilterA">
-          <option value="all">すべてのフィールド/Tất cả trường</option>
-        </select>
-        <select id="valueFilterB">
-          <option value="all">すべての値/Tất cả giá trị</option>
-        </select>
-      </div>
+<body class="ipad4-layout">
+    <!-- PHẦN TRÊN: 3 cột cố định -->
+    <div class="top-section">
+        <!-- Cột 1: Tìm kiếm & Lọc -->
+        <div class="search-column">
+            <div class="search-header">検索 / Tìm kiếm</div>
+            
+            <!-- Ô tìm kiếm chính -->
+            <div class="search-box">
+                <input id="searchInput" type="text" placeholder="金型・カッター名 / Tên khuôn, dao cắt..." autocomplete="off" autofocus>
+                <button id="clearSearchBtn" class="clear-btn">×</button>
+            </div>
+            
+            <!-- Bộ lọc -->
+            <div class="filter-section">
+                <select id="categoryFilter" class="filter-select">
+                    <option value="all">全て / Tất cả</option>
+                    <option value="mold">金型 / Khuôn</option>
+                    <option value="cutter">カッター / Dao cắt</option>
+                </select>
+                
+                <select id="fieldFilter" class="filter-select">
+                    <option value="all">全項目 / Tất cả trường</option>
+                    <option value="name">名前 / Tên</option>
+                    <option value="code">コード / Mã</option>
+                    <option value="location">位置 / Vị trí</option>
+                    <option value="company">会社 / Công ty</option>
+                </select>
+                
+                <select id="valueFilter" class="filter-select">
+                    <option value="all">全て / Tất cả</option>
+                </select>
+                
+                <button id="resetFiltersBtn" class="reset-btn">リセット / Reset</button>
+            </div>
+            
+            <!-- Lịch sử tìm kiếm -->
+            <div id="searchHistory" class="search-history"></div>
+        </div>
+        
+        <!-- Cột 2: Kết quả tìm kiếm -->
+        <div class="results-column">
+            <div class="results-header">
+                <span id="resultsCount">0 件 / 0 kết quả</span>
+                <span id="selectedInfo" class="selected-info"></span>
+            </div>
+            
+            <div id="resultsList" class="results-list"></div>
+        </div>
+        
+        <!-- Cột 3: Nút cập nhật -->
+        <div class="actions-column">
+            <button id="updateLocationBtn" class="action-btn location" disabled>
+                位置更新<br><span>Cập nhật vị trí</span>
+            </button>
+            <button id="updateShipmentBtn" class="action-btn shipment" disabled>
+                搬送更新<br><span>Vận chuyển</span>
+            </button>
+            <button id="updateTeflonBtn" class="action-btn teflon" disabled>
+                テフロン<br><span>Mạ Teflon</span>
+            </button>
+            <button id="updateCommentBtn" class="action-btn comment" disabled>
+                コメント<br><span>Ghi chú</span>
+            </button>
+        </div>
     </div>
-    <!-- Cột 2: Kết quả tìm kiếm -->
-    <div class="col-results">
-      <table id="resultTable">
-        <thead>
-          <tr>
-            <th>名前<br><span class="sub">Tên</span></th>
-            <th>位置<br><span class="sub">Vị trí</span></th>
-            <th>棚-段<br><span class="sub">Giá-tầng</span></th>
-            <th>会社<br><span class="sub">Công ty</span></th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Kết quả sẽ được render ở đây -->
-        </tbody>
-      </table>
+    
+    <!-- PHẦN DƯỚI: Chi tiết 6 cột -->
+    <div id="detailSection" class="detail-section">
+        <div class="detail-grid">
+            <!-- 3 cột trái: Thông tin cơ bản -->
+            <div class="detail-col basic-info">
+                <h4>基本情報 / Thông tin cơ bản</h4>
+                <div id="basicInfoContent"></div>
+            </div>
+            
+            <div class="detail-col design-info">
+                <h4>設計情報 / Thiết kế</h4>
+                <div id="designInfoContent"></div>
+            </div>
+            
+            <div class="detail-col product-info">
+                <h4>製品情報 / Sản phẩm</h4>
+                <div id="productInfoContent"></div>
+            </div>
+            
+            <!-- 3 cột phải: Cập nhật & Lịch sử -->
+            <div class="detail-col teflon-comment">
+                <h4>テフロン・コメント / Teflon & Ghi chú</h4>
+                <div id="teflonCommentContent"></div>
+            </div>
+            
+            <div class="detail-col location-history">
+                <h4>位置履歴 / Lịch sử vị trí</h4>
+                <div id="locationHistoryContent"></div>
+            </div>
+            
+            <div class="detail-col shipment-history">
+                <h4>搬送履歴 / Lịch sử vận chuyển</h4>
+                <div id="shipmentHistoryContent"></div>
+            </div>
+        </div>
     </div>
-    <!-- Cột 3: Nhóm nút cập nhật -->
-    <div class="col-actions">
-      <button class="btn-update" id="btnUpdateLocation"><i class="fas fa-map-marker-alt"></i><span>位置更新<br>Cập nhật vị trí</span></button>
-      <button class="btn-update" id="btnUpdateShipment"><i class="fas fa-truck"></i><span>出荷更新<br>Cập nhật vận chuyển</span></button>
-      <button class="btn-update" id="btnUpdateTeflon"><i class="fas fa-flask"></i><span>テフロン<br>Teflon</span></button>
-      <button class="btn-update" id="btnUpdateComment"><i class="fas fa-comment"></i><span>コメント<br>Ghi chú</span></button>
+    
+    <!-- Loading Indicator -->
+    <div id="loadingIndicator" class="loading-overlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p>読み込み中... / Đang tải...</p>
+        </div>
     </div>
-  </div>
-
-  <!-- PHẦN DƯỚI: Chi tiết & bàn phím -->
-  <div class="main-bottom">
-    <div class="detail-grid">
-      <div class="detail-col" id="basicInfo"></div>
-      <div class="detail-col" id="designInfo"></div>
-      <div class="detail-col" id="productInfo"></div>
-      <div class="detail-col" id="relatedCutters"></div>
-      <div class="detail-col" id="historyInfo"></div>
-      <div class="detail-col" id="updateGroup"></div>
-    </div>
-    <div class="virtual-keyboard" id="virtualKeyboard"></div>
-  </div>
-
-  <!-- MODAL cập nhật vị trí -->
-  <div class="modal" id="modalUpdateLocation">
-    <div class="modal-content">
-      <h3>位置更新 / Cập nhật vị trí</h3>
-      <label>棚 (ラック/Rack):<br><select id="rackSelect"></select></label>
-      <label>段 (レイヤー/Tầng):<br><select id="rackLayerSelect"></select></label>
-      <label>担当者 (Người thực hiện):<br><select id="employeeSelect"></select></label>
-      <label>メモ (Ghi chú):<br><input id="locationNotes" type="text"></label>
-      <button id="saveLocationBtn" class="btn-save">保存/Lưu</button>
-      <button onclick="closeModal('modalUpdateLocation')" class="btn-cancel">閉じる/Đóng</button>
-    </div>
-  </div>
-  <!-- MODAL cập nhật vận chuyển -->
-  <div class="modal" id="modalUpdateShipment">
-    <div class="modal-content">
-      <h3>出荷更新 / Cập nhật vận chuyển</h3>
-      <label>宛先会社 (Công ty đến):<br><select id="toCompanySelect"></select></label>
-      <label>日付 (Ngày):<br><input id="shipmentDate" type="date"></label>
-      <label>担当者 (Người thực hiện):<br><input id="shipmentHandler" type="text"></label>
-      <label>メモ (Ghi chú):<br><input id="shipmentNotes" type="text"></label>
-      <button id="saveShipmentBtn" class="btn-save">保存/Lưu</button>
-      <button onclick="closeModal('modalUpdateShipment')" class="btn-cancel">閉じる/Đóng</button>
-    </div>
-  </div>
-  <!-- MODAL cập nhật Teflon -->
-  <div class="modal" id="modalUpdateTeflon">
-    <div class="modal-content">
-      <h3>テフロン更新 / Cập nhật Teflon</h3>
-      <label>状態 (Trạng thái):<br>
-        <select id="teflonStatus">
-          <option value="none">未処理/Chưa mạ</option>
-          <option value="sent">送付済/Đã gửi đi</option>
-          <option value="received">受取済/Đã nhận về</option>
-        </select>
-      </label>
-      <label>送付日 (Ngày gửi đi):<br><input id="teflonDateSent" type="date"></label>
-      <label>受取日 (Ngày nhận về):<br><input id="teflonDateReceived" type="date"></label>
-      <button id="saveTeflonBtn" class="btn-save">保存/Lưu</button>
-      <button onclick="closeModal('modalUpdateTeflon')" class="btn-cancel">閉じる/Đóng</button>
-    </div>
-  </div>
-  <!-- MODAL cập nhật ghi chú -->
-  <div class="modal" id="modalUpdateComment">
-    <div class="modal-content">
-      <h3>コメント / Ghi chú</h3>
-      <label>担当者 (Người ghi chú):<br><select id="commentEmployeeSelect"></select></label>
-      <label>内容 (Nội dung):<br><textarea id="userComment" rows="3"></textarea></label>
-      <button id="saveCommentBtn" class="btn-save">保存/Lưu</button>
-      <button onclick="closeModal('modalUpdateComment')" class="btn-cancel">閉じる/Đóng</button>
-    </div>
-  </div>
-
-  <div class="loading" id="loadingIndicator"><span>読み込み中/Đang tải...</span></div>
-  <div class="notification" id="notification"></div>
-  <script src="script-v4.37-ipad.js"></script>
+    
+    <!-- Modal containers sẽ được tạo động bởi JS -->
+    <div id="modalContainer"></div>
+    
+    <script src="script-ipad4.js"></script>
 </body>
 </html>
