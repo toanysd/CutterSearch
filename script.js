@@ -436,9 +436,12 @@ function processDataRelationships() {
     mold.moldStatus = moldStatus;
     
     // FIX: Đảm bảo TeflonCoating được đọc đúng từ CSV - V4.381
-    mold.TeflonCoating = mold.TeflonCoating || '';
-    mold.TeflonSentDate = mold.TeflonSentDate || '';
-    mold.TeflonReceivedDate = mold.TeflonReceivedDate || '';
+    // FIX: Đọc đúng TeflonCoating từ CSV
+    mold.TeflonCoating = (mold.TeflonCoating !== undefined && mold.TeflonCoating !== null) 
+      ? mold.TeflonCoating.toString().trim() 
+      : '';
+    mold.TeflonSentDate = (mold.TeflonSentDate || '').toString().trim();
+    mold.TeflonReceivedDate = (mold.TeflonReceivedDate || '').toString().trim();
     mold.itemType = 'mold';
   }
 
@@ -1458,7 +1461,6 @@ function renderFullResultsTable() {
   
   updateSelectionDisplay();
 }
-
 // =================== SELECTION FUNCTIONS ===================
 function toggleSelectAll() {
   var selectAllCheckbox = document.getElementById('selectAllCheckbox');
@@ -1786,10 +1788,32 @@ function renderMoldDetailData(item) {
   // Nhóm Teflon - V4.381 FIX: Kiểm tra đúng TeflonCoating
   html += '<div class="sub-section teflon-subsection">';
   html += '<h4 class="subsection-title teflon-title">テフロン情報 / Thông tin Teflon</h4>';
-  var teflonStatus = item.TeflonCoating || 'N/A';
-  var teflonSentDate = item.TeflonSentDate ? formatDate(item.TeflonSentDate) : 'N/A';
-  var teflonReceivedDate = item.TeflonReceivedDate ? formatDate(item.TeflonReceivedDate) : 'N/A';
+  // FIX: Hiển thị đúng trạng thái Teflon
+  var teflonStatus = '';
+  if (item.TeflonCoating && item.TeflonCoating.trim()) {
+    teflonStatus = item.TeflonCoating.trim();
+  } else {
+    teflonStatus = '未処理 / Chưa xử lý';
+  }
   
+  var teflonSentDate = 'N/A';
+  if (item.TeflonSentDate && item.TeflonSentDate.trim()) {
+    teflonSentDate = formatDate(item.TeflonSentDate.trim());
+  }
+  
+  var teflonReceivedDate = 'N/A';
+  if (item.TeflonReceivedDate && item.TeflonReceivedDate.trim()) {
+    teflonReceivedDate = formatDate(item.TeflonReceivedDate.trim());
+  }
+  
+  // Debug log
+  console.log('V4.381 Teflon Display:', {
+    MoldCode: item.MoldCode,
+    TeflonCoating: item.TeflonCoating,
+    teflonStatus: teflonStatus,
+    teflonSentDate: teflonSentDate,
+    teflonReceivedDate: teflonReceivedDate
+  });
   console.log('V4.381 DEBUG Teflon:', {
     TeflonCoating: item.TeflonCoating,
     TeflonSentDate: item.TeflonSentDate,
