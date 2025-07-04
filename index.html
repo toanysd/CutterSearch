@@ -3,280 +3,384 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>金型・カッター管理システム V4.37 / Hệ thống quản lý khuôn dao cắt</title>
+  <title>金型・抜型管理システム V4.381 / Hệ thống quản lý khuôn dao cắt</title>
   
   <!-- Preconnect for performance -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   
   <!-- Main stylesheet -->
   <link rel="stylesheet" href="styles.css">
   
   <!-- Meta tags -->
-  <meta name="description" content="金型・カッター管理システム V4.37 - 7列詳細表示、テフロン・コメント対応 / Hệ thống quản lý khuôn dao cắt V4.37">
-  <meta name="keywords" content="金型,カッター,検索,管理,mold,cutter,search,management,teflon,comment">
+  <meta name="description" content="金型・抜型管理システム V4.381 - iPad最適化、3列レイアウト / Hệ thống quản lý khuôn dao cắt V4.381 - Tối ưu iPad, layout 3 cột">
+  <meta name="keywords" content="金型,抜型,検索,管理,mold,cutter,search,management,iPad,optimized">
   
-  <!-- Favicon -->
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <!-- iPad specific meta tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="金型抜型 V4.381">
 </head>
 <body>
-  <!-- Main Layout: Two-panel design -->
-  <div class="main-layout">
+  <!-- Main Layout: 2 phần chia theo chiều dọc cho iPad -->
+  <div class="main-ipad-layout">
     
-    <!-- TOP PANEL: Search, Quick Results, Action Buttons -->
-    <div class="top-panel">
-      
-      <!-- Dynamic Header -->
-      <header id="dynamicHeader" class="dynamic-header all">
-        <div class="container">
-          <h1>🔧 金型・カッター管理システム V4.37</h1>
-          <div class="header-subtitle">7列詳細表示 / Hiển thị chi tiết 7 cột</div>
-        </div>
+    <!-- PHẦN 1: Khu vực thao tác nhanh (trên, chiếm ~50vh) -->
+    <div class="top-ipad-panel">
+      <!-- Header -->
+      <header class="dynamic-header all">
+        <h1>🔧 金型・抜型管理システム V4.381</h1>
+        <div class="header-subtitle">iPad最適化 3列レイアウト / Tối ưu iPad - Layout 3 cột</div>
       </header>
-
-      <div class="container">
-        <!-- Search Section -->
-        <section class="search-section">
+      
+      <!-- 3 Column Layout Container -->
+      <div class="three-column-container">
+        
+        <!-- CỘT 1: Nhóm tìm kiếm và lọc -->
+        <div class="search-filter-column">
+          <div class="column-title">検索・フィルター / Tìm kiếm & Lọc</div>
           
-          <!-- Search Controls Row 1 -->
-          <div class="search-controls-row-1">
-            <button id="zoomBtn" class="zoom-btn" onclick="zoomFit()" title="ズームフィット / Zoom fit" aria-label="Zoom fit">
-              🔍
-            </button>
-            
-            <div id="categoryToggle" class="category-toggle all" onclick="toggleCategory()" title="カテゴリ切替 / Chuyển đổi danh mục" aria-label="Toggle category">
-              <span id="categoryText">全て / Tất cả</span>
-            </div>
-            
-            <div class="search-input-container">
-              <button class="clear-search-btn" id="clearSearchBtn" onclick="clearSearch()" style="display: none;">×</button>
-              <input type="text" id="searchInput" placeholder="JAE313R1, 025-60023, 270x270, PS0.8, テフロン加工済..." autocomplete="off">
-              <span class="search-icon">🔎</span>
-            </div>
+          <!-- Toggle chọn loại (Radio buttons) -->
+          <div class="type-toggle-group">
+            <label class="toggle-radio">
+              <input type="radio" name="typeToggle" value="all" checked onchange="toggleCategory('all')">
+              <span class="toggle-text">全て</span>
+            </label>
+            <label class="toggle-radio">
+              <input type="radio" name="typeToggle" value="mold" onchange="toggleCategory('mold')">
+              <span class="toggle-text">金型</span>
+            </label>
+            <label class="toggle-radio">
+              <input type="radio" name="typeToggle" value="cutter" onchange="toggleCategory('cutter')">
+              <span class="toggle-text">抜型</span>
+            </label>
           </div>
-
+          
+          <!-- Search Input -->
+          <div class="search-input-wrapper">
+            <input type="text" id="searchInput" placeholder="コード・名前・サイズ..." maxlength="25" autocomplete="off">
+            <button class="clear-search-btn" id="clearSearchBtn" onclick="clearSearch()" style="display:none;" title="クリア / Xóa">×</button>
+          </div>
+          
           <!-- Search Suggestions -->
-          <div id="searchSuggestions" class="search-suggestions" style="display: none;">
+          <div id="searchSuggestions" class="search-suggestions" style="display:none;">
             <div class="suggestions-header">
-              <span class="suggestions-title">検索候補 / Gợi ý tìm kiếm</span>
-              <button class="clear-history-btn" onclick="clearSearchHistory()">履歴クリア / Xóa lịch sử</button>
+              <span class="suggestions-title">検索候補 / Gợi ý</span>
+              <button class="clear-history-btn" onclick="clearSearchHistory()">履歴クリア</button>
             </div>
             <div id="suggestionsList" class="suggestions-list">
-              <!-- Suggestions will be populated here -->
+              <!-- Suggestions sẽ được populate ở đây -->
             </div>
             <div class="suggestions-footer">
               <div class="popular-searches">
-                <div class="popular-title">人気検索 / Tìm kiếm phổ biến</div>
+                <div class="popular-title">人気検索 / Phổ biến</div>
                 <div class="popular-tags">
                   <span class="popular-tag" onclick="selectSuggestion('JAE')">JAE</span>
                   <span class="popular-tag" onclick="selectSuggestion('025-3551')">025-3551</span>
                   <span class="popular-tag" onclick="selectSuggestion('270x270')">270x270</span>
                   <span class="popular-tag" onclick="selectSuggestion('PS0.8')">PS0.8</span>
-                  <span class="popular-tag" onclick="selectSuggestion('テフロン加工済')">テフロン</span>
+                  <span class="popular-tag" onclick="selectSuggestion('テフロン')">テフロン</span>
                 </div>
               </div>
             </div>
           </div>
-
-          <!-- Search Controls Row 2 -->
-          <div class="search-controls-row-2">
-            <select id="fieldFilterA" class="field-filter" onchange="handleFieldFilterChange()" aria-label="フィールドフィルター / Bộ lọc trường">
+          
+          <!-- Filters -->
+          <div class="filter-group">
+            <select id="fieldFilterA" class="field-filter" onchange="handleFieldFilterChange()" aria-label="フィールドフィルター">
               <option value="all">全項目 / Tất cả trường</option>
             </select>
             
-            <select id="valueFilterB" class="value-filter" onchange="handleValueFilterChange()" aria-label="値フィルター / Bộ lọc giá trị">
+            <select id="valueFilterB" class="value-filter" onchange="handleValueFilterChange()" aria-label="値フィルター">
               <option value="all">全て / Tất cả</option>
             </select>
             
-            <button class="reset-btn" onclick="resetFilters()" title="フィルターリセット / Đặt lại bộ lọc" aria-label="Reset filters">
-              リセット / Đặt lại
-            </button>
-          </div>
-        </section>
-
-        <!-- Quick Results Section -->
-        <section class="quick-results-section">
-          <div class="quick-results-header">
-            <h3>クイック結果 / Kết quả nhanh</h3>
-            <span id="resultsCount" class="results-count">0 件 / 0 kết quả</span>
-          </div>
-          <div id="quickResults" class="quick-results">
-            <!-- Quick results will be populated here -->
-          </div>
-        </section>
-
-        <!-- Action Buttons -->
-        <section class="action-buttons-section">
-          <div class="action-buttons">
-            <button id="updateLocationBtn" class="action-btn location" disabled>
-              📍 位置更新 / Cập nhật vị trí
-            </button>
-            <button id="updateShipmentBtn" class="action-btn shipment" disabled>
-              🚚 搬送更新 / Cập nhật vận chuyển
-            </button>
-            <button id="updateTeflonBtn" class="action-btn teflon" disabled>
-              🛡️ テフロン更新 / Mạ Teflon
-            </button>
-            <button id="updateCommentBtn" class="action-btn comment" disabled>
-              💬 コメント / Ghi chú
-            </button>
-            <button id="printBtn" class="action-btn primary print">
-              🖨️ 印刷 / In
-            </button>
-          </div>
-          <div id="selectedInfo" class="selected-info" style="display: none;">
-            <!-- Selected item info will be shown here -->
-          </div>
-        </section>
-      </div>
-    </div>
-
-    <!-- BOTTOM PANEL: Full Results Table OR Detail View -->
-    <div class="bottom-panel">
-      
-      <!-- Full Results Table (Default View) -->
-      <div id="fullResultsTable" class="full-results-table">
-        <div class="results-header">
-          <div class="results-info">
-            <span class="results-count" id="resultsCountBottom">0 件 / 0 kết quả</span>
-            <span class="selected-count" id="selectedCount" style="display: none;">0 選択 / 0 đã chọn</span>
-          </div>
-          
-          <div class="results-controls">
-            <!-- Selection Actions -->
-            <div class="selection-actions">
-              <button class="action-btn" onclick="selectAll()" title="全選択 / Chọn tất cả" aria-label="Select all">
-                全選択 / Chọn tất cả
-              </button>
-              <button class="action-btn" onclick="clearSelection()" title="選択解除 / Bỏ chọn" aria-label="Clear selection">
-                解除 / Bỏ chọn
-              </button>
-              <button class="action-btn primary" id="printSelectedBtn" onclick="printSelected()" style="display: none;" title="選択印刷 / In đã chọn" aria-label="Print selected">
-                印刷 / In
-              </button>
-            </div>
-
-            <!-- View Toggle -->
-            <div class="view-toggle">
-              <input type="checkbox" id="viewToggle" onchange="handleViewToggle()" aria-label="表示切替 / Chuyển đổi hiển thị">
-              <label for="viewToggle" class="toggle-label">
-                <div class="toggle-slider">
-                  <span class="toggle-icon table-icon">📋</span>
-                  <span class="toggle-icon grid-icon">⊞</span>
-                </div>
-              </label>
-            </div>
-            
-            <button class="action-btn" onclick="zoomFit()" title="ズームフィット / Zoom fit" aria-label="Zoom fit">
-              🔍 フィット / Fit
+            <button class="reset-btn" onclick="resetFilters()" title="フィルターリセット">
+              リセット / Reset
             </button>
           </div>
         </div>
 
-        <!-- Table View -->
-        <div id="tableView" class="table-view">
-          <div class="table-container">
-            <table class="data-table" id="dataTable">
+        <!-- CỘT 2: Kết quả nhanh - DẠNG BẢNG THEO CHIỀU NGANG -->
+        <div class="quick-results-column">
+          <div class="column-title">
+            クイック結果 / Kết quả nhanh
+            <span id="resultsCount" class="results-count-badge">0 件</span>
+          </div>
+          
+          <!-- Quick Results Table - DẠNG BẢNG THAY VÌ GRID -->
+          <div class="quick-results-table-container">
+            <table class="quick-results-table" id="quickResultsTable">
               <thead>
                 <tr>
-                  <th class="col-select">
-                    <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll()" aria-label="全選択 / Chọn tất cả">
-                  </th>
-                  <th class="col-id sortable" onclick="sortTable('id')">
-                    ID <span class="sort-icon"></span>
-                  </th>
-                  <th class="col-name sortable" onclick="sortTable('name')">
-                    名前 / Tên <span class="sort-icon"></span>
-                  </th>
-                  <th class="col-size sortable" onclick="sortTable('size')">
-                    サイズ / Kích thước <span class="sort-icon"></span>
-                  </th>
-                  <th class="col-location sortable" onclick="sortTable('location')">
-                    位置 / Vị trí <span class="sort-icon"></span>
-                  </th>
-                  <th class="col-rack-location sortable" onclick="sortTable('rackLocation')">
-                    棚位置 / Vị trí kệ <span class="sort-icon"></span>
-                  </th>
-                  <th class="col-company sortable" onclick="sortTable('company')">
-                    会社 / Công ty <span class="sort-icon"></span>
-                  </th>
-                  <th class="col-status sortable" onclick="sortTable('status')">
-                    状態 / Trạng thái <span class="sort-icon"></span>
-                  </th>
-                  <th class="col-notes sortable" onclick="sortTable('notes')">
-                    備考 / Ghi chú <span class="sort-icon"></span>
-                  </th>
+                  <th class="quick-col-type">種類</th>
+                  <th class="quick-col-code">コード</th>
+                  <th class="quick-col-name">名前</th>
+                  <th class="quick-col-size">サイズ</th>
+                  <th class="quick-col-location">位置</th>
+                  <th class="quick-col-company">会社</th>
                 </tr>
               </thead>
-              <tbody id="dataTableBody">
-                <!-- Data will be populated here -->
+              <tbody id="quickResultsBody">
+                <!-- Quick results sẽ được populate ở đây bởi JavaScript -->
               </tbody>
             </table>
           </div>
         </div>
 
-        <!-- Pagination -->
-        <div class="pagination">
-          <div class="pagination-info">
-            <select id="pageSize" class="page-size-select" onchange="changePageSize()" aria-label="ページサイズ / Kích thước trang">
-              <option value="25">25</option>
-              <option value="50" selected>50</option>
-              <option value="100">100</option>
-              <option value="200">200</option>
-            </select>
-            <span class="page-info">件 / mục per page</span>
+        <!-- CỘT 3: Nút cập nhật -->
+        <div class="action-buttons-column">
+          <div class="column-title">更新 / Cập nhật</div>
+          
+          <!-- Action Buttons -->
+          <div class="action-buttons-grid">
+            <button id="updateLocationBtn" class="action-btn location" disabled title="位置更新 / Cập nhật vị trí">
+              <div class="btn-icon">📍</div>
+              <div class="btn-text">
+                <div class="btn-primary-text">位置更新</div>
+                <div class="btn-secondary-text">Cập nhật vị trí</div>
+              </div>
+            </button>
+            
+            <button id="updateShipmentBtn" class="action-btn shipment" disabled title="搬送更新 / Cập nhật vận chuyển">
+              <div class="btn-icon">🚚</div>
+              <div class="btn-text">
+                <div class="btn-primary-text">搬送更新</div>
+                <div class="btn-secondary-text">Vận chuyển</div>
+              </div>
+            </button>
+            
+            <button id="updateTeflonBtn" class="action-btn teflon" disabled title="テフロン更新 / Cập nhật Teflon">
+              <div class="btn-icon">🛡️</div>
+              <div class="btn-text">
+                <div class="btn-primary-text">テフロン</div>
+                <div class="btn-secondary-text">Mạ Teflon</div>
+              </div>
+            </button>
+            
+            <button id="updateCommentBtn" class="action-btn comment" disabled title="コメント追加 / Thêm ghi chú">
+              <div class="btn-icon">💬</div>
+              <div class="btn-text">
+                <div class="btn-primary-text">コメント</div>
+                <div class="btn-secondary-text">Ghi chú</div>
+              </div>
+            </button>
           </div>
-          <div id="paginationControls" class="pagination-controls">
-            <!-- Pagination buttons will be populated here -->
+          
+          <!-- Selected Item Info -->
+          <div id="selectedInfo" class="selected-info" style="display:none;">
+            <div class="selected-title">選択中 / Đã chọn:</div>
+            <div id="selectedItemDetails" class="selected-details">
+              <!-- Selected item details sẽ được populate ở đây -->
+            </div>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Detail View (Hidden by default) -->
-      <div id="detailView" class="detail-view">
-        <div class="detail-header">
-          <button id="backBtn" class="back-btn">
-            ← 戻る / Quay lại
-          </button>
-          <h2>詳細情報 / Thông tin chi tiết (7列表示)</h2>
-          <button class="action-btn primary" onclick="printDetail()">
-            🖨️ 印刷 / In chi tiết
-          </button>
-        </div>
+    <!-- PHẦN 2: Bảng kết quả chi tiết hoặc trang chi tiết (dưới, chiếm ~50vh) -->
+    <div class="bottom-ipad-panel">
+      <div class="results-section">
         
-        <div id="detailContent" class="detail-content">
-          <!-- Detail content will be populated here with 7 columns -->
+        <!-- Results Header -->
+        <div class="results-header">
+          <div class="results-info">
+            <span class="results-count-full" id="resultsCountBottom">0 件見つかりました / 0 kết quả</span>
+            <span class="selected-count" id="selectedCount" style="display:none;">0 選択 / 0 đã chọn</span>
+          </div>
+          
+          <div class="results-controls">
+            <!-- Selection Actions -->
+            <div class="selection-actions">
+              <button class="control-btn" onclick="selectAll()" title="全選択 / Chọn tất cả">
+                全選択
+              </button>
+              <button class="control-btn" onclick="clearSelection()" title="選択解除 / Bỏ chọn">
+                解除
+              </button>
+              <button class="control-btn primary" id="printSelectedBtn" onclick="printSelected()" style="display:none;" title="選択印刷 / In đã chọn">
+                印刷
+              </button>
+            </div>
+            
+            <!-- View Controls -->
+            <div class="view-controls">
+              <button class="control-btn" onclick="zoomFit()" title="ズームフィット / Zoom fit">
+                🔍 フィット
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Full Results Table (Default View) -->
+        <div id="fullResultsTable" class="full-results-table">
+          <div class="table-container">
+            <table class="data-table" id="dataTable">
+              <thead>
+                <tr>
+                  <th class="col-select">
+                    <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll()" aria-label="全選択 / Chọn tất cả" title="全選択 / Chọn tất cả">
+                  </th>
+                  <th class="col-id sortable" onclick="sortTable('id')">ID / CutterNo</th>
+                  <th class="col-name sortable" onclick="sortTable('name')">名称 / Tên</th>
+                  <th class="col-size sortable" onclick="sortTable('size')">サイズ / Cutline</th>
+                  <th class="col-location sortable" onclick="sortTable('location')">場所 / Vị trí</th>
+                  <th class="col-rack-location sortable" onclick="sortTable('rackLocation')">棚位置</th>
+                  <th class="col-company sortable" onclick="sortTable('company')">保管会社</th>
+                  <th class="col-notes sortable" onclick="sortTable('notes')">備考 / Ghi chú</th>
+                </tr>
+              </thead>
+              <tbody id="dataTableBody">
+                <!-- Data sẽ được populate ở đây bởi JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Detail View (Hidden by default, hiển thị trong phần 2) -->
+        <div id="detailView" class="detail-view" style="display:none;">
+          <!-- Detail content sẽ được render động bởi JavaScript -->
+          <div class="detail-placeholder">
+            <div style="text-align:center; padding:40px; color:#9ca3af; font-style: italic;">
+              アイテムを選択してください / Vui lòng chọn một kết quả để xem chi tiết
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
   <!-- Loading Indicator -->
-  <div id="loadingIndicator" class="loading-overlay">
+  <div id="loadingIndicator" class="loading-overlay" style="display:none;">
     <div class="loading-content">
       <div class="spinner"></div>
-      <span class="loading-text">読み込み中... / Đang tải...</span>
+      <span class="loading-text">読み込み中... / Đang tải dữ liệu...</span>
     </div>
   </div>
 
+  <!-- Error Message -->
+  <div id="errorMessage" class="error-message" style="display:none;">
+    <div class="error-icon">⚠️</div>
+    <h3>エラーが発生しました / Đã xảy ra lỗi</h3>
+    <p id="errorText">システムエラーが発生しました。再試行してください。</p>
+    <button class="retry-btn" onclick="location.reload()">再試行 / Thử lại</button>
+  </div>
+
   <!-- No Data Message -->
-  <div id="noDataMessage" class="no-data-message" style="display: none;">
+  <div id="noDataMessage" class="no-data-message" style="display:none;">
     <div class="no-data-icon">📭</div>
     <h3>データが見つかりません / Không tìm thấy dữ liệu</h3>
     <p>検索条件を変更してください / Vui lòng thay đổi điều kiện tìm kiếm</p>
     <button class="reset-btn" onclick="resetFilters()">フィルターリセット / Đặt lại bộ lọc</button>
   </div>
 
-  <!-- Error Message -->
-  <div id="errorMessage" class="error-message" style="display: none;">
-    <div class="error-icon">⚠️</div>
-    <h3>エラーが発生しました / Đã xảy ra lỗi</h3>
-    <p id="errorText"></p>
-    <button class="retry-btn" onclick="location.reload()">再試行 / Thử lại</button>
+  <!-- Success Message (for updates) -->
+  <div id="successMessage" class="success-message" style="display:none;">
+    <div class="success-icon">✅</div>
+    <h3>成功 / Thành công</h3>
+    <p id="successText">操作が完了しました。</p>
+    <button class="success-btn" onclick="closeSuccessMessage()">OK</button>
+  </div>
+
+  <!-- Modal Container (for update forms) -->
+  <div id="modalContainer" class="modal-container">
+    <!-- Modals sẽ được tạo động bởi JavaScript -->
+  </div>
+
+  <!-- Debug Info (for development, can be removed in production) -->
+  <div id="debugInfo" class="debug-info" style="display:none; position:fixed; bottom:10px; right:10px; background:rgba(0,0,0,0.8); color:white; padding:8px; border-radius:4px; font-size:12px; z-index:10000;">
+    <div>Version: V4.381</div>
+    <div>Items: <span id="debugItemCount">0</span></div>
+    <div>Filtered: <span id="debugFilteredCount">0</span></div>
+    <div>Selected: <span id="debugSelectedCount">0</span></div>
   </div>
 
   <!-- Scripts -->
+  <script>
+    // Global configuration for iPad optimization
+    window.IPAD_OPTIMIZED = true;
+    window.VERSION = 'V4.381';
+    window.LAYOUT_TYPE = '3_COLUMN_TABLE';
+    
+    // Prevent zoom on double tap for iPad
+    var lastTouchEnd = 0;
+    document.addEventListener('touchend', function (event) {
+      var now = (new Date()).getTime();
+      if (now - lastTouchEnd <= 300) {
+        event.preventDefault();
+      }
+      lastTouchEnd = now;
+    }, false);
+    
+    // Prevent zoom on input focus for iPad
+    document.addEventListener('touchstart', function(event) {
+      if (event.touches.length > 1) {
+        event.preventDefault();
+      }
+    });
+    
+    // Console log for debugging
+    console.log('🎉 金型・抜型管理システム V4.381 - iPad最適化 3列レイアウト');
+    console.log('📱 Layout: 2パネル (上: 3列検索・結果テーブル・ボタン, 下: テーブル・詳細)');
+    console.log('🔧 Features: Radio Toggle選択, Quick Table, Touch最適化, Modal更新');
+  </script>
+  
+  <!-- Main application script -->
   <script src="script.js"></script>
+  
+  <!-- Additional iPad optimizations -->
+  <script>
+    // iPad specific optimizations after DOM load
+    document.addEventListener('DOMContentLoaded', function() {
+      // Add iPad class to body for specific styling
+      if (navigator.userAgent.match(/iPad/i)) {
+        document.body.classList.add('ipad-device');
+      }
+      
+      // Optimize viewport for iPad
+      if (window.innerWidth >= 768 && window.innerWidth <= 1024) {
+        document.body.classList.add('ipad-layout');
+      }
+      
+      // Debug info toggle (remove in production)
+      var debugToggleCount = 0;
+      document.addEventListener('click', function(e) {
+        if (e.target.tagName === 'H1') {
+          debugToggleCount++;
+          if (debugToggleCount >= 5) {
+            var debugInfo = document.getElementById('debugInfo');
+            if (debugInfo) {
+              debugInfo.style.display = debugInfo.style.display === 'none' ? 'block' : 'none';
+            }
+            debugToggleCount = 0;
+          }
+        }
+      });
+      
+      // Update debug info
+      function updateDebugInfo() {
+        var debugItemCount = document.getElementById('debugItemCount');
+        var debugFilteredCount = document.getElementById('debugFilteredCount');
+        var debugSelectedCount = document.getElementById('debugSelectedCount');
+        
+        if (debugItemCount && window.allData) {
+          var totalItems = (window.allData.molds || []).length + (window.allData.cutters || []).length;
+          debugItemCount.textContent = totalItems;
+        }
+        
+        if (debugFilteredCount && window.filteredData) {
+          debugFilteredCount.textContent = window.filteredData.length || 0;
+        }
+        
+        if (debugSelectedCount && window.selectedItems) {
+          debugSelectedCount.textContent = window.selectedItems ? window.selectedItems.size : 0;
+        }
+      }
+      
+      // Update debug info periodically
+      setInterval(updateDebugInfo, 1000);
+    });
+  </script>
 </body>
 </html>
