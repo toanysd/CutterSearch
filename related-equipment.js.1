@@ -1,0 +1,337 @@
+/**
+ * related-equipment.js - V7.7.7 FIXED
+ * 連携設備（関連する金型・抜型）/ Thiết bị liên quan (Khuôn/Dao cắt)
+ * 
+ * LOGIC ĐÚNG:
+ * - Chọn Mold → Hiển thị Cutter liên quan: MoldID → MoldDesignID → CutterID (moldcutter.csv)
+ * - Chọn Cutter → Hiển thị Mold liên quan: CutterID → MoldDesignID → MoldID (moldcutter.csv)
+ * 
+ * UX:
+ * - Title động: Chọn Mold hiển thị "関連抜型/Dao cắt", Chọn Cutter hiển thị "関連金型/Khuôn"
+ * - Badge 別抜き màu đỏ nổi bật khi YES
+ * - Luôn xóa trắng khi không có dữ liệu, không hiển thị record cũ
+ * - Click item → hiển thị trong cột 2, cột 3, đánh dấu selected
+ * - CSS tách riêng: related-equipment.css
+ */
+(function () {
+  'use strict';
+
+  const SELECTORS = {
+    col4Area: '.actions-lower',
+    relatedSection: '#related-equipment',
+    resultsContainer: '#results-container',
+    resultsTableRows: '.results-table tbody tr',
+    resultCards: '.result-card'
+  };
+
+  const RelatedEquipment = {
+    currentItem: null, // Lưu item hiện tại để tránh nhầm lẫn
+    currentSelectedId: null,
+
+    init() {
+      this.cache();
+      this.ensureContainer();
+      this.bindSelectionListeners();
+      this.renderEmpty();
+      console.log('[RelatedEquipment] 連携設備モジュール準備完了 / Module thiết bị liên quan đã sẵn sàng');
+    },
+
+    cache() {
+      this.resultsRoot = document.querySelector(SELECTORS.resultsContainer) || document.body;
+      this.col4Area = document.querySelector(SELECTORS.col4Area);
+      this.wrap = document.querySelector(SELECTORS.relatedSection);
+    },
+
+    ensureContainer() {
+      if (this.wrap && this.wrap.parentElement) return;
+      if (!this.col4Area) {
+        this.wrap = document.createElement('section');
+        this.wrap.id = 'related-equipment';
+        this.wrap.className = 'related-section';
+        this.resultsRoot.insertAdjacentElement('afterend', this.wrap);
+        return;
+      }
+      const sec = document.createElement('section');
+      sec.id = 'related-equipment';
+      sec.className = 'related-section';
+      this.col4Area.prepend(sec);
+      this.wrap = sec;
+    },
+
+    bindSelectionListeners() {
+      // 1) Click trên bảng kết quả (table rows)
+      document.addEventListener('click', (e) => {
+        const tr = e.target.closest(SELECTORS.resultsTableRows);
+        if (!tr) return;
+        const item = this.inferItemFromRow(tr);
+        if (item) this.update(item);
+      }, true);
+
+      // 2) Click trên thẻ kết quả (card view)
+      document.addEventListener('click', (e) => {
+        const card = e.target.closest(SELECTORS.resultCards);
+        if (!card) return;
+        const item = this.inferItemFromCard(card);
+        if (item) this.update(item);
+      }, true);
+
+      // 3) API công khai
+      window.showRelatedEquipment = (item) => this.update(item);
+    },
+
+    renderEmpty() {
+      if (!this.wrap) this.ensureContainer();
+      this.currentItem = null;
+      this.currentSelectedId = null;
+      this.wrap.classList.remove('is-mold', 'is-cutter');
+      this.wrap.innerHTML = `
+        <div class="related-header">
+          <div class="related-title">
+            <span class="main-text">連携設備 / Thiết bị liên quan</span>
+          </div>
+          <span class="dedicated-cutter-badge no">別抜き: -</span>
+        </div>
+        <div class="related-empty">項目を選択してください / Vui lòng chọn một mục</div>
+      `;
+    },
+
+    update(item) {
+      if (!item) {
+        this.renderEmpty();
+        return;
+      }
+
+      this.currentItem = item;
+      const type = item.itemType || (item.MoldID ? 'mold' : 'cutter');
+      this.wrap.classList.remove('is-mold', 'is-cutter');
+      this.wrap.classList.add(type === 'mold' ? 'is-mold' : 'is-cutter');
+
+      // SeparateCutter từ designInfo
+      const sep = (item.designInfo?.SeparateCutter || '').toString().trim().toLowerCase();
+      const isSeparate = sep === 'yes' || sep === '1' || sep === 'true' || sep === 'あり' || sep === '有' || sep === '別抜き';
+      const badgeClass = isSeparate ? 'yes' : 'no';
+      const badgeText = `別抜き: ${isSeparate ? 'YES' : 'NO'}`;
+
+      // Lấy danh sách liên quan ĐÚNG LOGIC
+      const related = type === 'mold'
+        ? this.getRelatedCuttersForMold(item)
+        : this.getRelatedMoldsForCutter(item);
+
+      // Title động
+      const titleMain = type === 'mold' ? '関連抜型' : '関連金型';
+      const titleSub = type === 'mold' ? 'Dao cắt liên quan' : 'Khuôn liên quan';
+
+      // Render
+      const listHtml = related.length === 0
+        ? `<div class="related-empty">関連する項目がありません / Không có thiết bị liên quan</div>`
+        : `<div class="related-list">
+            ${related.map(it => this.rowHtml(it, type)).join('')}
+           </div>`;
+
+      this.wrap.innerHTML = `
+        <div class="related-header">
+          <div class="related-title">
+            <span class="main-text">${titleMain}</span>
+            <span class="sub-text">${titleSub}</span>
+          </div>
+          <span class="dedicated-cutter-badge ${badgeClass}">${badgeText}</span>
+        </div>
+        ${listHtml}
+      `;
+
+      // Gắn click cho từng dòng → hiển thị trong cột 2, cột 3, đánh dấu selected
+      this.wrap.querySelectorAll('.related-item').forEach(el => {
+        el.addEventListener('click', () => {
+          const id = el.getAttribute('data-id') || '';
+          if (!id) return;
+          this.selectItem(id, el);
+        });
+      });
+    },
+
+    selectItem(id, clickedEl) {
+      // Tìm item theo ID
+      const item = DataManager.data.molds.find(m => m.MoldID === id)
+                || DataManager.data.cutters.find(c => c.CutterID === id);
+      if (!item) return;
+
+      this.currentSelectedId = id;
+
+      // Đánh dấu selected trong danh sách
+      this.wrap.querySelectorAll('.related-item').forEach(el => el.classList.remove('is-selected'));
+      if (clickedEl) clickedEl.classList.add('is-selected');
+
+      // Hiển thị trong cột 2 (gọi UIRenderer hoặc module hiển thị chi tiết)
+      if (window.UIRenderer && window.UIRenderer.showDetail) {
+        window.UIRenderer.showDetail(item);
+      }
+
+      // Cập nhật cột 3 nếu có module detail panel
+      if (window.DetailPanel && window.DetailPanel.show) {
+        window.DetailPanel.show(item);
+      }
+
+      console.log(`[RelatedEquipment] Selected: ${item.MoldID || item.CutterID}`, item);
+    },
+
+    // ==================== LOGIC ĐÚNG: Mold → Cutter ====================
+    getRelatedCuttersForMold(mold) {
+      if (!mold || !mold.MoldID) return [];
+
+      // B1: MoldID → MoldDesignID
+      const designId = mold.MoldDesignID || mold.designInfo?.MoldDesignID;
+      if (!designId) {
+        console.warn(`[RelatedEquipment] Mold ${mold.MoldID} không có MoldDesignID`);
+        return [];
+      }
+
+      // B2: MoldDesignID → CutterID (qua moldcutter.csv)
+      const mcLinks = DataManager.data.moldcutter.filter(mc => mc.MoldDesignID === designId);
+      if (!mcLinks || mcLinks.length === 0) {
+        console.log(`[RelatedEquipment] MoldDesignID ${designId} không có Cutter liên kết`);
+        return [];
+      }
+
+      // B3: Lấy Cutter chi tiết
+      const cutterIds = mcLinks.map(mc => mc.CutterID).filter(Boolean);
+      const cutters = cutterIds.map(id => DataManager.data.cutters.find(c => c.CutterID === id))
+                               .filter(Boolean)
+                               .map(c => ({ ...c, itemType: 'cutter' }));
+
+      console.log(`[RelatedEquipment] Mold ${mold.MoldID} → Design ${designId} → ${cutters.length} Cutters`);
+      return cutters;
+    },
+
+    // ==================== LOGIC ĐÚNG: Cutter → Mold ====================
+    getRelatedMoldsForCutter(cutter) {
+      if (!cutter || !cutter.CutterID) return [];
+
+      // B1: CutterID → MoldDesignID (qua moldcutter.csv)
+      const mcLinks = DataManager.data.moldcutter.filter(mc => mc.CutterID === cutter.CutterID);
+      if (!mcLinks || mcLinks.length === 0) {
+        console.log(`[RelatedEquipment] Cutter ${cutter.CutterID} không có MoldDesign liên kết`);
+        return [];
+      }
+
+      const designIds = mcLinks.map(mc => mc.MoldDesignID).filter(Boolean);
+      if (designIds.length === 0) {
+        console.warn(`[RelatedEquipment] Cutter ${cutter.CutterID} có liên kết nhưng thiếu MoldDesignID`);
+        return [];
+      }
+
+      // B2: MoldDesignID → MoldID
+      const molds = DataManager.data.molds.filter(m => designIds.includes(m.MoldDesignID))
+                                          .map(m => ({ ...m, itemType: 'mold' }));
+
+      console.log(`[RelatedEquipment] Cutter ${cutter.CutterID} → ${designIds.length} Designs → ${molds.length} Molds`);
+      return molds;
+    },
+
+    // ==================== ROW HTML ====================
+    rowHtml(it, parentType) {
+      const type = it.itemType || (it.MoldID ? 'mold' : 'cutter');
+      const id = type === 'cutter' ? it.CutterID : it.MoldID;
+
+      // Nội dung hiển thị theo loại
+      let codeLine, infoLine;
+      if (type === 'cutter') {
+        // Cutter: CutterNo, CutterName
+        codeLine = it.CutterNo || it.CutterID || '-';
+        infoLine = it.CutterName || '-';
+      } else {
+        // Mold: MoldCode, kích thước
+        codeLine = it.MoldCode || it.MoldID || '-';
+        const dims = this.formatDimensions(it);
+        infoLine = dims || it.MoldName || '-';
+      }
+
+      const loc = this.formatLocation(it);
+      const icon = type === 'cutter' ? '🔪' : '🧩';
+
+      const selected = this.currentSelectedId === id ? 'is-selected' : '';
+
+      return `
+        <div class="related-item ${selected}" data-id="${escapeHtml(id)}" data-type="${type}">
+          <span class="icon" aria-hidden="true">${icon}</span>
+          <div class="main">
+            <span class="code-line">${escapeHtml(codeLine)}</span>
+            <span class="info-line" title="${escapeHtml(infoLine)}">${escapeHtml(infoLine)}</span>
+          </div>
+          <div class="badges">
+            ${loc.rack ? `<span class="badge rack">${escapeHtml(loc.rack)}</span>` : ''}
+            ${loc.layer ? `<span class="badge layer">${escapeHtml(loc.layer)}</span>` : ''}
+          </div>
+        </div>
+      `;
+    },
+
+    formatDimensions(item) {
+      const w = item.Width || item.width;
+      const h = item.Height || item.height;
+      const d = item.Depth || item.depth;
+      const parts = [w, h, d].filter(x => x && !isNaN(x));
+      return parts.length > 0 ? parts.join(' × ') : '';
+    },
+
+    formatLocation(item) {
+      const rackName = item.rackInfo?.RackName || item.rackId || item.rackInfo?.RackID || '';
+      const layerName = item.rackLayerInfo?.Layer || item.rackLayerInfo?.RackLayerName || item.RackLayerID || '';
+      const rack = rackName ? `Giá: ${rackName}` : '';
+      const layer = layerName ? `Tầng: ${layerName}` : '';
+      return { rack, layer };
+    },
+
+    // ==================== INFER ITEM ====================
+    inferItemFromRow(tr) {
+      try {
+        const tds = Array.from(tr.querySelectorAll('td'));
+        if (tds.length < 2) return null;
+        const code = (tds[1].textContent || '').trim();
+        if (!code) return null;
+
+        let item = DataManager.data.molds.find(m => (m.MoldCode || '').trim() === code)
+                || DataManager.data.cutters.find(c => (c.CutterNo || '').trim() === code);
+
+        if (!item) {
+          item = DataManager.data.molds.find(m => m.MoldID === code)
+              || DataManager.data.cutters.find(c => c.CutterID === code);
+        }
+
+        if (item && !item.itemType) {
+          item.itemType = item.MoldID ? 'mold' : 'cutter';
+        }
+        return item || null;
+      } catch {
+        return null;
+      }
+    },
+
+    inferItemFromCard(card) {
+      const code = card.getAttribute('data-code') || card.querySelector('[data-code]')?.getAttribute('data-code');
+      if (code) {
+        let item = DataManager.data.molds.find(m => (m.MoldCode || '').trim() === code)
+                || DataManager.data.cutters.find(c => (c.CutterNo || '').trim() === code);
+        if (item && !item.itemType) item.itemType = item.MoldID ? 'mold' : 'cutter';
+        if (item) return item;
+      }
+      const text = (card.textContent || '').trim();
+      if (!text) return null;
+      let item = DataManager.data.molds.find(m => text.includes(m.MoldCode || '') || text.includes(m.MoldName || ''))
+             || DataManager.data.cutters.find(c => text.includes(c.CutterNo || '') || text.includes(c.CutterName || ''));
+      if (item && !item.itemType) item.itemType = item.MoldID ? 'mold' : 'cutter';
+      return item || null;
+    }
+  };
+
+  function escapeHtml(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
+  window.RelatedEquipment = RelatedEquipment;
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => RelatedEquipment.init());
+  } else {
+    RelatedEquipment.init();
+  }
+})();

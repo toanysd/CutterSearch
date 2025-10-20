@@ -1,0 +1,54 @@
+/* related-equipment.css — V7.7.7 UI polish (one-line, 3 chips) */
+
+/* Ẩn tiêu đề nội bộ khi panel có header để tránh trùng lặp */
+.related-eq-wrap.no-local-title .related-eq-header { display: none; }
+
+/* Danh sách và empty-state */
+.related-eq-list { display: flex; flex-direction: column; gap: 6px; }
+.related-eq-list .related-empty {
+  padding: 10px 12px; text-align: center; color: #667085;
+  background: #f8fafc; border: 1px dashed #d0d5dd; border-radius: 10px;
+}
+
+/* Một dòng/record */
+.rel-row { cursor: pointer; border: 1px solid #e4e7ee; border-radius: 10px; background: #fff; }
+.rel-row-line {
+  display: flex; align-items: center; gap: 8px; padding: 8px 10px; font-weight: 700; color: #1f2937;
+}
+.rel-row:hover { border-color: #7b68ee33; background: #f6f5ff; }
+.rel-row.is-selected { border-color: #7b68ee; box-shadow: 0 0 0 2px #7b68ee22 inset; }
+
+/* 3 CHIP theo màu riêng */
+.chip { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 4px 10px; font-size: 13px; line-height: 1; border: 1px solid transparent; }
+.chip-id   { background: #E8F0FE; border-color: #C7DBFF; color: #0B57D0; font-family: ui-monospace, Menlo, Consolas, monospace; }
+.chip-name { background: #FFF7E0; border-color: #FFE0B2; color: #9A5A00; }
+.chip-loc  { background: #E8F5E9; border-color: #C8E6C9; color: #0F5132; }
+
+/* Token vị trí: RackID trong khung tròn + dấu gạch + Layer dạng keycap */
+.loc-wrap { display: inline-flex; align-items: center; gap: 6px; }
+.rack-circle {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px;
+  background: #ffffff; border: 2px solid #22c55e; color: #16a34a; font-weight: 800;
+  font-size: 12px; line-height: 1;
+}
+.rack-circle.unicode { background: transparent; border-color: transparent; padding: 0; min-width: auto; height: auto; font-size: 16px; }
+
+/* Keycap cho Layer (fallback khi không dùng Unicode) */
+.layer-keycap {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 22px; height: 22px; padding: 0 6px; border-radius: 6px;
+  background: #111827; color: #fff; font-weight: 800; font-size: 12px; line-height: 1;
+  box-shadow: inset 0 -2px 0 rgba(255,255,255,.18);
+}
+.layer-keycap.unicode { background: transparent; color: inherit; box-shadow: none; padding: 0; min-width: auto; height: auto; font-size: 16px; }
+
+/* Badge 別抜き ở header bên phải giữ nguyên màu đỏ nổi */
+.badge-separate { margin-left: 6px; padding: 2px 8px; border-radius: 999px; background: #E53935; color: #fff; font-size: 12px; font-weight: 800; }
+
+/* Chủ đề hover theo loại */
+.related-eq-wrap.theme-cutter .rel-row:hover { background: #FFF9F0; }
+.related-eq-wrap.theme-mold   .rel-row:hover { background: #F0FDFF; }
+
+/* Truy cập */
+.rel-row:focus-visible { outline: 2px solid #7B68EE; outline-offset: 2px; }
