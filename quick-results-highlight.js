@@ -1,116 +1,65 @@
-/**
- * quick-results-highlight.js - V7.7.7
- * Đồng bộ trạng thái chọn ở cột 2 (Quick results).
- * - Click vào thẻ: thẻ đó -> active (remove inactive), các thẻ khác -> inactive.
- * - Phát sự kiện và đồng bộ chi tiết cột 3.
- * - Cung cấp API update(id,type) cho module khác gọi (ví dụ cột 4).
- */
+// quick-results-highlight.js v1.1 - Dynamic Color
 (function(){
-  'use strict';
+'use strict';
 
-  const SEL = {
-    grid: '#quick-results-grid',
-    card: '.result-card'
-  };
+const LIST_SEL = ['#quick-results-list','.quick-results-grid','#quick-results','[data-role="quick-results"]'];
 
-  function init() {
-    const grid = document.querySelector(SEL.grid);
-    if (!grid) {
-      // chờ DOM
-      const obs = new MutationObserver(() => {
-        const g = document.querySelector(SEL.grid);
-        if (g) { obs.disconnect(); bind(g); }
-      });
-      obs.observe(document.documentElement, { childList: true, subtree: true });
-      return;
-    }
-    bind(grid);
+function getContainer(){
+  for (const sel of LIST_SEL){
+    const el = document.querySelector(sel);
+    if (el) return el;
   }
+  return null;
+}
 
-  function bind(grid) {
-    // Ủy quyền click
-    grid.addEventListener('click', (e) => {
-      const card = e.target.closest(SEL.card);
-      if (!card) return;
+function clear(){
+  const box = getContainer();
+  if (!box) return;
+  box.querySelectorAll('.qr-selected').forEach(n => n.classList.remove('qr-selected'));
+}
 
-      const id = String(card.dataset.id || card.getAttribute('data-id') || '').trim();
-      const type = String(card.dataset.type || card.getAttribute('data-type') || '').trim().toLowerCase();
-      if (!id || !type) return;
-
-      applyActive(card);
-      syncDetail(id, type);
-      document.dispatchEvent(new CustomEvent('app:select-result', { detail: { id, type } }));
-    });
+function select(id,type){
+  const box = getContainer();
+  if (!box) return;
+  clear();
+  
+  const card = box.querySelector(`[data-id="${CSS.escape(id)}"][data-type="${CSS.escape(type)}"]`)
+    || box.querySelector(`[data-code="${CSS.escape(id)}"]`);
+  
+  if (card){
+    card.classList.add('qr-selected');
+    card.scrollIntoView({ block:'nearest', behavior:'smooth' });
   }
+}
 
-  function applyActive(activeCard) {
-    const grid = activeCard.closest(SEL.grid);
-    const cards = grid ? Array.from(grid.querySelectorAll(SEL.card)) : [];
-    for (const c of cards) {
-      if (c === activeCard) {
-        c.classList.add('active');
-        c.classList.remove('inactive');
-      } else {
-        c.classList.remove('active');
-        c.classList.add('inactive');
-      }
+document.addEventListener('quick:select', (e)=>{
+  const {id,type} = e.detail || {};
+  if (!id || !type) return;
+  select(id,type);
+});
+
+// ✅ STYLE - Dynamic color by type
+if (!document.getElementById('qr-highlight-style')){
+  const st = document.createElement('style');
+  st.id = 'qr-highlight-style';
+  st.textContent = `
+    /* Mold selected - Blue border */
+    .result-card[data-type="mold"].qr-selected { 
+      border: 3px solid #2196F3 !important; 
+      border-radius: 8px; 
+      box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.2) !important; 
     }
-  }
-
-  function syncDetail(id, type) {
-    // Ưu tiên controller
-    if (window.AppController && typeof window.AppController.selectResult === 'function') {
-      window.AppController.selectResult(id, type);
-      return;
+    
+    /* Cutter selected - Orange border */
+    .result-card[data-type="cutter"].qr-selected { 
+      border: 3px solid #FF9800 !important; 
+      border-radius: 8px; 
+      box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.2) !important; 
     }
-    // Fallback: tìm item từ kết quả hiện tại (nếu UIRenderer có lưu)
-    const item = findItemInCurrentResults(id, type);
-    if (item && window.UIRenderer) {
-      if (typeof window.UIRenderer.renderDetailInfo === 'function') window.UIRenderer.renderDetailInfo(item, type);
-      else if (typeof window.UIRenderer.renderDetail === 'function') window.UIRenderer.renderDetail(item, type);
-      if (window.UIRenderer.state) window.UIRenderer.state.currentDetailItem = item;
-      document.dispatchEvent(new CustomEvent('detail:changed', { detail: { item, type } }));
-    }
-  }
+  `;
+  document.head.appendChild(st);
+}
 
-  function findItemInCurrentResults(id, type) {
-    const results = window.UIRenderer?.state?.currentResults || window.SearchModule?.getResults?.() || [];
-    const norm = String(id).trim();
-    if (type === 'mold') {
-      return results.find(x => String(x.MoldID ?? x.MoldCode) === norm) || null;
-    } else if (type === 'cutter') {
-      return results.find(x => String(x.CutterID ?? x.CutterNo) === norm) || null;
-    }
-    return null;
-  }
+console.log('[QuickResultsHighlight v1.1] Dynamic color ready');
 
-  // Public API: tô sáng theo id/type. Nếu không tìm thấy -> tất cả inactive.
-  function update(id, type) {
-    const grid = document.querySelector(SEL.grid);
-    if (!grid) return;
-    const cards = Array.from(grid.querySelectorAll(SEL.card));
-    if (!cards.length) return;
-
-    let matched = false;
-    for (const c of cards) {
-      const cid = String(c.dataset.id || c.getAttribute('data-id') || '').trim();
-      const ctype = String(c.dataset.type || c.getAttribute('data-type') || '').trim().toLowerCase();
-      const isMatch = cid === String(id) && ctype === String(type);
-      if (isMatch) {
-        c.classList.add('active');
-        c.classList.remove('inactive');
-        matched = true;
-      } else {
-        c.classList.remove('active');
-      }
-    }
-
-    for (const c of cards) {
-      if (!matched || !c.classList.contains('active')) c.classList.add('inactive');
-      else c.classList.remove('inactive');
-    }
-  }
-
-  window.QuickResultsHighlight = { update };
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
