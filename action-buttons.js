@@ -24,6 +24,16 @@
       }
     });
 
+    // ✅ Lắng nghe event từ mobile controller
+    document.addEventListener('mobile:item-selected', (e) => {
+      if (window.currentDetailItem) {
+        currentItem = window.currentDetailItem;
+        currentType = window.currentDetailItem.itemType || 'mold';
+        console.log('[ActionButtons] Mobile item updated:', currentItem);
+      }
+    });
+
+
     // ============================================
     // ROW 1: Location, Shipment, Teflon
     // ============================================
@@ -32,15 +42,44 @@
     const locationBtn = document.getElementById('btn-location');
     if (locationBtn) {
       locationBtn.addEventListener('click', () => {
-        if (!validateSelection()) return;
-        console.log('[ActionButtons] Location update clicked');
-        if (window.LocationUpdate) {
-          window.LocationUpdate.openModal(currentItem);
-        } else {
-          console.warn('[ActionButtons] LocationUpdate module not loaded yet');
-        }
-      });
+          if (!validateSelection()) return;
+          
+          // ✅ Debug: Kiểm tra dữ liệu trước khi mở popup
+          console.log('[Location] Opening popup with item:', currentItem);
+          console.log('[Location] RackID:', currentItem?.RackID);
+          console.log('[Location] LayerNumber:', currentItem?.LayerNumber);
+          
+          // ✅ Đảm bảo window.currentDetailItem luôn được set
+          window.currentDetailItem = currentItem;
+          
+          if (window.LocationManager?.openModal) {
+            window.LocationManager.openModal('location', currentItem);
+          } else if (window.LocationUpdate?.openModal) {
+            const itemToPass = {
+              ...currentItem,
+              itemType: currentType,
+              displayCode: currentItem.MoldID || currentItem.CutterID || currentItem.displayCode,
+              MoldID: currentItem.MoldID,
+              RackID: currentItem.RackID,
+              RackLayerID: currentItem.RackLayerID,
+              LayerNumber: currentItem.LayerNumber
+            };
+            
+            console.log('[Location] Formatted item:', itemToPass);
+            
+            if (window.LocationUpdate.openModal.length >= 2) {
+              window.LocationUpdate.openModal('location', itemToPass);
+            } else {
+              window.LocationUpdate.openModal(itemToPass);
+            }
+          } else {
+            console.error('❌ Location module not found!');
+            alert('モジュールが読み込まれていません / Module chưa được tải');
+          }
+        });
+
     }
+
 
     // 出荷登録 (Shipment)
     const shipmentBtn = document.getElementById('shipment-btn');
