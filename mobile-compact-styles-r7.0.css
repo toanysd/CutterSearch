@@ -1,0 +1,786 @@
+/**
+ * ========================================================================
+ * MOBILE COMPACT STYLES R7.0 - PHASE 1 OPTIMIZATIONS
+ * ========================================================================
+ * 🎯 MỤC TIÊU: Tăng không gian hiển thị nội dung trên iPhone 13 Pro Max
+ * 
+ * THAY ĐỔI CHÍNH | 主な変更:
+ * ✅ A. Mobile Header: 110px → 88px (tiết kiệm 22px)
+ * ✅ B. Action Bar: 130px → 68px (tiết kiệm 62px khi inactive)
+ * ✅ C. Location Badges: Circles 50px → Pills 32px (tiết kiệm 42px)
+ * ✅ D. Results Panel Header: 36px → 28px (tiết kiệm 8px)
+ * 
+ * TỔNG TIẾT KIỆM: +134px không gian nội dung (+29%)
+ * 
+ * 🔒 KHÔNG ẢNH HƯỞNG: iPad/Desktop (media query strict max-width: 767px)
+ * 
+ * Created: 2025.11.09
+ * Base: mobile-compact-styles-r6.9.css
+ * ========================================================================
+ */
+
+/* ========================================
+   A. MOBILE HEADER OPTIMIZATION - 88px
+   (Giảm từ 110px)
+   ======================================== */
+
+@media (max-width: 767px) {
+  
+  /* ========================================
+     A1. Search Box Row - 40px (từ 44px)
+     ======================================== */
+  
+  .mobile-search-row,
+  .search-container-mobile {
+    padding: 6px 8px !important; /* Giảm từ 8px 10px */
+    min-height: 40px !important;
+  }
+  
+  .mobile-search-box,
+  .search-input-mobile {
+    height: 40px !important; /* Giảm từ 44px */
+    font-size: 13px !important; /* Giảm từ 14px */
+    padding: 8px 35px 8px 12px !important;
+  }
+  
+  .mobile-search-box .search-icon {
+    right: 10px !important;
+    font-size: 16px !important;
+  }
+  
+  /* ========================================
+     A2. Category Tabs Row - 36px (từ 42px)
+     ======================================== */
+  
+  .mobile-category-tabs,
+  .category-tabs-container {
+    height: 36px !important;
+    padding: 4px 8px !important;
+    gap: 6px !important;
+  }
+  
+  .mobile-category-tabs .tab-btn,
+  .category-tab-btn {
+    height: 28px !important; /* Giảm từ 34px */
+    padding: 4px 12px !important;
+    font-size: 11px !important; /* Giảm từ 12px */
+    border-radius: 6px !important;
+  }
+  
+  .mobile-category-tabs .tab-btn i {
+    font-size: 14px !important; /* Giảm từ 16px */
+  }
+  
+  /* ========================================
+     A3. Filter Toggle - Floating Button
+     (Không còn sticky, chuyển thành FAB góc phải)
+     ======================================== */
+  
+  #mobile-filter-toggle {
+    position: fixed !important;
+    top: 52px !important; /* Below search box */
+    right: 12px !important;
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 50% !important;
+    background: #6a5acd !important; /* Primary purple */
+    color: white !important;
+    border: none !important;
+    box-shadow: 0 4px 12px rgba(106, 90, 205, 0.4) !important;
+    z-index: 90 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.3s ease-out !important;
+  }
+  
+  #mobile-filter-toggle i {
+    font-size: 18px !important;
+  }
+  
+  #mobile-filter-toggle:active {
+    transform: scale(0.9) !important;
+    box-shadow: 0 2px 8px rgba(106, 90, 205, 0.3) !important;
+  }
+  
+  #mobile-filter-toggle.active {
+    background: #FF5722 !important;
+    transform: rotate(90deg) !important;
+  }
+  
+  /* Filter Panel - Slide from top */
+  #mobile-filter-panel {
+    position: fixed !important;
+    top: 88px !important; /* Below header */
+    left: 0 !important;
+    right: 0 !important;
+    background: white !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+    z-index: 85 !important;
+    max-height: 0 !important;
+    overflow: hidden !important;
+    transition: max-height 0.3s ease-out !important;
+  }
+  
+  #mobile-filter-panel.show {
+    max-height: 200px !important;
+    border-bottom: 2px solid #E0E0E0 !important;
+  }
+  
+  #mobile-filter-content {
+    padding: 12px !important;
+  }
+
+} /* End @media max-width: 767px */
+
+/* ========================================
+   B. ACTION BAR CONTEXTUAL - 68px
+   (Giảm từ 130px khi chưa chọn item)
+   ======================================== */
+
+@media (max-width: 767px) {
+  
+  /* ========================================
+     B1. Base Action Bar Container
+     ======================================== */
+  
+  #mobile-action-bar {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    background: #FAFAFA !important;
+    border-top: 2px solid #E0E0E0 !important;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.15) !important;
+    z-index: 101 !important;
+    padding: 8px !important;
+    transition: height 0.3s ease-out !important;
+    
+    /* Default state: Single row (68px) */
+    height: 68px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+  }
+  
+  /* ========================================
+     B2. Action Rows - Dynamic Visibility
+     ======================================== */
+  
+  /* Row 1: Always visible */
+  #mobile-action-bar .action-row-1 {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+  
+  /* Row 2: Hidden by default, show khi item selected */
+  #mobile-action-bar .action-row-2 {
+    display: none !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 8px !important;
+    width: 100% !important;
+    margin-top: 8px !important;
+  }
+  
+  /* State: Item selected → Show 2 rows (130px) */
+  #mobile-action-bar.item-selected {
+    height: 130px !important;
+  }
+  
+  #mobile-action-bar.item-selected .action-row-2 {
+    display: grid !important;
+  }
+  
+  /* ========================================
+     B3. Button Sizing - Compact
+     ======================================== */
+  
+  #mobile-action-bar .action-btn {
+    flex: 1 !important;
+    border: 2.5px solid #CCC !important;
+    border-radius: 10px !important;
+    background: white !important;
+    font-size: 11px !important; /* Giảm từ 12px */
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important; /* Giảm từ 6px */
+    padding: 6px 4px !important; /* Giảm từ 8px 6px */
+    min-height: 52px !important; /* Giảm từ 60px */
+    transition: all 0.25s ease-out !important;
+    text-transform: none !important;
+    letter-spacing: 0.3px !important;
+  }
+  
+  #mobile-action-bar .action-btn i {
+    font-size: 20px !important; /* Giảm từ 22px */
+    line-height: 1 !important;
+  }
+  
+  /* ========================================
+     B4. Default State Buttons (Row 1)
+     QR Scan / Filter / Settings
+     ======================================== */
+  
+  /* QR Scan - Blue */
+  #mobile-action-bar .action-qr-scan {
+    color: #1976D2 !important;
+    border-color: #1565C0 !important;
+  }
+  
+  #mobile-action-bar .action-qr-scan:not(.disabled):active {
+    background: #E3F2FD !important;
+    transform: scale(0.96) !important;
+  }
+  
+  /* Filter Toggle - Purple */
+  #mobile-action-bar .action-filter-toggle {
+    color: #6a5acd !important;
+    border-color: #5848B8 !important;
+  }
+  
+  #mobile-action-bar .action-filter-toggle:not(.disabled):active {
+    background: #EDE7F6 !important;
+    transform: scale(0.96) !important;
+  }
+  
+  /* Settings - Gray */
+  #mobile-action-bar .action-settings {
+    color: #555555 !important;
+    border-color: #333333 !important;
+  }
+  
+  #mobile-action-bar .action-settings:not(.disabled):active {
+    background: #F5F5F5 !important;
+    transform: scale(0.96) !important;
+  }
+  
+  /* ========================================
+     B5. Selected State Buttons (Row 1)
+     Location / Check-in / Check-out
+     ======================================== */
+  
+  /* Khi item selected, Row 1 hiển thị 3 nút chính */
+  #mobile-action-bar.item-selected .action-row-1 {
+    /* Override default buttons, show main actions */
+  }
+  
+  /* Location Button - Pink */
+  #mobile-action-bar .action-location {
+    color: #E91E63 !important;
+    border-color: #C2185B !important;
+  }
+  
+  #mobile-action-bar .action-location:not(.disabled):active {
+    background: #FCE4EC !important;
+    color: #C2185B !important;
+    transform: scale(0.96) !important;
+  }
+  
+  /* Check-in Button - Green */
+  #mobile-action-bar .action-checkin {
+    color: #2E7D32 !important;
+    border-color: #1B5E20 !important;
+  }
+  
+  #mobile-action-bar .action-checkin:not(.disabled):active {
+    background: #C8E6C9 !important;
+    color: #1B5E20 !important;
+    transform: scale(0.96) !important;
+  }
+  
+  /* Check-out Button - Orange */
+  #mobile-action-bar .action-checkout {
+    color: #FF6F00 !important;
+    border-color: #E65100 !important;
+  }
+  
+  #mobile-action-bar .action-checkout:not(.disabled):active {
+    background: #FFE0B2 !important;
+    color: #E65100 !important;
+    transform: scale(0.96) !important;
+  }
+  
+  /* ========================================
+     B6. Secondary Actions (Row 2)
+     Shipment / Teflon / Comment
+     ======================================== */
+  
+  /* Shipment Button - Red */
+  #mobile-action-bar .action-shipment {
+    color: #D32F2F !important;
+    border-color: #B71C1C !important;
+  }
+  
+  #mobile-action-bar .action-shipment:not(.disabled):active {
+    background: #FFEBEE !important;
+    color: #B71C1C !important;
+    transform: scale(0.96) !important;
+  }
+  
+  /* Teflon Button - Purple */
+  #mobile-action-bar .action-teflon {
+    color: #7B1FA2 !important;
+    border-color: #4A148C !important;
+  }
+  
+  #mobile-action-bar .action-teflon:not(.disabled):active {
+    background: #F3E5F5 !important;
+    color: #4A148C !important;
+    transform: scale(0.96) !important;
+  }
+  
+  /* Comment Button - Gray */
+  #mobile-action-bar .action-comment {
+    color: #555555 !important;
+    border-color: #333333 !important;
+  }
+  
+  #mobile-action-bar .action-comment:not(.disabled):active {
+    background: #F5F5F5 !important;
+    color: #333333 !important;
+    transform: scale(0.96) !important;
+  }
+  
+  /* ========================================
+     B7. Disabled State
+     ======================================== */
+  
+  #mobile-action-bar .action-btn.disabled {
+    opacity: 0.35 !important;
+    cursor: not-allowed !important;
+    background: #F5F5F5 !important;
+  }
+
+} /* End @media max-width: 767px */
+
+/* ========================================
+   C. LOCATION BADGES COMPACT - 32px
+   (Từ circles 50px → horizontal pills)
+   ======================================== */
+
+@media (max-width: 767px) {
+  
+  /* ========================================
+     C1. Hide Old Circle Design
+     ======================================== */
+  
+  .detail-upper .location-circles,
+  .detail-upper .location-display,
+  .location-circle {
+    display: none !important;
+  }
+  
+  /* ========================================
+     C2. New Compact Horizontal Layout
+     ======================================== */
+  
+  .detail-upper .location-compact {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 6px 10px !important;
+    background: #F5F5F5 !important;
+    border-radius: 8px !important;
+    margin: 8px 0 !important;
+    flex-wrap: wrap !important;
+  }
+  
+  /* Location Icon */
+  .location-compact .location-icon {
+    color: #FF6F00 !important;
+    font-size: 16px !important;
+    flex-shrink: 0 !important;
+  }
+  
+  /* Separator */
+  .location-compact .location-separator {
+    color: #BDBDBD !important;
+    font-size: 14px !important;
+    margin: 0 2px !important;
+  }
+  
+  /* Badge Pills */
+  .location-compact .location-badge {
+    display: inline-flex !important;
+    align-items: center !important;
+    padding: 3px 10px !important;
+    border-radius: 12px !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    color: white !important;
+    white-space: nowrap !important;
+  }
+  
+  /* Rack Badge - Blue */
+  .location-compact .location-badge.rack {
+    background: #2196F3 !important;
+  }
+  
+  /* Section Badge - Orange */
+  .location-compact .location-badge.section {
+    background: #FF9800 !important;
+  }
+  
+  /* Layer Badge - Green */
+  .location-compact .location-badge.layer {
+    background: #4CAF50 !important;
+  }
+  
+  /* Empty state */
+  .location-compact .location-badge.empty {
+    background: #9E9E9E !important;
+    color: #EEEEEE !important;
+  }
+  
+  /* ========================================
+     C3. Example HTML Structure (Comment)
+     ======================================== */
+  /*
+  <div class="location-compact">
+    <i class="fas fa-map-marker-alt location-icon"></i>
+    <span class="location-badge rack">B6</span>
+    <span class="location-separator">-</span>
+    <span class="location-badge section">S2</span>
+    <span class="location-separator">-</span>
+    <span class="location-badge layer">T3</span>
+  </div>
+  */
+
+} /* End @media max-width: 767px */
+
+/* ========================================
+   D. RESULTS PANEL HEADER - 28px
+   (Giảm từ 36px)
+   ======================================== */
+
+@media (max-width: 767px) {
+  
+  .quick-results-panel .panel-header,
+  .mobile-results-panel .panel-header {
+    padding: 6px 10px !important; /* Giảm từ 10px 12px */
+    font-size: 12px !important; /* Giảm từ 13px */
+    min-height: 28px !important;
+    line-height: 1.2 !important;
+  }
+  
+  .quick-results-panel .panel-header i,
+  .mobile-results-panel .panel-header i {
+    font-size: 14px !important; /* Giảm từ 16px */
+  }
+  
+  .quick-results-panel .panel-header .result-count,
+  .quick-results-panel .result-count-badge {
+    padding: 2px 6px !important; /* Giảm từ 2px 8px */
+    font-size: 11px !important; /* Giảm từ 12px */
+  }
+
+} /* End @media max-width: 767px */
+
+/* ========================================
+   E. VIEWPORT HEIGHT ADJUSTMENTS
+   (Cập nhật các calc() để phản ánh chiều cao mới)
+   ======================================== */
+
+@media (max-width: 767px) {
+  
+  /* ========================================
+     E1. Mobile Content Area
+     ======================================== */
+  
+  .mobile-content-area {
+    height: calc(100vh - 88px - 68px) !important; 
+    /* Header 88px + Action bar 68px (default) */
+  }
+  
+  /* When action bar expanded */
+  .mobile-content-area.action-bar-expanded {
+    height: calc(100vh - 88px - 130px) !important;
+    /* Header 88px + Action bar 130px (selected) */
+  }
+  
+  /* ========================================
+     E2. Results Panel Max Height
+     ======================================== */
+  
+  .quick-results-panel .panel-body,
+  .mobile-results-panel .panel-body {
+    max-height: calc(100vh - 88px - 68px - 28px) !important;
+    /* Header + Action bar + Panel header */
+  }
+  
+  /* ========================================
+     E3. Detail Panel Max Height
+     ======================================== */
+  
+  .detail-panel .panel-body,
+  .mobile-detail-panel .panel-body {
+    max-height: calc(100vh - 88px - 68px - 36px) !important;
+    /* Header + Action bar + Detail header (36px) */
+  }
+  
+  /* When detail panel expanded (full screen) */
+  .detail-panel.expanded .panel-body {
+    max-height: calc(100vh - 88px - 36px) !important;
+    /* No action bar visible */
+  }
+  
+  /* ========================================
+     E4. Quick Detail Bottom Position
+     ======================================== */
+  
+  .mobile-quick-detail {
+    bottom: 68px !important; /* Above action bar */
+  }
+  
+  /* When action bar expanded */
+  body.action-bar-expanded .mobile-quick-detail {
+    bottom: 130px !important;
+  }
+  
+  /* ========================================
+     E5. Body Padding Bottom
+     ======================================== */
+  
+  body {
+    padding-bottom: 68px !important; /* Default action bar height */
+  }
+  
+  body.action-bar-expanded {
+    padding-bottom: 130px !important; /* Expanded action bar */
+  }
+
+} /* End @media max-width: 767px */
+
+/* ========================================
+   F. RESPONSIVE FONT SCALING
+   (Giảm 1px cho tất cả font sizes trên mobile)
+   ======================================== */
+
+@media (max-width: 767px) {
+  
+  :root {
+    --font-base-mobile: 13px; /* Từ 14px */
+    --font-small-mobile: 11px; /* Từ 12px */
+    --font-large-mobile: 15px; /* Từ 16px */
+    --line-height-compact: 1.35; /* Từ 1.5 */
+  }
+  
+  /* Apply to result cards */
+  .result-card,
+  .quick-results-grid .result-card {
+    font-size: var(--font-base-mobile) !important;
+    line-height: var(--line-height-compact) !important;
+  }
+  
+  .result-card .item-code,
+  .result-card .card-title {
+    font-size: var(--font-large-mobile) !important;
+  }
+  
+  .result-card .item-id,
+  .result-card .card-subtitle,
+  .result-card .dimension {
+    font-size: var(--font-small-mobile) !important;
+  }
+  
+  /* Apply to detail panel */
+  .detail-panel .detail-item,
+  .mobile-quick-detail .detail-item {
+    font-size: var(--font-base-mobile) !important;
+    line-height: var(--line-height-compact) !important;
+  }
+  
+  .detail-item .label {
+    font-size: var(--font-small-mobile) !important;
+  }
+  
+  .detail-item .value {
+    font-size: var(--font-base-mobile) !important;
+  }
+
+} /* End @media max-width: 767px */
+
+/* ========================================
+   G. PERFORMANCE OPTIMIZATIONS
+   ======================================== */
+
+@media (max-width: 767px) {
+  
+  /* Hardware acceleration */
+  #mobile-action-bar,
+  #mobile-filter-toggle,
+  #mobile-filter-panel,
+  .mobile-quick-detail,
+  .detail-panel {
+    will-change: transform;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+  
+  /* Smooth scrolling */
+  .panel-body,
+  .quick-results-grid {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
+} /* End @media max-width: 767px */
+
+/* ========================================
+   H. COMPATIBILITY - Preserve R6.9 Features
+   ======================================== */
+
+@media (max-width: 767px) {
+  
+  /* ========================================
+     H1. Two-Column Results Grid
+     ======================================== */
+  
+  .quick-results-grid.mobile-2col {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+    padding: 10px !important;
+  }
+  
+  /* ========================================
+     H2. Pastel Color System (R6.7.0)
+     ======================================== */
+  
+  /* Results Panel Header - Pastel Green */
+  .quick-results-panel .panel-header {
+    background: #D8E8D4 !important;
+    color: #2D5016 !important;
+    border-bottom: 2px solid #C0DAC0 !important;
+  }
+  
+  /* Detail Panel Header - Pastel Blue */
+  .detail-panel .panel-header,
+  .mobile-detail-panel .panel-header {
+    background: #D6E9F5 !important;
+    color: #0D47A1 !important;
+    border-bottom: 2px solid #B3D9E8 !important;
+  }
+  
+  /* Mold Cards - Blue Pastel */
+  .result-card.mold,
+  .result-card[data-type="mold"] {
+    background: #E8F2F9 !important;
+    border: 2px solid #C9DFE8 !important;
+  }
+  
+  .result-card.mold.selected,
+  .result-card[data-type="mold"].selected {
+    background: #B8D8E8 !important;
+    border: 3px solid #42A5F5 !important;
+  }
+  
+  /* Cutter Cards - Orange Pastel */
+  .result-card.cutter,
+  .result-card[data-type="cutter"] {
+    background: #FFE8D0 !important;
+    border: 2px solid #FFCFA8 !important;
+  }
+  
+  .result-card.cutter.selected,
+  .result-card[data-type="cutter"].selected {
+    background: #FFB380 !important;
+    border: 3px solid #FF9800 !important;
+  }
+  
+  /* ========================================
+     H3. Mobile Detail Modal (R6.6)
+     ======================================== */
+  
+  .mobile-detail-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 1000;
+  }
+  
+  .mobile-detail-modal.active {
+    display: flex !important;
+    align-items: flex-end;
+  }
+  
+  .mobile-detail-modal .modal-content {
+    border-radius: 16px 16px 0 0;
+    width: 100%;
+    max-height: 90vh;
+    background: white;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+} /* End @media max-width: 767px */
+
+/* ========================================
+   I. HIDE MOBILE ELEMENTS ON IPAD/DESKTOP
+   (STRICT: Không ảnh hưởng giao diện ≥768px)
+   ======================================== */
+
+@media (min-width: 768px) {
+  
+  /* Hide all mobile-specific elements */
+  #mobile-action-bar,
+  #mobile-filter-toggle,
+  #mobile-filter-panel,
+  .mobile-quick-detail,
+  .mobile-detail-modal,
+  .mobile-content-area,
+  .location-compact,
+  .mobile-only {
+    display: none !important;
+  }
+  
+  /* Restore desktop location circles */
+  .detail-upper .location-circles,
+  .detail-upper .location-display {
+    display: flex !important;
+  }
+
+} /* End @media min-width: 768px */
+
+/* ========================================================================
+   END OF MOBILE COMPACT STYLES R7.0 - PHASE 1
+   ======================================================================== */
+
+/**
+ * ========================================================================
+ * SUMMARY | 概要
+ * ========================================================================
+ * 
+ * KHÔNG GIAN TIẾT KIỆM | スペース節約:
+ * ├─ Mobile Header: 110px → 88px (-22px)
+ * ├─ Action Bar (default): 130px → 68px (-62px)
+ * ├─ Location Badges: 74px → 32px (-42px)
+ * ├─ Results Header: 36px → 28px (-8px)
+ * └─ TỔNG: +134px không gian nội dung (+29%)
+ * 
+ * KHẢ NĂNG HIỂN THỊ | 表示能力:
+ * ├─ Trước: 3-4 result cards visible
+ * └─ Sau: 6-8 result cards visible (+100% content)
+ * 
+ * TƯƠNG THÍCH | 互換性:
+ * ├─ iPad/Desktop: Không bị ảnh hưởng (≥768px)
+ * ├─ iPhone: Tối ưu hóa (≤767px)
+ * └─ Base: Giữ nguyên tất cả tính năng R6.9
+ * 
+ * NEXT STEPS | 次のステップ:
+ * ├─ Phase 2: Detail panel 3-level system
+ * ├─ Phase 2: Modal fullscreen
+ * └─ Phase 3: Animation & gestures
+ * 
+ * ========================================================================
+ */

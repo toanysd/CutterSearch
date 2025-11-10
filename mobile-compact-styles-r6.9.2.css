@@ -1,0 +1,2119 @@
+/**
+ * ========================================================================
+ * MOBILE COMPACT STYLES R1.1 - CẬP NHẬT R6.6
+ * ========================================================================
+ * Thêm vào cuối file styles-r6.6.css
+ * ========================================================================
+ */
+
+/* ========================================
+   1. TWO-COLUMN RESULTS GRID (2×3 LAYOUT)
+   ======================================== */
+
+@media (max-width: 767px) {
+  /* Force 2-column grid on mobile */
+  .quick-results-grid.mobile-2col {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+    padding: 10px !important;
+    padding-bottom: 20px !important; /* Extra space at bottom */
+    flex: 1 !important; /* Take remaining space */
+    overflow-y: auto !important; /* ONLY scroll content */
+    -webkit-overflow-scrolling: touch;
+    max-height: none !important; /* Remove max-height */
+  }
+
+
+  
+}
+
+/* ========================================
+   2. MOBILE QUICK DETAIL PANEL
+   ======================================== */
+
+@media (max-width: 767px) {
+  .mobile-quick-detail {
+    border-radius: 12px 12px 0 0; /* Bo góc trên của panel */
+    position: fixed !important;
+    bottom: 130px !important; /* Above action bar */
+    left: 0 !important;
+    right: 0 !important;
+    height: 200px !important;
+    background: #fff !important;
+    border-top: 3px solid #4CAF50 !important;
+    box-shadow: 0 -2px 15px rgba(0,0,0,0.2) !important;
+    z-index: 100 !important;
+    padding: 12px 16px !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    display: none !important; /* Hidden by default */
+  }
+
+    /* ========================================
+     R6.8 MOBILE HEADER - Pastel Blue (iPhone only)
+     ======================================== */
+
+  .detail-header-r6-5 {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    background: #D6E9F5 !important; /* Pastel blue */
+    padding: 6px 10px !important; /* 60% of 10px = 6px */
+    border-bottom: 2px solid #B3D9E8 !important;
+    gap: 6px !important; /* 60% of 8px = ~6px */
+    flex-shrink: 0 !important;
+    min-height: 30px !important; /* NEW: Set minimum height */
+    }
+
+  .detail-header-left {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    flex: 1 !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .detail-header-left .header-icon,
+  .detail-header-left i.fa-info-circle {
+    color: #0D47A1 !important;
+    font-size: 16px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .detail-title {
+    font-weight: 700 !important;
+    font-size: 13px !important;
+    color: #0D47A1 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .detail-separator {
+    color: #90CAF9 !important;
+    margin: 0 4px !important;
+    font-weight: 300 !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* Badges */
+  .detail-moldid-badge,
+  .detail-moldcode-badge {
+    display: inline-flex !important;
+    align-items: center !important;
+    padding: 2px 8px !important;
+    border-radius: 4px !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    border: 1.5px solid !important;
+  }
+
+  .detail-moldid-badge {
+    background: #42A5F5 !important;
+    color: white !important;
+    border-color: #1976D2 !important;
+  }
+
+  .detail-moldcode-badge {
+    background: #B8D8E8 !important;
+    color: #0D47A1 !important;
+    border-color: #42A5F5 !important;
+  }
+
+  /* Right section */
+  .detail-header-right {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    flex-shrink: 0 !important;
+    margin-left: auto !important;
+  }
+
+  /* ========================================
+   DETAIL HEADER BUTTONS - UNIFIED STYLE
+  ======================================== */
+  .detail-collapse-btn,
+  .detail-view-full-link,
+  .detail-close-btn {
+      width: 28px !important;
+      height: 28px !important;
+      border-radius: 6px !important;
+      border: 1.5px solid #90CAF9 !important;
+      background: white !important;
+      color: #0D47A1 !important;
+      font-size: 14px !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      cursor: pointer !important;
+      z-index: 10 !important; /* ✅ Ensure button is clickable */
+      position: relative !important;
+      flex-shrink: 0 !important;
+  }
+
+  .detail-collapse-btn:hover,
+  .detail-view-full-link:hover,
+  .detail-close-btn:hover {
+      background: #E8F2F9 !important;
+      border-color: #42A5F5 !important;
+      transform: scale(1.05);
+  }
+
+  .detail-collapse-btn:active,
+  .detail-view-full-link:active,
+  .detail-close-btn:active {
+      transform: scale(0.95);
+      background: #BBDEFB !important;
+  }
+
+  
+
+
+  .mobile-quick-detail.active {
+    display: block !important;
+  }
+
+  .mobile-quick-detail .detail-header {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .mobile-quick-detail .detail-title {
+    font-size: calc(15px * 0.9) !important; /* 13.5px - 90% */
+    font-weight: 700;
+    color: #333;
+    flex: 1 1 100%;
+    margin-bottom: 6px;
+    }
+
+  .mobile-quick-detail .badge-company,
+  .mobile-quick-detail .badge-status,
+  .mobile-quick-detail .badge-location {
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .mobile-quick-detail .badge-company {
+    background: #2196F3;
+    color: white;
+  }
+
+  .mobile-quick-detail .badge-status {
+    background: #4CAF50;
+    color: white;
+  }
+
+  .mobile-quick-detail .badge-status.out {
+    background: #FF5722;
+  }
+
+  .mobile-quick-detail .badge-location {
+    background: #FF9800;
+    color: white;
+  }
+
+  .mobile-quick-detail .detail-body {
+    margin-bottom: 12px;
+  }
+
+  .mobile-quick-detail .detail-item {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 6px;
+    font-size: calc(13px * 0.9) !important; /* 11.7px - 90% */
+    }
+
+  .mobile-quick-detail .detail-item .label {
+    color: #888;
+    min-width: 95px;
+    font-weight: 500;
+  }
+
+  .mobile-quick-detail .detail-item .value {
+    font-weight: 600;
+    color: #333;
+    flex: 1;
+  }
+
+  .mobile-quick-detail .detail-item .value.empty {
+    color: #aaa;
+    font-style: italic;
+  }
+
+  .mobile-quick-detail .btn-expand-full {
+    width: 100%;
+    padding: 12px;
+    background: #2196F3;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+  }
+
+  .mobile-quick-detail .btn-expand-full:active {
+    transform: scale(0.97);
+    background: #1976D2;
+  }
+
+  .mobile-quick-detail .btn-expand-full i {
+    font-size: 14px;
+  }
+}
+
+
+
+
+/* ========================================
+   4. MOBILE FULL DETAIL MODAL
+   ======================================== */
+
+@media (max-width: 767px) {
+  .mobile-detail-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 1000;
+    overflow: hidden;
+  }
+
+  .mobile-detail-modal.active {
+    display: flex !important;
+    align-items: flex-end;
+  }
+
+  .mobile-detail-modal .modal-content {
+    border-radius: 16px 16px 0 0; /* Bo góc trên của modal */
+    width: 100%;
+    max-height: 90vh;
+    background: white;
+    border-radius: 16px 16px 0 0;
+    overflow-y: auto;
+    transition: transform 0.3s ease-out;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .mobile-detail-modal .drag-handle {
+    width: 50px;
+    height: 5px;
+    background: #ccc;
+    border-radius: 3px;
+    margin: 12px auto 10px;
+  }
+
+  .mobile-detail-modal .modal-header {
+    padding: 0 16px 12px;
+    border-bottom: 1px solid #eee;
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 10;
+  }
+
+  .mobile-detail-modal .modal-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .mobile-detail-modal .modal-title h2 {
+    font-size: calc(18px * 0.9) !important; /* 16.2px - 90% */
+    margin: 0;
+    font-weight: 700;
+    }
+
+  .mobile-detail-modal .item-type-badge {
+    padding: 4px 10px;
+    background: #4CAF50;
+    color: white;
+    border-radius: 5px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .mobile-detail-modal .btn-close-modal {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: #f5f5f5;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: #666;
+  }
+
+  .mobile-detail-modal .btn-close-modal:active {
+    background: #e0e0e0;
+  }
+
+  .mobile-detail-modal .modal-body {
+    padding: 16px;
+  }
+
+  .mobile-detail-modal .detail-section,
+  .mobile-detail-modal .related-section {
+    margin-bottom: 24px;
+  }
+}
+
+/* ========================================
+   5. HIDE MOBILE ELEMENTS ON DESKTOP/IPAD
+   ======================================== */
+
+@media (min-width: 768px) {
+  .mobile-quick-detail,
+  .mobile-action-bar,
+  .mobile-detail-modal,
+  .mobile-only {
+    display: none !important;
+  }
+
+
+}
+
+/**
+ * ========================================================================
+ * COLOR SCHEME BY ITEM TYPE - MOBILE 2-COLUMN GRID (REVISED)
+ * ========================================================================
+ * Inactive: Màu nền rõ ràng để dễ phân biệt
+ * Active: Màu đậm hơn + border nổi bật
+ * ========================================================================
+ */
+
+@media (max-width: 767px) {
+  /* ========================================
+     MOLD CARDS (金型) - BLUE SCHEME
+     ======================================== */
+  
+  /* Default/Inactive State - Xanh dương rõ ràng */
+  .quick-results-grid.mobile-2col .result-card,
+  .quick-results-grid.mobile-2col .result-card.mold,
+  .quick-results-grid.mobile-2col .result-card[data-type="mold"],
+  .quick-results-grid.mobile-2col .result-card[data-item-type="mold"] {
+    background: #BBDEFB !important; /* Blue 200 - Rõ ràng hơn */
+    border: 2px solid #64B5F6 !important; /* Blue 300 border */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+  }
+
+  /* Active State (Touch/Press) - Xanh đậm hơn */
+  .quick-results-grid.mobile-2col .result-card.mold:active,
+  .quick-results-grid.mobile-2col .result-card[data-type="mold"]:active,
+  .quick-results-grid.mobile-2col .result-card[data-item-type="mold"]:active {
+    background: #64B5F6 !important; /* Blue 300 - Đậm hơn */
+    border-color: #42A5F5 !important; /* Blue 400 */
+    box-shadow: 0 3px 8px rgba(33, 150, 243, 0.35);
+    transform: scale(0.97);
+  }
+
+  /* Selected State - Xanh sáng + border đậm */
+  .quick-results-grid.mobile-2col .result-card.mold.selected,
+  .quick-results-grid.mobile-2col .result-card[data-type="mold"].selected,
+  .quick-results-grid.mobile-2col .result-card[data-item-type="mold"].selected {
+    background: #90CAF9 !important; /* Blue 300 - Nổi bật */
+    border: 3px solid #2196F3 !important; /* Blue 500 - Border dày và đậm */
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.5) !important;
+  }
+
+  /* ========================================
+     CUTTER CARDS (抜型) - ORANGE SCHEME
+     ======================================== */
+  
+  /* Default/Inactive State - Da cam rõ ràng */
+  .quick-results-grid.mobile-2col .result-card.cutter,
+  .quick-results-grid.mobile-2col .result-card[data-type="cutter"],
+  .quick-results-grid.mobile-2col .result-card[data-item-type="cutter"] {
+    background: #FFCC80 !important; /* Orange 200 - Rõ ràng hơn */
+    border: 2px solid #FFB74D !important; /* Orange 300 border */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+  }
+
+  /* Active State (Touch/Press) - Da cam đậm hơn */
+  .quick-results-grid.mobile-2col .result-card.cutter:active,
+  .quick-results-grid.mobile-2col .result-card[data-type="cutter"]:active,
+  .quick-results-grid.mobile-2col .result-card[data-item-type="cutter"]:active {
+    background: #FFB74D !important; /* Orange 300 - Đậm hơn */
+    border-color: #FFA726 !important; /* Orange 400 */
+    box-shadow: 0 3px 8px rgba(255, 152, 0, 0.35);
+    transform: scale(0.97);
+  }
+
+  /* Selected State - Da cam sáng + border đậm */
+  .quick-results-grid.mobile-2col .result-card.cutter.selected,
+  .quick-results-grid.mobile-2col .result-card[data-type="cutter"].selected,
+  .quick-results-grid.mobile-2col .result-card[data-item-type="cutter"].selected {
+    background: #FFA726 !important; /* Orange 400 - Nổi bật */
+    border: 3px solid #FF9800 !important; /* Orange 500 - Border dày và đậm */
+    box-shadow: 0 4px 12px rgba(255, 152, 0, 0.5) !important;
+  }
+
+  /* ========================================
+     TYPE BADGE COLORS
+     ======================================== */
+  
+  /* Mold Badge - Blue */
+  .quick-results-grid.mobile-2col .result-card .type-badge.mold,
+  .quick-results-grid.mobile-2col .result-card[data-type="mold"] .type-badge,
+  .quick-results-grid.mobile-2col .result-card[data-item-type="mold"] .item-type-label {
+    background: #2196F3 !important;
+    color: white !important;
+    font-weight: 700;
+  }
+
+  /* Cutter Badge - Orange */
+  .quick-results-grid.mobile-2col .result-card .type-badge.cutter,
+  .quick-results-grid.mobile-2col .result-card[data-type="cutter"] .type-badge,
+  .quick-results-grid.mobile-2col .result-card[data-item-type="cutter"] .item-type-label {
+    background: #FF9800 !important;
+    color: white !important;
+    font-weight: 700;
+  }
+
+  /* ========================================
+     TEXT STYLING FOR READABILITY
+     ======================================== */
+  
+  /* Mold Text - Dark Blue */
+  .quick-results-grid.mobile-2col .result-card .item-code,
+  .quick-results-grid.mobile-2col .result-card .card-title,
+  .quick-results-grid.mobile-2col .result-card.mold .item-code,
+  .quick-results-grid.mobile-2col .result-card.mold .card-title {
+    color: #0D47A1 !important; /* Dark Blue 900 */
+    font-weight: 700;
+  }
+
+  .quick-results-grid.mobile-2col .result-card .item-id,
+  .quick-results-grid.mobile-2col .result-card .card-subtitle,
+  .quick-results-grid.mobile-2col .result-card.mold .item-id,
+  .quick-results-grid.mobile-2col .result-card.mold .card-subtitle {
+    color: #1565C0 !important; /* Blue 800 */
+  }
+
+  .quick-results-grid.mobile-2col .result-card .dimension,
+  .quick-results-grid.mobile-2col .result-card .card-info,
+  .quick-results-grid.mobile-2col .result-card.mold .dimension {
+    color: #1976D2 !important; /* Blue 700 */
+  }
+
+  /* Cutter Text - Dark Orange */
+  .quick-results-grid.mobile-2col .result-card.cutter .item-code,
+  .quick-results-grid.mobile-2col .result-card.cutter .card-title,
+  .quick-results-grid.mobile-2col .result-card[data-type="cutter"] .item-code,
+  .quick-results-grid.mobile-2col .result-card[data-type="cutter"] .card-title {
+    color: #E65100 !important; /* Deep Orange 900 */
+    font-weight: 700;
+  }
+
+  .quick-results-grid.mobile-2col .result-card.cutter .item-id,
+  .quick-results-grid.mobile-2col .result-card.cutter .card-subtitle,
+  .quick-results-grid.mobile-2col .result-card[data-type="cutter"] .item-id {
+    color: #EF6C00 !important; /* Orange 800 */
+  }
+
+  .quick-results-grid.mobile-2col .result-card.cutter .dimension,
+  .quick-results-grid.mobile-2col .result-card.cutter .card-info,
+  .quick-results-grid.mobile-2col .result-card[data-type="cutter"] .dimension {
+    color: #F57C00 !important; /* Orange 700 */
+  }
+
+ 
+  /* ========================================
+     FALLBACK: DETECT BY TEXT CONTENT
+     ======================================== */
+  
+  /* Detect "金型" in card */
+  .quick-results-grid.mobile-2col .result-card:has([class*="type"]:not(:empty)):has([class*="type"][class*="金型"]) {
+    background: #BBDEFB !important;
+    border-color: #64B5F6 !important;
+  }
+
+  /* Detect "抜型" in card */
+  .quick-results-grid.mobile-2col .result-card:has([class*="type"]:not(:empty)):has([class*="type"][class*="抜型"]) {
+    background: #FFCC80 !important;
+    border-color: #FFB74D !important;
+  }
+}
+
+/**
+ * ========================================================================
+ * END OF REVISED COLOR SCHEME
+ * ========================================================================
+ */
+/* ========================================
+   UNIFIED ROUNDED CARD DESIGN
+   ======================================== */
+
+/**
+ * Áp dụng Phương án A: Tất cả sections đều có header với border-radius
+ * để tạo giao diện đồng nhất, hiện đại
+ */
+
+@media (min-width: 768px) {
+  /* Base panel styling - rounded cards */
+  .panel {
+    border-radius: 12px !important;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important;
+    border: 1px solid #E0E0E0;
+  }
+
+  /* Panel headers - consistent rounded top */
+  .panel-header {
+    border-radius: 0 !important; /* Remove individual radius */
+  }
+
+  /* Result cards - nested rounding */
+  .result-card {
+    border-radius: 10px !important;
+  }
+
+  /* Detail info rows */
+  .detail-info-section {
+    border-radius: 8px !important;
+  }
+
+  /* Action buttons */
+  .action-btn-large,
+  .actions-row-3col button {
+    border-radius: 10px !important;
+  }
+
+  /* Related equipment cards */
+  .related-item {
+    border-radius: 6px !important;
+  }
+
+  /* Input fields consistency */
+  .search-input,
+  .filter-select,
+  input[type="text"],
+  select {
+    border-radius: 8px !important;
+  }
+
+  /* Tab containers */
+  .lower-section {
+    border-radius: 12px !important;
+  }
+
+  /* Tables */
+  .results-table {
+    border-radius: 8px !important;
+    overflow: hidden;
+  }
+}
+
+
+/* ========================================================================
+   MOBILE DYNAMIC 3-PANEL LAYOUT (R6.7)
+   ========================================================================
+   3 independent panels: Results, Detail, Actions
+   ======================================================================== */
+
+@media (max-width: 767px) {
+  
+  /* ========================================
+     MOBILE CONTENT CONTAINER
+     ======================================== */
+  
+  .mobile-content-area {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 160px); /* Subtract search/filter area */
+    overflow: hidden; /* Prevent total scroll */
+    position: relative;
+  }
+
+  /* ========================================
+     PANEL 1: QUICK RESULTS
+     ======================================== */
+  
+  .mobile-results-panel {
+    position: fixed !important;
+    top: 58px !important; /* Below searchbox (50px + 8px) */
+    left: 0;
+    right: 0;
+    bottom: calc(68px + env(safe-area-inset-bottom, 0px)) !important; /* Above menu bar */
+    display: flex !important;
+    flex-direction: column !important;
+    background: white;
+    overflow: hidden !important; /* NO scroll on panel */
+    transition: top 0.3s ease;
+    z-index: 2;
+  }
+  /* When filter is open - push results panel down */
+  .mobile-results-panel.filter-open {
+  top: calc(58px + 440px) !important; /* Below searchbox + filter panel (420px + 20px spacing) */
+  }
+
+
+  /* Results panel header */
+  .mobile-results-panel .panel-header {
+    background: linear-gradient(135deg, #2E7D32 0%, #388E3C 100%);
+    color: white;
+    padding: 4px 10px !important;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-weight: 700;
+    font-size: calc(14px * 0.6) !important;
+    border-bottom: 1px solid #1B5E20 !important;
+    flex-shrink: 0 !important;
+    min-height: 24px !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 999 !important; /* Above everything */
+  }
+
+
+  .mobile-results-panel .panel-header .panel-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .mobile-results-panel .panel-header .result-count {
+    background: rgba(255,255,255,0.25);
+    padding: 4px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  /* Results panel body - scrollable */
+  .mobile-results-panel .panel-body {
+    flex: 1 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    padding: 0 !important; /* No padding, grid has padding */
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  /* State: Detail panel open → Results shrink */
+  .mobile-results-panel.shrink {
+    flex: 0 0 180px; /* Fixed small height */
+    margin-bottom: 0;
+  }
+
+  /* State: Detail panel full → Results hidden */
+  .mobile-results-panel.hidden {
+    display: none;
+  }
+
+  /* ========================================
+     PANEL 2: DETAIL INFO
+     ======================================== */
+  
+  .mobile-detail-panel {
+    flex: 1; /* Takes available space */
+    display: none; /* Hidden by default */
+    flex-direction: column;
+    background: white;
+    border-radius: 12px 12px 0 0;
+    margin: 8px 8px 0 8px;
+    overflow: hidden;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.08);
+    transition: all 0.3s ease-out;
+    position: relative;
+    z-index: 3; /* Above results */
+  }
+
+  /* Detail panel header */
+  .mobile-detail-panel .panel-header {
+    background: linear-gradient(135deg, #1976D2 0%, #2196F3 100%);
+    color: white;
+    padding: 6px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-weight: 700;
+    font-size: 14px;
+    border-bottom: 2px solid #0D47A1;
+    flex-shrink: 0;
+  }
+
+  .mobile-detail-panel .panel-header .item-code {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+
+  .mobile-detail-panel .panel-header .item-type-badge {
+    background: rgba(255,255,255,0.25);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    text-transform: uppercase;
+    margin-left: 8px;
+  }
+
+  .mobile-detail-panel .panel-header .close-btn {
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.4);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .mobile-detail-panel .panel-header .close-btn:hover {
+    background: rgba(255,255,255,0.3);
+  }
+
+  .mobile-detail-panel .panel-header .expand-btn {
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.4);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-left: 6px;
+  }
+
+  /* Detail panel body - scrollable */
+  .mobile-detail-panel .panel-body {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding: 12px;
+  }
+
+  /* State: Detail panel visible */
+  .mobile-detail-panel.show {
+    display: flex;
+  }
+
+  /* State: Detail panel expanded (full screen) */
+  .mobile-detail-panel.expanded {
+    position: fixed;
+    top: 160px; /* Below search/filter */
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: 0;
+    border-radius: 0;
+    z-index: 100;
+  }
+
+  
+
+  /* ========================================
+     SWIPE TO HIDE (Touch gestures)
+     ======================================== */
+  
+  .mobile-detail-panel.swipe-down {
+    animation: slideDown 0.3s ease-out forwards;
+  }
+
+  @keyframes slideDown {
+    from {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+  }
+
+  /* ========================================
+     VIEW FULL DETAIL LINK
+     ======================================== */
+  
+  .view-full-detail-link {
+    display: block;
+    text-align: center;
+    padding: 12px;
+    background: #F5F5F5;
+    color: #1976D2;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.15s;
+    border-top: 1px solid #E0E0E0;
+    position: sticky;
+    bottom: 0;
+  }
+
+  .view-full-detail-link:hover {
+    background: #E3F2FD;
+  }
+
+  .view-full-detail-link i {
+    margin-left: 4px;
+    transition: transform 0.15s;
+  }
+
+  .view-full-detail-link:hover i {
+    transform: translateY(-2px);
+  }
+}
+
+
+@media (max-width: 767px) {
+  
+  /* ========================================
+     COLUMN 2 → MOBILE RESULTS PANEL
+     ======================================== */
+  
+  .upper-section .quick-results-panel {
+    /* Reset iPad styles */
+    grid-column: unset !important;
+    
+    /* Mobile panel styles */
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: white;
+    border-radius: 12px 12px 0 0;
+    margin: 8px 8px 0 8px;
+    overflow: hidden;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.08);
+    transition: flex 0.3s ease-out;
+    position: relative;
+    z-index: 2;
+  }
+  
+
+  
+  .quick-results-panel .result-count-badge {
+    background: rgba(255,255,255,0.25) !important;
+    padding: 2px 8px !important;
+    border-radius: 10px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    color: rgb(4, 87, 8) !important;
+  }
+  
+  /* Body - scrollable */
+  .quick-results-panel .panel-body {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding: 10px !important;
+  }
+  
+  /* Results grid - 2 columns */
+  .quick-results-panel .quick-results-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+  
+  /* State: Detail panel open → Results shrink */
+  .quick-results-panel.shrink {
+    flex: 0 0 180px; /* Fixed small height */
+    margin-bottom: 0;
+  }
+  
+  /* State: Detail panel full → Results hidden */
+  .quick-results-panel.hidden {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  
+  /* ========================================
+     HIDE DESKTOP/IPAD ELEMENTS
+     ======================================== */
+  
+  .upper-section {
+    display: flex !important;
+    flex-direction: column !important;
+    height: calc(100vh - 160px) !important;
+    gap: 0 !important;
+  }
+  
+  /* Hide Column 1 (Search/Filter) */
+  .upper-section .search-filter-panel {
+    display: none !important;
+  }
+  
+  /* Hide Column 4 (Actions) */
+  .upper-section .actions-panel {
+    display: none !important;
+  }
+  
+  /* Hide lower section */
+  .lower-section {
+    display: none !important;
+  }
+  
+  /* ========================================
+     COLUMN 2 → RESULTS PANEL (REUSE HTML)
+     ======================================== */
+  
+
+  
+  .quick-results-panel .panel-body {
+    flex: 1;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    padding: 10px !important;
+  }
+  
+  .quick-results-panel.shrink {
+    flex: 0 0 180px !important;
+  }
+  
+  .quick-results-panel.hidden {
+    display: none !important;
+  }
+  
+  /* ========================================
+     COLUMN 3 → DETAIL PANEL (REUSE HTML)
+     ======================================== */
+  
+  .detail-panel {
+    flex: 1;
+    display: none;
+    flex-direction: column;
+    background: white;
+    border-radius: 12px 12px 0 0;
+    margin: 8px 8px 0 8px;
+    overflow: hidden;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.08);
+    transition: all 0.3s ease-out;
+    position: relative;
+    z-index: 3;
+    pointer-events: all !important; /* THÊM: Ensure all clicks work */
+  }
+
+  
+  .detail-panel .panel-header {
+    background: linear-gradient(135deg, #1976D2 0%, #2196F3 100%) !important;
+    color: white !important;
+    padding: 4px 10px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    border-bottom: 1px solid #0D47A1 !important;
+    flex-shrink: 0;
+    min-height: 24px !important;
+    font-size: calc(14px * 0.6) !important;
+    gap: 8px !important; /* THÊM: Space between title and button */
+    position: relative !important; /* THÊM: For z-index context */
+  }
+  
+  .detail-panel .detail-upper {
+    padding: 12px !important;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .detail-panel .detail-lower {
+    padding: 12px !important;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .detail-panel.show {
+    display: flex !important;
+    pointer-events: all !important; /* THÊM: Ensure clickable */
+  }
+
+  /* ========================================
+   DETAIL PANEL CLOSE BUTTON FIX
+   ======================================== */
+
+  /* CRITICAL: Remove absolute positioning that breaks layout */
+  .detail-panel .panel-header .detail-close-btn {
+    position: relative !important; /* NOT absolute */
+    width: 28px !important;
+    height: 28px !important;
+    border-radius: 50% !important;
+    background: rgba(255, 255, 255, 0.2) !important;
+    border: 1px solid rgba(255, 255, 255, 0.5) !important;
+    cursor: pointer !important;
+    z-index: 10 !important; /* Higher than header */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 16px !important;
+    color: white !important;
+    transition: all 0.2s ease !important;
+    pointer-events: all !important; /* CRITICAL */
+    margin-left: auto !important; /* Push to right side */
+    flex-shrink: 0 !important; /* Don't shrink */
+  }
+
+  .detail-panel .panel-header .detail-close-btn:hover {
+    background: rgba(255, 255, 255, 0.3) !important;
+    border-color: rgba(255, 255, 255, 0.8) !important;
+    transform: scale(1.1) !important;
+  }
+
+  .detail-panel .panel-header .detail-close-btn:active {
+    transform: scale(0.95) !important;
+    background: rgba(255, 255, 255, 0.4) !important;
+  }
+
+  /* Icon inside button */
+  .detail-panel .panel-header .detail-close-btn i {
+    pointer-events: none !important; /* Icon doesn't block clicks */
+    font-size: 14px !important;
+  }
+
+  
+  
+  /* ========================================
+   EXPANDED STATE - Detail panel full height
+   ======================================== */
+
+  .detail-panel.expanded {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    flex: 1 !important;
+    height: auto !important;
+    max-height: none !important;
+    z-index: 100 !important; /* TĂNG từ 50 → 100 */
+    overflow-y: auto !important;
+    pointer-events: all !important; /* THÊM: Ensure clickable */
+  }
+
+  /* Hide results panel when detail is expanded */
+  .quick-results-panel.hidden-by-expand {
+    display: none !important;
+  }
+
+  /* Detail panel body full height when expanded */
+  .detail-panel.expanded .panel-body {
+    flex: 1 !important;
+    overflow-y: auto !important;
+    max-height: none !important;
+  }
+
+  .detail-panel.expanded .detail-upper,
+  .detail-panel.expanded .detail-lower {
+    max-height: none !important;
+    overflow-y: visible !important;
+  }
+
+  /* Change expand button icon when expanded */
+  .detail-panel.expanded .detail-view-full-link i.fa-arrow-up::before {
+    content: "\f063" !important; /* fa-arrow-down */
+  }
+
+
+
+  /* Smooth transition for expand/collapse */
+  @media (max-width: 767px) {
+    .detail-panel {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+    
+    .quick-results-panel {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+    
+    .detail-panel.expanded {
+      animation: expandUp 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+  }
+
+  @keyframes expandUp {
+    from {
+      transform: translateY(20px);
+      opacity: 0.8;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+
+  /* ========================================================================
+   R6.6.4 UPDATES: Panel resize + Header styling
+   ======================================================================== */
+
+  @media (max-width: 767px) {
+    
+    /* ========================================
+      FIX 1: Panel height không bị giới hạn
+      ======================================== */
+    
+    /* Remove max-height từ grid */
+
+    /* Panel body flex khả dụng */
+
+    /* ========================================
+   FIX 2B: PASTEL HEADER COLORS (R6.6.5)
+   ======================================== */
+
+
+    
+    /* ========================================
+      FIX 3: Bỏ bo góc, full-width
+      ======================================== */
+    
+    .quick-results-panel,
+    .detail-panel {
+      margin: 0 !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+    }
+    
+    /* ========================================
+      FIX 4: View full detail link styling
+      ======================================== */
+    
+    .view-full-detail-link {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 8px !important;
+      padding: 12px 16px !important;
+      margin-top: 12px !important;
+      background: #F5F5F5 !important;
+      color: #1976D2 !important;
+      font-weight: 600 !important;
+      font-size: 13px !important;
+      text-decoration: none !important;
+      border-top: 1px solid #E5E7EB !important;
+      border-radius: 6px !important;
+      cursor: pointer !important;
+      transition: all 0.2s ease-out !important;
+    }
+    
+    .view-full-detail-link:hover {
+      background: #E3F2FD !important;
+      color: #1565C0 !important;
+    }
+    
+    .view-full-detail-link i {
+      font-size: 12px !important;
+      transition: transform 0.2s ease-out !important;
+    }
+    
+    .view-full-detail-link:hover i {
+      transform: translateX(2px) !important;
+    }
+    
+    /* ========================================
+      FIX 5: Action button enabled state
+      ======================================== */
+    
+    #mobile-action-bar .action-btn.enabled {
+      opacity: 1 !important;
+      background: white !important;
+      cursor: pointer !important;
+    }
+    
+    #mobile-action-bar .action-btn.enabled:active {
+      transform: scale(0.95) !important;
+      background: #F5F5F5 !important;
+    }
+  }
+
+  /* End R6.6.4 Updates */
+
+/* End R6.6.4 Updates */
+
+/* ========================================
+   EXIT FULLSCREEN BUTTON (iOS PWA)
+   ======================================== */
+.exit-fullscreen-btn {
+  position: fixed;
+  top: calc(8px + var(--safe-area-top));
+  right: calc(8px + var(--safe-area-right));
+  width: 32px;
+  height: 32px;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: none;
+  border-radius: 50%;
+  z-index: 9999;
+  display: none; /* Hidden by default */
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.exit-fullscreen-btn i {
+  color: white;
+  font-size: 18px;
+}
+
+.exit-fullscreen-btn:hover {
+  background: rgba(0, 0, 0, 0.7);
+  transform: scale(1.1);
+}
+
+.exit-fullscreen-btn:active {
+  transform: scale(0.95);
+}
+
+/* Show button only on mobile */
+@media (max-width: 767px) {
+  .exit-fullscreen-btn {
+    display: flex !important;
+  }
+}
+
+
+
+  
+  
+
+  /* ========================================
+   R6.7.0 PASTEL COLOR SYSTEM
+   Scientific Design Principles
+   Saturation: 30-40%, Lightness: 70-80%
+   ======================================== */
+
+@media (max-width: 767px) {
+
+  /* ========================================
+     SECTION 1: PRIMARY COLORS - Headers
+     ======================================== */
+
+  /* Results Panel Header - Pastel Green */
+  .quick-results-panel .panel-header {
+    background: #D8E8D4 !important; /* Soft green */
+    color: #2D5016 !important; /* Deep forest */
+    border-bottom: 1px solid #C0DAC0 !important; /* 60% of 2px = 1px */
+    padding: 4px 10px !important; /* 60% of 10px/12px = 4px/10px */
+    font-weight: 600 !important;
+    font-size: calc(11px) !important; /* 7.8px - 60% */
+    flex-shrink: 0 !important;
+    min-height: 24px !important; /* NEW: Set minimum height */
+    }
+
+  .quick-results-panel .panel-header i {
+    color: #2D5016 !important;
+    font-size: 13px !important;
+  }
+
+  /* Detail Panel Header - Pastel Blue */
+  .detail-panel .panel-header {
+    background: #D6E9F5 !important; /* Soft blue */
+    color: #0D47A1 !important; /* Deep blue */
+    border-bottom: 1px solid #B3D9E8 !important; /* 60% of 2px = 1px */
+    padding: 4px 10px !important; /* 60% of 10px/12px = 4px/10px */
+    font-weight: 600 !important;
+    font-size: calc(11px) !important; /* 7.8px - 60% */
+    flex-shrink: 0 !important;
+    min-height: 24px !important; /* NEW: Set minimum height */
+    }
+
+  .detail-panel .panel-header i {
+    color: #0D47A1 !important;
+    font-size: 11px !important;
+  }
+
+  /* ========================================
+     SECTION 2: RESULT CARDS - Mold (Blue)
+     ======================================== */
+
+  /* INACTIVE: Light pastel blue */
+  .quick-results-grid.mobile-2col .result-card.mold,
+  .quick-results-grid.mobile-2col .result-card[data-type="mold"] {
+    background: #E8F2F9 !important;
+    border: 2px solid #C9DFE8 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+  }
+
+  /* ACTIVE: Medium pastel blue (on touch) */
+  .quick-results-grid.mobile-2col .result-card.mold:active,
+  .quick-results-grid.mobile-2col .result-card[data-type="mold"]:active {
+    background: #D1E4F0 !important;
+    border-color: #A8C8DC !important;
+    box-shadow: 0 3px 8px rgba(66, 165, 245, 0.25) !important;
+    transform: scale(0.98) !important;
+  }
+
+  /* SELECTED: Bold pastel with darker border */
+  .quick-results-grid.mobile-2col .result-card.mold.selected,
+  .quick-results-grid.mobile-2col .result-card[data-type="mold"].selected {
+    background: #B8D8E8 !important;
+    border: 3px solid #42A5F5 !important;  /* Bold border */
+    box-shadow: 0 4px 12px rgba(66, 165, 245, 0.35) !important;
+  }
+
+  /* Text in Mold cards */
+  .quick-results-grid.mobile-2col .result-card.mold .item-code,
+  .quick-results-grid.mobile-2col .result-card.mold .card-title {
+    color: #0D47A1 !important;
+    font-weight: 700 !important;
+  }
+
+  .quick-results-grid.mobile-2col .result-card.mold .item-id,
+  .quick-results-grid.mobile-2col .result-card.mold .card-subtitle {
+    color: #1565C0 !important;
+  }
+
+  /* ========================================
+     SECTION 3: RESULT CARDS - Cutter (Orange)
+     ======================================== */
+
+  /* INACTIVE: Light pastel orange */
+  .quick-results-grid.mobile-2col .result-card.cutter,
+  .quick-results-grid.mobile-2col .result-card[data-type="cutter"] {
+    background: #FFE8D0 !important;
+    border: 2px solid #FFCFA8 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+  }
+
+  /* ACTIVE: Medium pastel orange (on touch) */
+  .quick-results-grid.mobile-2col .result-card.cutter:active,
+  .quick-results-grid.mobile-2col .result-card[data-type="cutter"]:active {
+    background: #FFD6B5 !important;
+    border-color: #FFAE80 !important;
+    box-shadow: 0 3px 8px rgba(255, 152, 0, 0.25) !important;
+    transform: scale(0.98) !important;
+  }
+
+  /* SELECTED: Bold pastel with darker border */
+  .quick-results-grid.mobile-2col .result-card.cutter.selected,
+  .quick-results-grid.mobile-2col .result-card[data-type="cutter"].selected {
+    background: #FFB380 !important;
+    border: 3px solid #FF9800 !important;  /* Bold border */
+    box-shadow: 0 4px 12px rgba(255, 152, 0, 0.35) !important;
+  }
+
+  /* Text in Cutter cards */
+  .quick-results-grid.mobile-2col .result-card.cutter .item-code,
+  .quick-results-grid.mobile-2col .result-card.cutter .card-title {
+    color: #E65100 !important;
+    font-weight: 700 !important;
+  }
+
+  .quick-results-grid.mobile-2col .result-card.cutter .item-id,
+  .quick-results-grid.mobile-2col .result-card.cutter .card-subtitle {
+    color: #EF6C00 !important;
+  }
+
+  
+}
+
+/* END OF R6.7.0 PASTEL COLOR SYSTEM */
+}
+
+
+
+/* ========================================
+   R6.8 ACTION BUTTONS - CLEAR & DISTINCT
+   (FIXED VERSION FOR 2 ROWS LAYOUT)
+   ======================================== */
+
+@media (max-width: 767px) {
+
+  /* ========================================
+     BASE ACTION BAR CONTAINER
+     ======================================== */
+
+  #mobile-action-bar {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: auto !important;
+    background: #FAFAFA !important;
+    border-top: 2px solid #E0E0E0 !important;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.15) !important;
+    z-index: 101 !important;
+    padding: 8px !important;
+    display: none !important; /* Hide old action bar */
+    flex-direction: column !important;  /* Stack rows vertically */
+    gap: 8px !important;
+  }
+
+  /* ========================================
+     ACTION ROW (Container for 3 buttons)
+     ======================================== */
+
+  #mobile-action-bar .action-row {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  /* ========================================
+     BASE BUTTON STYLING
+     ======================================== */
+
+  #mobile-action-bar .action-btn {
+    flex: 1 !important;
+    border: 2.5px solid #CCC !important;
+    border-radius: 10px !important;
+    background: white !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    padding: 8px 6px !important;
+    min-height: 60px !important;
+    transition: all 0.25s ease-out !important;
+    text-transform: none !important;
+    letter-spacing: 0.3px !important;
+    color: inherit !important;
+  }
+
+  #mobile-action-bar .action-btn i {
+    font-size: 22px !important;
+    line-height: 1 !important;
+  }
+
+  /* ========================================
+     BUTTON HOVER STATE
+     ======================================== */
+
+  #mobile-action-bar .action-btn:not(.disabled):hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  }
+
+  /* ========================================
+     BUTTON ACTIVE/PRESSED STATE
+     ======================================== */
+
+  #mobile-action-bar .action-btn:not(.disabled):active {
+    transform: scale(0.96) !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  /* ========================================
+     DISABLED STATE
+     ======================================== */
+
+  #mobile-action-bar .action-btn.disabled {
+    opacity: 0.35 !important;
+    cursor: not-allowed !important;
+    background: #F5F5F5 !important;
+  }
+
+  /* ========================================
+     1. LOCATION BUTTON - Pink
+     ======================================== */
+
+  #mobile-action-bar .action-location {
+    color: #E91E63 !important;
+    border-color: #C2185B !important;
+  }
+
+  #mobile-action-bar .action-location:not(.disabled):hover {
+    background: #FCE4EC !important;
+    color: #C2185B !important;
+    border-color: #AD1457 !important;
+  }
+
+  #mobile-action-bar .action-location i {
+    color: #E91E63 !important;
+  }
+
+  /* ========================================
+     2. CHECK-IN BUTTON - Green
+     ======================================== */
+
+  #mobile-action-bar .action-checkin {
+    color: #2E7D32 !important;
+    border-color: #1B5E20 !important;
+  }
+
+  #mobile-action-bar .action-checkin:not(.disabled):hover {
+    background: #C8E6C9 !important;
+    color: #1B5E20 !important;
+    border-color: #0D3818 !important;
+  }
+
+  #mobile-action-bar .action-checkin i {
+    color: #2E7D32 !important;
+  }
+
+  /* ========================================
+     3. CHECK-OUT BUTTON - Orange
+     ======================================== */
+
+  #mobile-action-bar .action-checkout {
+    color: #FF6F00 !important;
+    border-color: #E65100 !important;
+  }
+
+  #mobile-action-bar .action-checkout:not(.disabled):hover {
+    background: #FFE0B2 !important;
+    color: #E65100 !important;
+    border-color: #BF360C !important;
+  }
+
+  #mobile-action-bar .action-checkout i {
+    color: #FF6F00 !important;
+  }
+
+  /* ========================================
+     4. SHIPMENT BUTTON - Red
+     ======================================== */
+
+  #mobile-action-bar .action-shipment {
+    color: #D32F2F !important;
+    border-color: #B71C1C !important;
+  }
+
+  #mobile-action-bar .action-shipment:not(.disabled):hover {
+    background: #FFEBEE !important;
+    color: #B71C1C !important;
+    border-color: #7F0000 !important;
+  }
+
+  #mobile-action-bar .action-shipment i {
+    color: #D32F2F !important;
+  }
+
+  /* ========================================
+     5. TEFLON BUTTON - Purple
+     ======================================== */
+
+  #mobile-action-bar .action-teflon {
+    color: #7B1FA2 !important;
+    border-color: #4A148C !important;
+  }
+
+  #mobile-action-bar .action-teflon:not(.disabled):hover {
+    background: #F3E5F5 !important;
+    color: #4A148C !important;
+    border-color: #38006B !important;
+  }
+
+  #mobile-action-bar .action-teflon i {
+    color: #7B1FA2 !important;
+  }
+
+  /* ========================================
+     6. COMMENT BUTTON - Gray
+     ======================================== */
+
+  #mobile-action-bar .action-comment {
+    color: #555555 !important;
+    border-color: #333333 !important;
+  }
+
+  #mobile-action-bar .action-comment:not(.disabled):hover {
+    background: #F5F5F5 !important;
+    color: #333333 !important;
+    border-color: #212121 !important;
+  }
+
+  #mobile-action-bar .action-comment i {
+    color: #555555 !important;
+  }
+
+  /* ========================================
+     ACTIVE/FILLED STATE (Optional)
+     ======================================== */
+
+  #mobile-action-bar .action-btn.active:not(.disabled) {
+    background-color: currentColor !important;
+    color: white !important;
+    font-weight: 700 !important;
+  }
+
+  #mobile-action-bar .action-location.active:not(.disabled) {
+    background: #E91E63 !important;
+    border-color: #AD1457 !important;
+  }
+
+  #mobile-action-bar .action-checkin.active:not(.disabled) {
+    background: #2E7D32 !important;
+    border-color: #0D3818 !important;
+  }
+
+  #mobile-action-bar .action-checkout.active:not(.disabled) {
+    background: #FF6F00 !important;
+    border-color: #BF360C !important;
+  }
+
+  #mobile-action-bar .action-shipment.active:not(.disabled) {
+    background: #D32F2F !important;
+    border-color: #7F0000 !important;
+  }
+
+  #mobile-action-bar .action-teflon.active:not(.disabled) {
+    background: #7B1FA2 !important;
+    border-color: #38006B !important;
+  }
+
+  #mobile-action-bar .action-comment.active:not(.disabled) {
+    background: #555555 !important;
+    border-color: #212121 !important;
+  }
+
+  #mobile-action-bar .action-comment.active:not(.disabled) {
+background: #555555 !important;
+border-color: #212121 !important;
+}
+
+/* ========================================================================
+   BOTTOM NAVIGATION BAR - MODERN MOBILE UI (R7.0)
+   ======================================================================== */
+
+@media (max-width: 767px) {
+  .bottom-nav-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 68px;
+    background: #FFFFFF;
+    border-top: 1px solid #E0E0E0;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.08);
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    align-items: center;
+    z-index: 1000;
+    padding-bottom: calc(var(--safe-area-bottom) + 8px);
+    padding-bottom: env(safe-area-inset-bottom, 8px);
+  }
+
+  /* Bottom Nav Item */
+  .bottom-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    height: 100%;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #757575;
+    font-size: calc(10px * 0.9); /* 9px - 90% */
+    font-weight: 500;
+    padding: 8px 4px;
+    position: relative;
+  }
+
+  /* Bottom Nav Icon */
+  .bottom-nav-icon {
+    font-size: calc(22px * 0.9); /* 19.8px - 90% */
+    transition: all 0.2s ease;
+  }
+
+  /* Center QR Scan button - Larger */
+  .bottom-nav-item.nav-qr-scan {
+    transform: scale(1.15);
+    color: var(--clr-primary);
+  }
+
+  .bottom-nav-icon-large {
+    font-size: calc(26px * 0.9); /* 23.4px - 90% */
+  }
+
+  /* Active state */
+  .bottom-nav-item.active {
+    color: var(--clr-primary);
+    font-weight: 600;
+  }
+
+  .bottom-nav-item.active .bottom-nav-icon {
+    transform: scale(1.1);
+  }
+
+  /* Active indicator */
+  .bottom-nav-item.active::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 3px;
+    background: var(--clr-primary);
+    border-radius: 0 0 3px 3px;
+  }
+
+  /* Hover effect */
+  .bottom-nav-item:not(.active):hover {
+    color: #424242;
+    background: rgba(0, 0, 0, 0.04);
+  }
+
+  /* Label text */
+  .bottom-nav-label {
+    line-height: 1.2;
+    text-align: center;
+  }
+
+  .bottom-nav-label small {
+    font-size: calc(8px * 0.9); /* 7.2px - 90% */
+    color: inherit;
+    opacity: 0.8;
+  }
+
+  /* Active tab specific colors */
+  .bottom-nav-item[data-tab="search"].active {
+    color: #2196F3; /* Blue */
+  }
+
+  .bottom-nav-item[data-tab="history"].active {
+    color: #4CAF50; /* Green */
+  }
+
+  .bottom-nav-item[data-tab="qr-scan"].active {
+    color: #6a5acd; /* Purple - Primary */
+  }
+
+  .bottom-nav-item[data-tab="location"].active {
+    color: #E91E63; /* Pink */
+  }
+
+  .bottom-nav-item[data-tab="settings"].active {
+    color: #FF9800; /* Orange */
+  }
+}
+
+/* ========================================================================
+   FLOATING ACTION BAR - CONTEXTUAL (R7.0)
+   ======================================================================== */
+
+@media (max-width: 767px) {
+  .floating-action-bar {
+    position: fixed;
+    bottom: calc(68px + 8px + var(--safe-area-bottom));
+    left: 0;
+    right: 0;
+    height: 56px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.15);
+    
+    /* CRITICAL FIX: Hidden by default */
+    display: none !important;
+
+    grid-template-columns: repeat(5, 1fr);
+    align-items: center;
+    z-index: 90;
+    padding: 0 8px;
+    
+    /* Hidden by default */
+    transform: translateY(calc(100% + 20px));
+    transition: transform 0.3s ease;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* Active state - Show the bar */
+  .floating-action-bar.active {
+    display: grid !important; /* Override hidden state */
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: all;
+  }
+
+
+  /* Floating Action Button */
+  .floating-action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    background: transparent;
+    border: none;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: calc(9px * 0.9); /* 8.1px - 90% */
+    font-weight: 500;
+    padding: 6px 4px;
+    border-radius: 6px;
+  }
+
+  .floating-action-btn i {
+    font-size: calc(18px * 0.9); /* 16.2px - 90% */
+  }
+
+  .floating-action-btn small {
+    font-size: calc(7px * 0.9); /* 6.3px - 90% */
+    opacity: 0.9;
+  }
+
+  /* Close button - Last child */
+  .floating-action-btn.action-close {
+    border-left: 1px solid rgba(255, 255, 255, 0.3);
+    font-size: calc(20px * 0.9); /* 18px - 90% */
+  }
+
+  .floating-action-btn.action-close i {
+    font-size: calc(22px * 0.9); /* 19.8px - 90% */
+  }
+
+  /* Hover effect */
+  .floating-action-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  /* Active effect */
+  .floating-action-btn:active {
+    transform: scale(0.95);
+    background: rgba(255, 255, 255, 0.25);
+  }
+
+  /* Disabled state */
+  .floating-action-btn.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+}
+
+/* ========================================================================
+   ADJUST CONTENT FOR BOTTOM NAV
+   ======================================================================== */
+
+@media (max-width: 767px) {
+  /* Adjust body padding */
+  body {
+  padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px) + 20px) !important;
+}
+
+  /* Adjust detail panel bottom position */
+  .mobile-quick-detail {
+    bottom: calc(68px + 20px) !important; /* Above bottom nav */
+  }
+
+  /* Adjust when floating action bar is active */
+  body.floating-actions-active .mobile-quick-detail {
+    bottom: calc(68px + 56px + 30px) !important; /* Above both bars */
+  }
+}
+
+}
+
+/* ========================================================================
+   SIMULATED FULLSCREEN FOR WEB TESTING
+   ======================================================================== */
+body.simulated-fullscreen {
+  /* Do nothing special - just a flag */
+  /* Browser chrome will remain visible in dev mode */
+}
+
+/* Hide exit button in simulated mode */
+body.simulated-fullscreen .exit-fullscreen-btn {
+  display: none !important;
+}
+
+/* ========================================
+   HIDE FILTER TOGGLE BUTTON - CONTROLLED BY MENU BAR
+   ======================================== */
+@media (max-width: 767px) {
+  /* Hide the entire filter panel by default */
+  .mobile-filter-panel {
+    display: none !important; /* Completely hidden */
+  }
+  
+  /* Hide toggle button specifically */
+  .mobile-filter-toggle {
+    display: none !important; /* Never show this button */
+  }
+  
+  /* When filter is active (controlled by Settings button in menu bar) */
+  .mobile-filter-panel.active {
+    display: block !important; /* Show panel */
+    position: fixed !important;
+    top: 58px !important; /* Below searchbox */
+    left: 8px;
+    right: 8px;
+    background: white;
+    border: 2px solid var(--clr-primary);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 999 !important;
+    max-height: 420px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 16px; /* Add padding around content */
+  }
+  
+  /* Remove collapsed class logic */
+  .mobile-filter-panel.collapsed {
+    /* Do nothing - class is ignored */
+  }
+  
+  /* Filter content - always visible when panel is active */
+  .mobile-filter-content {
+    display: block !important; /* Always show content when panel is active */
+    padding: 0; /* No extra padding */
+  }
+}
+
+@media (max-width: 767px) {
+  /* Results panel default position */
+  .mobile-results-panel {
+    position: fixed !important;
+    top: 58px !important; /* Below searchbox */
+    left: 0;
+    right: 0;
+    bottom: calc(68px + env(safe-area-inset-bottom, 0px)) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    background: white;
+    overflow: hidden !important;
+    transition: top 0.3s ease; /* Smooth transition */
+    z-index: 2;
+  }
+  
+  /* When filter is open - push results down */
+  .mobile-results-panel.filter-open {
+    top: calc(58px + 440px) !important; /* Below searchbox + filter height */
+  }
+}
+
+
+/* Filter Popup Header with Close Button */
+@media (max-width: 767px) {
+  .filter-popup-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 13px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--clr-primary);
+  }
+  
+  .filter-popup-header h3 {
+    margin: 0;
+    font-size: calc(13px); /* 14.4px - 90% */
+    font-weight: 700;
+    color: var(--clr-primary);
+  }
+  
+  .filter-close-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid var(--clr-primary);
+    background: white;
+    color: var(--clr-primary);
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .filter-close-btn:hover {
+    background: var(--clr-primary);
+    color: white;
+    transform: scale(1.1);
+  }
+  
+  .filter-close-btn:active {
+    transform: scale(0.95);
+  }
+}
+
+/* Filter Active Indicator Badge */
+@media (max-width: 767px) {
+  .filter-active-badge {
+    position: absolute;
+    top: 4px;
+    right: 8px;
+    width: 8px;
+    height: 8px;
+    background: #FF5722; /* Orange-red */
+    border-radius: 50%;
+    font-size: 0; /* Hide bullet character */
+    box-shadow: 0 0 4px rgba(255, 87, 34, 0.6);
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.7; transform: scale(1.2); }
+  }
+  
+  /* When filter is active */
+  .bottom-nav-item[data-tab="settings"].has-active-filter .filter-active-badge {
+    display: block !important;
+  }
+  
+  .bottom-nav-item[data-tab="settings"].has-active-filter {
+    color: #FF5722 !important; /* Highlight tab */
+  }
+}
+
+
+/* ========================================
+   HIDE MOBILE ELEMENTS ON IPAD
+   ======================================== */
+@media (min-width: 768px) {
+  /* Hide bottom navigation bar on iPad */
+  .bottom-nav-bar {
+    display: none !important;
+  }
+  
+  /* Hide floating action bar on iPad */
+  .floating-action-bar {
+    display: none !important;
+  }
+  
+  /* Hide mobile quick detail panel on iPad */
+  .mobile-quick-detail {
+    display: none !important;
+  }
+  
+  /* Hide mobile filter panel on iPad */
+  .mobile-filter-panel {
+    display: none !important;
+  }
+  
+  /* Reset body padding on iPad */
+  body {
+    padding-bottom: 0 !important;
+  }
+}
+
