@@ -1,0 +1,631 @@
+/* ========================================================================
+   MOBILE DETAIL MODAL STYLES R6.9.3
+   ========================================================================
+   Full-screen detail modal for iPhone (< 768px)
+   
+   Features:
+   - Full-screen overlay with smooth animations
+   - POS-style location display
+   - Modern card-based layout
+   - Action buttons grid at bottom
+   - Smooth scrolling with iOS optimization
+   - Blue theme (#0D47A1) consistent with V6.9
+   - No impact on iPad/Desktop (media query locked)
+   
+   Created: 2025-11-10
+   Last Updated: 2025-11-10
+   ======================================================================== */
+
+/* ========================================
+   1. MODAL CONTAINER & OVERLAY
+   ======================================== */
+@media (max-width: 767px) {
+    .mobile-detail-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 10000;
+        display: flex;
+        flex-direction: column;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .mobile-detail-modal.show {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .mobile-detail-modal.hidden {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+    }
+
+    /* ========================================
+       2. MODAL HEADER
+       ======================================== */
+    .mobile-modal-header {
+        background: linear-gradient(135deg, #1565C0 0%, #0D47A1 100%);
+        color: white;
+        padding: 16px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        position: relative;
+        z-index: 10;
+    }
+
+    .modal-title {
+        font-size: 18px;
+        font-weight: 600;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .modal-title-ja {
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+    .modal-title-vi {
+        font-size: 13px;
+        font-weight: 400;
+        opacity: 0.9;
+    }
+
+    .modal-close-btn {
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        color: white;
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .modal-close-btn:hover,
+    .modal-close-btn:active {
+        background: rgba(255, 255, 255, 0.3);
+        transform: scale(0.95);
+    }
+
+    /* ========================================
+       3. MODAL BODY (SCROLLABLE CONTENT)
+       ======================================== */
+    .mobile-modal-body {
+        flex: 1;
+        background: #F5F7FA;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 12px;
+        padding-bottom: 80px; /* Space for action buttons */
+    }
+
+    /* Loading state */
+    .modal-loading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 20px;
+        color: #0D47A1;
+    }
+
+    .modal-loading i {
+        font-size: 36px;
+        margin-bottom: 16px;
+    }
+
+    .modal-loading p {
+        font-size: 14px;
+        color: #666;
+    }
+
+    /* ========================================
+       4. SECTIONS - COMMON STYLES
+       ======================================== */
+    .modal-section {
+        background: white;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 15px;
+        font-weight: 600;
+        color: #0D47A1;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #E3F2FD;
+    }
+
+    .section-title i {
+        font-size: 16px;
+    }
+
+    .section-title .title-ja {
+        margin-right: 6px;
+    }
+
+    .section-title .title-vi {
+        font-size: 12px;
+        color: #666;
+        font-weight: 400;
+    }
+
+    /* ========================================
+       5. POS-STYLE LOCATION SECTION
+       ======================================== */
+    .pos-location-section {
+        background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
+        border: 2px solid #90CAF9;
+    }
+
+    .pos-header {
+        text-align: center;
+        margin-bottom: 12px;
+    }
+
+    .pos-header-ja {
+        font-size: 16px;
+        font-weight: 600;
+        color: #0D47A1;
+    }
+
+    .pos-header-vi {
+        font-size: 12px;
+        color: #1565C0;
+        margin-top: 2px;
+    }
+
+    .pos-location-card {
+        background: white;
+        border-radius: 10px;
+        padding: 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 6px rgba(13, 71, 161, 0.15);
+    }
+
+    .pos-location-main {
+        flex: 1;
+    }
+
+    .location-label {
+        display: flex;
+        gap: 4px;
+        font-size: 11px;
+        color: #666;
+        margin-bottom: 4px;
+    }
+
+    .label-ja {
+        font-weight: 600;
+    }
+
+    .label-vi {
+        opacity: 0.8;
+    }
+
+    .location-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: #0D47A1;
+        margin-bottom: 8px;
+        font-family: 'Courier New', monospace;
+    }
+
+    .location-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .meta-item {
+        display: flex;
+        font-size: 12px;
+    }
+
+    .meta-label {
+        color: #666;
+        min-width: 110px;
+        font-weight: 500;
+    }
+
+    .meta-value {
+        color: #333;
+        font-weight: 600;
+    }
+
+    .pos-location-icon {
+        font-size: 36px;
+        color: #90CAF9;
+        margin-left: 12px;
+    }
+
+    /* ========================================
+       6. INFO GRID (BASIC & TECHNICAL INFO)
+       ======================================== */
+    .info-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .info-row {
+        display: flex;
+        align-items: flex-start;
+        padding: 10px;
+        background: #F8FBFF;
+        border-radius: 8px;
+        border-left: 3px solid #90CAF9;
+    }
+
+    .info-row:nth-child(even) {
+        background: #FAFBFC;
+    }
+
+    .info-label {
+        flex: 0 0 140px;
+        font-size: 11px;
+        color: #666;
+        font-weight: 500;
+        padding-right: 8px;
+        line-height: 1.4;
+    }
+
+    .info-value {
+        flex: 1;
+        font-size: 13px;
+        color: #333;
+        font-weight: 600;
+        line-height: 1.4;
+        word-break: break-word;
+    }
+
+    /* ========================================
+       7. RELATED EQUIPMENT SECTION
+       ======================================== */
+    .related-equipment-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .related-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: #F8FBFF;
+        border: 1px solid #E3F2FD;
+        border-radius: 10px;
+        padding: 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .related-item:active {
+        background: #E3F2FD;
+        transform: scale(0.98);
+    }
+
+    .related-item-icon {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #90CAF9 0%, #42A5F5 100%);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+
+    .related-item-info {
+        flex: 1;
+    }
+
+    .related-item-code {
+        font-size: 14px;
+        font-weight: 600;
+        color: #0D47A1;
+        margin-bottom: 2px;
+    }
+
+    .related-item-name {
+        font-size: 12px;
+        color: #666;
+        margin-bottom: 4px;
+    }
+
+    .related-item-location {
+        font-size: 11px;
+        color: #999;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .related-item-location i {
+        font-size: 10px;
+    }
+
+    .related-item-arrow {
+        color: #90CAF9;
+        font-size: 16px;
+    }
+
+    .no-related {
+        text-align: center;
+        padding: 24px;
+        color: #999;
+        font-size: 13px;
+    }
+
+    /* ========================================
+       8. STATUS & NOTES SECTION
+       ======================================== */
+    .status-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+
+    .status-item {
+        background: #F8FBFF;
+        border-radius: 8px;
+        padding: 10px;
+        border: 1px solid #E3F2FD;
+    }
+
+    .status-label {
+        font-size: 11px;
+        color: #666;
+        margin-bottom: 4px;
+    }
+
+    .status-value {
+        font-size: 13px;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 4px;
+        background: #4CAF50;
+        color: white;
+        font-size: 12px;
+    }
+
+    .notes-area {
+        background: #FFFBF0;
+        border: 1px solid #FFE082;
+        border-radius: 8px;
+        padding: 12px;
+    }
+
+    .notes-label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #F57C00;
+        margin-bottom: 8px;
+    }
+
+    .notes-content {
+        font-size: 13px;
+        color: #666;
+        line-height: 1.5;
+        white-space: pre-wrap;
+    }
+
+    /* ========================================
+       9. ADDITIONAL DATA SECTION
+       ======================================== */
+    .additional-data-section .info-grid {
+        /* Inherits from info-grid styles above */
+    }
+
+    /* ========================================
+       10. MODAL ACTIONS (BOTTOM BUTTONS)
+       ======================================== */
+    .mobile-modal-actions {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: white;
+        padding: 12px;
+        box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+        z-index: 100;
+    }
+
+    .action-buttons-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    .action-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 14px 12px;
+        background: white;
+        border: 2px solid #90CAF9;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        min-height: 70px;
+    }
+
+    .action-btn i {
+        font-size: 22px;
+        color: #0D47A1;
+        margin-bottom: 6px;
+    }
+
+    .btn-label-ja {
+        font-size: 13px;
+        font-weight: 600;
+        color: #0D47A1;
+    }
+
+    .btn-label-vi {
+        font-size: 11px;
+        color: #666;
+        margin-top: 2px;
+    }
+
+    /* Button hover/active states */
+    .action-btn:active {
+        background: #E3F2FD;
+        border-color: #42A5F5;
+        transform: scale(0.96);
+    }
+
+    /* Specific button colors */
+    .btn-location {
+        border-color: #4CAF50;
+    }
+
+    .btn-location i,
+    .btn-location .btn-label-ja {
+        color: #2E7D32;
+    }
+
+    .btn-location:active {
+        background: #E8F5E9;
+        border-color: #66BB6A;
+    }
+
+    .btn-checkin {
+        border-color: #FF9800;
+    }
+
+    .btn-checkin i,
+    .btn-checkin .btn-label-ja {
+        color: #E65100;
+    }
+
+    .btn-checkin:active {
+        background: #FFF3E0;
+        border-color: #FFB74D;
+    }
+
+    .btn-status {
+        border-color: #2196F3;
+    }
+
+    .btn-status i,
+    .btn-status .btn-label-ja {
+        color: #0D47A1;
+    }
+
+    .btn-status:active {
+        background: #E3F2FD;
+        border-color: #42A5F5;
+    }
+
+    .btn-comments {
+        border-color: #9C27B0;
+    }
+
+    .btn-comments i,
+    .btn-comments .btn-label-ja {
+        color: #6A1B9A;
+    }
+
+    .btn-comments:active {
+        background: #F3E5F5;
+        border-color: #BA68C8;
+    }
+
+    /* ========================================
+       11. SMOOTH ANIMATIONS
+       ======================================== */
+    @keyframes slideUp {
+        from {
+            transform: translateY(20px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    .mobile-detail-modal.show .mobile-modal-header,
+    .mobile-detail-modal.show .mobile-modal-body,
+    .mobile-detail-modal.show .mobile-modal-actions {
+        animation: slideUp 0.3s ease;
+    }
+
+    /* ========================================
+       12. SCROLLBAR STYLING (WEBKIT)
+       ======================================== */
+    .mobile-modal-body::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .mobile-modal-body::-webkit-scrollbar-track {
+        background: #F5F7FA;
+    }
+
+    .mobile-modal-body::-webkit-scrollbar-thumb {
+        background: #90CAF9;
+        border-radius: 2px;
+    }
+
+    .mobile-modal-body::-webkit-scrollbar-thumb:hover {
+        background: #42A5F5;
+    }
+
+    /* ========================================
+       13. SAFE AREA INSETS (iPhone X+)
+       ======================================== */
+    @supports (padding: max(0px)) {
+        .mobile-modal-header {
+            padding-top: max(16px, env(safe-area-inset-top));
+        }
+
+        .mobile-modal-actions {
+            padding-bottom: max(12px, env(safe-area-inset-bottom));
+        }
+    }
+}
+
+/* ========================================
+   14. DISABLE ON TABLET/DESKTOP
+   ======================================== */
+@media (min-width: 768px) {
+    .mobile-detail-modal {
+        display: none !important;
+    }
+}
