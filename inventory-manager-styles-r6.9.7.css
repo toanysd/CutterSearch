@@ -1,0 +1,583 @@
+/* ========================================================================
+   INVENTORY MANAGER STYLES R6.9.7 - OPTIMIZED & CONSOLIDATED
+   ========================================================================
+   
+   Styling cho Inventory Manager module
+   - Settings modal popup (cài đặt kiểm kê)
+   - Badge "ON" trên nút action
+   - Bulk mode floating button
+   - Audit badges trên result cards
+   - Card selection states (CONSOLIDATED - không trùng lặp với base CSS)
+   - Responsive design iPhone + iPad
+   
+   Created: 2025-11-11
+   Last Updated: 2025-11-13
+   Version: r6.9.7 (Optimized)
+   ======================================================================== */
+
+/* ========================================
+   OVERLAY & MODAL BASE
+   ======================================== */
+
+.inv-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: invFadeIn 0.2s ease-out;
+}
+
+@keyframes invFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.inv-modal {
+  background: #FFFFFF;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  width: 90%;
+  max-width: 480px;
+  max-height: 95vh;
+  min-height: 85vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: invSlideUp 0.3s ease-out;
+}
+
+@keyframes invSlideUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.inv-modal-small {
+  max-width: 360px;
+}
+
+/* ========================================
+   MODAL HEADER
+   ======================================== */
+
+.inv-modal-header {
+  background: linear-gradient(135deg, #5C6BC0 0%, #3949AB 100%);
+  color: white;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.inv-modal-title {
+  font-size: 20px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.inv-modal-close {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 20px;
+  transition: all 0.2s;
+}
+
+.inv-modal-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+/* ========================================
+   MODAL BODY
+   ======================================== */
+
+.inv-modal-body {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.inv-form-group {
+  margin-bottom: 24px;
+}
+
+.inv-form-label {
+  display: block;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.inv-form-sublabel {
+  display: block;
+  font-size: 12px;
+  color: #777;
+  margin-top: 4px;
+}
+
+.inv-input,
+.inv-select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #E0E0E0;
+  border-radius: 8px;
+  font-size: 15px;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.inv-input:focus,
+.inv-select:focus {
+  outline: none;
+  border-color: #5C6BC0;
+  box-shadow: 0 0 0 3px rgba(92, 107, 192, 0.1);
+}
+
+.inv-checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #F5F5F5;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.inv-checkbox-wrapper:hover {
+  background: #EEEEEE;
+}
+
+.inv-checkbox {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+}
+
+/* ========================================
+   MODAL FOOTER
+   ======================================== */
+
+.inv-modal-footer {
+  padding: 20px;
+  border-top: 1px solid #E0E0E0;
+  display: flex;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.inv-btn {
+  flex: 1;
+  padding: 14px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.inv-btn-primary {
+  background: linear-gradient(135deg, #5C6BC0 0%, #3949AB 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(92, 107, 192, 0.3);
+}
+
+.inv-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(92, 107, 192, 0.4);
+}
+
+.inv-btn-secondary {
+  background: #F5F5F5;
+  color: #666;
+}
+
+.inv-btn-secondary:hover {
+  background: #EEEEEE;
+}
+
+.inv-btn-danger {
+  background: linear-gradient(135deg, #EF5350 0%, #E53935 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(239, 83, 80, 0.3);
+}
+
+.inv-btn-danger:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(239, 83, 80, 0.4);
+}
+
+/* ========================================
+   BADGE "ON" (Trên nút kiểm kê)
+   ======================================== */
+
+.inv-badge-on {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: linear-gradient(135deg, #FF6B6B 0%, #EE5A6F 100%);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.4);
+  z-index: 10;
+  animation: invBadgePulse 2s infinite;
+}
+
+@keyframes invBadgePulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 2px 8px rgba(255, 107, 107, 0.4);
+  }
+  50% {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.6);
+  }
+}
+
+/* ========================================
+   BULK MODE FLOATING BUTTON
+   ======================================== */
+
+.inv-bulk-toggle {
+  position: fixed;
+  bottom: 100px;
+  right: 20px;
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  cursor: pointer;
+  z-index: 9999;
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.inv-bulk-toggle:hover {
+  transform: scale(1.1) rotate(90deg);
+  box-shadow: 0 8px 24px rgba(33, 150, 243, 0.5);
+}
+
+.inv-bulk-toggle.active {
+  background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
+  transform: rotate(45deg);
+}
+
+.inv-bulk-toggle.active:hover {
+  transform: rotate(45deg) scale(1.1);
+}
+
+/* Badge số lượng item đã chọn */
+.inv-bulk-count {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: #FF6B6B;
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 7px;
+  border-radius: 10px;
+  min-width: 22px;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+/* ========================================
+   AUDIT BADGES (Trên result cards)
+   ======================================== */
+
+.inv-audit-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(76, 175, 80, 0.3);
+  white-space: nowrap;
+}
+
+.inv-audit-badge-inline {
+  background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 7px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+
+/* ========================================
+   R6.9.7 - RESULT CARDS: BULK MODE STYLES
+   (CONSOLIDATED - Không trùng lặp với base CSS)
+   ======================================== */
+
+/* ✅ Container có class này khi bật bulk mode */
+.inv-bulk-active {
+  /* Không cần style cho container, chỉ làm selector cho children */
+}
+
+/* ✅ CARD ĐÃ CHỌN: MÀU SÁNG, RÕ NÉT */
+.result-card.inv-bulk-selected {
+  border: 3px solid #2196F3 !important;
+  background: linear-gradient(135deg, #BBDEFB 0%, #90CAF9 10%, #E3F2FD 30%, #FFFFFF 100%) !important;
+  box-shadow: 0 8px 24px rgba(33, 150, 243, 0.5) !important;
+  transform: translateY(-2px) scale(1.01) !important;
+  opacity: 1 !important;
+  animation: invCardSelect 0.3s ease-out;
+}
+
+@keyframes invCardSelect {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-3px) scale(1.02);
+  }
+  100% {
+    transform: translateY(-2px) scale(1.01);
+  }
+}
+
+.result-card.inv-bulk-selected:hover {
+  box-shadow: 0 10px 28px rgba(33, 150, 243, 0.6) !important;
+  transform: translateY(-3px) scale(1.02) !important;
+}
+
+/* ✅ TEXT trong card đã chọn: LUÔN RÕ NÉT */
+.result-card.inv-bulk-selected .card-id,
+.result-card.inv-bulk-selected .card-code,
+.result-card.inv-bulk-selected .card-name,
+.result-card.inv-bulk-selected .card-location,
+.result-card.inv-bulk-selected .card-dimensions,
+.result-card.inv-bulk-selected .card-dim,
+.result-card.inv-bulk-selected .card-date {
+  opacity: 1 !important;
+  color: inherit !important;
+  font-weight: 600 !important;
+}
+
+/* ✅ CARD CHƯA CHỌN: CHỈ MỜ NỀN, TEXT VẪN RÕ */
+.inv-bulk-active .result-card:not(.inv-bulk-selected) {
+  opacity: 0.7;
+  background: #FAFAFA !important;
+  border-color: #E0E0E0 !important;
+  transition: all 0.2s ease;
+}
+
+/* ✅ TEXT trong card INACTIVE: BẮT BUỘC RÕ NÉT 100% */
+.inv-bulk-active .result-card:not(.inv-bulk-selected) .card-id {
+  opacity: 1 !important;
+  color: #999 !important;
+  font-weight: 400 !important;
+}
+
+.inv-bulk-active .result-card:not(.inv-bulk-selected) .card-code {
+  opacity: 1 !important;
+  color: #333 !important; /* ✅ ĐEN RÕ */
+  font-weight: 700 !important;
+}
+
+.inv-bulk-active .result-card:not(.inv-bulk-selected) .card-name {
+  opacity: 1 !important;
+  color: #555 !important;
+  font-weight: 500 !important;
+}
+
+.inv-bulk-active .result-card:not(.inv-bulk-selected) .card-location,
+.inv-bulk-active .result-card:not(.inv-bulk-selected) .card-dim,
+.inv-bulk-active .result-card:not(.inv-bulk-selected) .card-date {
+  opacity: 1 !important;
+  color: #666 !important;
+}
+
+/* ✅ Hover inactive card */
+.inv-bulk-active .result-card:not(.inv-bulk-selected):hover {
+  opacity: 0.85;
+  border-color: #BDBDBD !important;
+  background: #FEFEFE !important;
+  transform: translateY(-1px);
+}
+
+/* ========================================
+   CHECKBOX ICON (Bulk Mode)
+   ======================================== */
+
+.inv-checkbox-icon {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 10;
+  font-size: 20px;
+  font-weight: 700;
+  color: #CCC;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: #F5F5F5;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.inv-checkbox-icon.checked {
+  color: #FFFFFF;
+  background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
+  box-shadow: 0 3px 8px rgba(76, 175, 80, 0.4);
+  transform: scale(1.15);
+}
+
+/* ✅ Card cần position relative */
+.result-card {
+  position: relative;
+}
+
+/* ========================================
+   R6.9.7 - TOAST NOTIFICATION
+   ======================================== */
+
+@keyframes toastSlideUp {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes toastFadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px);
+  }
+}
+
+.success-toast {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+  letter-spacing: 0.5px;
+}
+
+/* ========================================
+   RESPONSIVE: iPad + iPhone
+   ======================================== */
+
+/* ✅ iPad: Giữ nguyên style khi KHÔNG bulk mode */
+@media (min-width: 768px) {
+  .result-card:not(.inv-bulk-selected) .card-code,
+  .result-card:not(.inv-bulk-selected) .card-name {
+    opacity: 1 !important;
+    color: inherit !important;
+  }
+  
+  .inv-bulk-toggle {
+    bottom: 120px;
+    right: 30px;
+  }
+  
+  .inv-modal {
+    max-width: 600px;
+  }
+}
+
+/* ✅ iPhone: Touch-friendly */
+@media (max-width: 767px) {
+  .inv-bulk-active .result-card {
+    min-height: 88px; /* Touch target tối ưu */
+  }
+  
+  .inv-checkbox-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 18px;
+  }
+  
+  .inv-modal {
+    width: 95%;
+    max-height: 90vh;
+  }
+  
+  .inv-modal-body {
+    padding: 16px;
+  }
+  
+  .inv-bulk-toggle {
+    bottom: 80px;
+    right: 16px;
+    width: 56px;
+    height: 56px;
+  }
+}
+
+/* ========================================
+   UTILITY CLASSES
+   ======================================== */
+
+.inv-hidden {
+  display: none !important;
+}
+
+.inv-disabled {
+  opacity: 0.5;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+.inv-text-center {
+  text-align: center;
+}
+
+.inv-text-muted {
+  color: #999;
+}
+
+/* ========================================
+   END OF FILE
+   ======================================================================== */
