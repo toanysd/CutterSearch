@@ -333,6 +333,60 @@ function throttle(func, limit) {
           this.renderResults(this.state.allResults);
         });
 
+        // ============================================
+        // R6.9.9 - Lắng nghe inventory:bulkAuditCompleted → batch update badges
+        // ============================================
+        document.addEventListener('inventory:bulkAuditCompleted', (e) => {
+            const { items, date, count } = e.detail;
+            
+            console.log(`[UIRenderer] 🔄 Bulk audit completed: ${count} items`);
+            
+            // ✅ Batch update badges cho tất cả items (không re-render từng item)
+            items.forEach(({ itemId, itemType }) => {
+                const cardSelector = `[data-type="${itemType}"][data-id="${itemId}"]`;
+                const card = document.querySelector(cardSelector);
+                
+                if (card) {
+                    // Tìm hoặc tạo audit badge
+                    let auditBadge = card.querySelector('.inv-audit-badge-inline');
+                    
+                    if (!auditBadge) {
+                        // Tạo mới badge nếu chưa có
+                        const line2 = card.querySelector('.card-line-2');
+                        if (line2) {
+                            auditBadge = document.createElement('span');
+                            auditBadge.className = 'inv-audit-badge-inline';
+                            line2.appendChild(auditBadge);
+                        }
+                    }
+                    
+                    if (auditBadge) {
+                        auditBadge.textContent = '●';
+                        auditBadge.style.display = 'inline-block';
+                    }
+                    
+                    // Cập nhật ngày kiểm kê
+                    const dateSpan = card.querySelector('.card-date');
+                    if (dateSpan && date) {
+                        // Parse date: YYYY-MM-DD → YYYY/MM/DD
+                        const formatted = date.replace(/-/g, '/');
+                        dateSpan.textContent = formatted;
+                    }
+                    
+                    // Thêm class "audited today"
+                    card.classList.add('audited-today');
+                }
+            });
+            
+            // ✅ RE-RENDER MỘT LẦN DUY NHẤT (thay vì N lần)
+            if (UIRenderer.state && UIRenderer.state.allResults) {
+                UIRenderer.renderResults(UIRenderer.state.allResults);
+            }
+            
+            console.log(`[UIRenderer] ✅ Bulk badges updated: ${count} items`);
+        });
+
+
 
         console.log('[UIRenderer] v7.7.7-r6.9.5 loaded (with Inventory support)');
     },

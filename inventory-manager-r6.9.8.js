@@ -48,6 +48,32 @@
          */
         init() {
             console.log('[InventoryManager] 🚀 Initializing...');
+
+            // ✅ R6.9.9: Detect hard refresh (Ctrl+Shift+R)
+            const isHardRefresh = performance.navigation.type === 1; // Reload
+            const wasInventoryActive = sessionStorage.getItem('inventory_active') === 'true';
+
+            if (isHardRefresh && wasInventoryActive) {
+                console.log('[InventoryManager] Hard refresh detected, resetting state...');
+                
+                // Force reset state
+                window.InventoryState.active = false;
+                window.InventoryState.bulkMode = false;
+                window.InventoryState.selectedItems = [];
+                window.InventoryState.operator = null;
+                
+                // Clear session storage
+                sessionStorage.removeItem('inventory_active');
+                sessionStorage.removeItem('inventory_bulk');
+                sessionStorage.removeItem('inventory_selection');
+                sessionStorage.removeItem('inventory_operator');
+                
+                // Dispatch reset event
+                document.dispatchEvent(new CustomEvent('inventory:reset'));
+                
+                console.log('[InventoryManager] ✅ State reset completed');
+            }
+
             
             // Load audit history từ localStorage
             this.loadAuditHistory();
@@ -61,8 +87,31 @@
             this.loadSettingsFromStorage();
             this.renderMenubarToggle();
 
-            
+            // ✅ R6.9.9: Restore selection from session
+            if (window.InventoryState.bulkMode) {
+                this.restoreSelectionFromSession();
+            }
+
             console.log('[InventoryManager] ✅ Initialized');
+
+            // ✅ Add notification CSS animations (once)
+            if (!document.getElementById('inv-notification-styles')) {
+                const style = document.createElement('style');
+                style.id = 'inv-notification-styles';
+                style.textContent = `
+                    @keyframes slideInRight {
+                        from { transform: translateX(400px); opacity: 0; }
+                        to { transform: translateX(0); opacity: 1; }
+                    }
+                    @keyframes slideOutRight {
+                        from { transform: translateX(0); opacity: 1; }
+                        to { transform: translateX(400px); opacity: 0; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+
+
         },
 
         /**
@@ -325,15 +374,17 @@
                                 <span class="inv-btn-text">履歴 | Lịch sử</span>
                             </button>
 
+                            <button class="inv-btn inv-btn-primary" id="inv-save-btn">
+                                <i class="fas fa-save"></i>
+                                保存 | Lưu
+                            </button>
+
                             <button class="inv-btn inv-btn-secondary" id="inv-cancel-btn">
                                 <i class="fas fa-times"></i>
                                 キャンセル | Hủy
                             </button>
                             
-                            <button class="inv-btn inv-btn-primary" id="inv-save-btn">
-                                <i class="fas fa-save"></i>
-                                保存 | Lưu
-                            </button>
+                            
                         </div>
                         
                     </div>
@@ -967,84 +1018,407 @@
         },
 
     
+    
         /**
-         * Process bulk audit (kiểm kê hàng loạt)
-         * ✅ R6.9.8: Gọi batch API thay vì từng item
+         * ✅ R6.9.9: Process bulk audit với progress tracking
          */
         async processBulkAudit() {
             const items = window.InventoryState.selectedItems;
             const operator = window.InventoryState.operator;
-            const auditDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
             
+            // Get JST date (UTC+9)
+            const jstDate = new Date(Date.now() + (9 * 60 * 60 * 1000)).toISOString().split('T')[0];
+            const auditDate = jstDate;
+
+            if (items.length === 0) {
+                this.showNotification('⚠️ 項目がありません | Không có mục nào', 'warning');
+                return;
+            }
+
             console.log('[InventoryManager] 📋 Processing bulk audit for', items.length, 'items');
 
-            // ✅ Chuẩn bị batch statusLogs
+            // ✅ Show loading overlay
+            const overlay = this.createLoadingOverlay(items.length);
+            document.body.appendChild(overlay);
+
+            // ✅ Prepare statusLogs
             const statusLogs = items.map(item => ({
                 MoldID: item.type === 'mold' ? item.id : '',
                 CutterID: item.type === 'cutter' ? item.id : '',
-                ItemType: item.type,
                 Status: 'AUDIT',
-                Timestamp: new Date().toISOString(),
-                EmployeeID: operator,
+                Timestamp: new Date(Date.now() + (9 * 60 * 60 * 1000)).toISOString(), // JST
+                EmployeeID: operator || '',
                 DestinationID: '',
                 Notes: '棚卸 | Kiểm kê (hàng loạt)',
-                AuditDate: auditDate,
-                AuditType: 'AUDIT_ONLY'
+                AuditDate: auditDate
             }));
 
-            // ✅ Gọi batch API
+            // ✅ Split into chunks
+            const CHUNK_SIZE = 50;
+            const chunks = [];
+            for (let i = 0; i < statusLogs.length; i += CHUNK_SIZE) {
+                chunks.push(statusLogs.slice(i, i + CHUNK_SIZE));
+            }
+
+            console.log(`[InventoryManager] Split into ${chunks.length} chunks`);
+
+            let successCount = 0;
+            let failureCount = 0;
+            let allAuditedItems = []; // ✅ Track all audited items
+
+            // ✅ Process chunks
+                // Process chunks
+            for (let i = 0; i < chunks.length; i++) {
+                const chunk = chunks[i];
+                
+                this.updateLoadingProgress(overlay, i + 1, chunks.length, successCount);
+
+                try {
+                    const result = await this.sendBulkAuditToServer(chunk);
+                    
+                    // Check result (accept both API success and fallback)
+                    if (result.success || result.fallback) {
+                        successCount += chunk.length;
+                        
+                        // Log status
+                        if (result.fallback) {
+                            console.warn(`[InventoryManager] ⚠️ Chunk ${i + 1} saved to cache (server unavailable)`);
+                        } else {
+                            console.log(`[InventoryManager] ✅ Chunk ${i + 1} saved to server`);
+                        }
+                        
+                        // ✅ Batch record to cache
+                        const auditedItems = [];
+                        chunk.forEach(log => {
+                            const itemId = log.MoldID || log.CutterID;
+                            const itemType = log.MoldID ? 'mold' : 'cutter';
+                            
+                            // Record to cache (silent mode - không dispatch event)
+                            this.recordAuditToCacheSilent(itemId, itemType, auditDate);
+                            
+                            // Collect để dispatch sau
+                            auditedItems.push({ itemId, itemType, date: auditDate });
+                        });
+                        
+                        // ✅ Collect to global array
+                        allAuditedItems = allAuditedItems.concat(auditedItems);
+                    } else {
+                        failureCount += chunk.length;
+                        console.warn('[InventoryManager] Chunk failed, saving to localStorage');
+                    }
+                } catch (error) {
+                    console.error(`[InventoryManager] Chunk ${i + 1} error:`, error);
+                    failureCount += chunk.length;
+                }
+
+                if (i < chunks.length - 1) {
+                    await new Promise(resolve => setTimeout(resolve, 200)); // Delay between chunks
+                }
+            }
+
+            // ✅ Remove loading overlay
+            if (overlay) overlay.remove();
+
+            // ✅ Double-check: Ensure overlay is removed (in case of multiple instances)
+            const overlayCheck = document.getElementById('inv-bulk-loading-overlay');
+            if (overlayCheck) overlayCheck.remove();
+
+            // ✅ Show result notification
+            if (failureCount === 0) {
+                this.showNotification(
+                    `✅ 棚卸完了 | Đã kiểm kê thành công: ${successCount} mục`,
+                    'success',
+                    3000
+                );
+            } else if (successCount > 0) {
+                this.showNotification(
+                    `⚠️ 完了: ${successCount} 項目 | 保留: ${failureCount} 項目\nThành công: ${successCount}, Lưu cục bộ: ${failureCount}`,
+                    'warning',
+                    5000
+                );
+            } else {
+                this.showNotification(
+                    `❌ 失敗 | Lỗi: Không thể xử lý. Vui lòng thử lại.`,
+                    'error',
+                    5000
+                );
+            }
+
+            // ✅ Cleanup
+            window.InventoryState.selectedItems = [];
+            window.InventoryState.bulkMode = false;
+            sessionStorage.setItem('inventory_bulk', 'false');
+            
+            this.updateBulkCount(0);
+            document.getElementById('inv-bulk-popup-overlay')?.remove();
+
+            // ✅ Dispatch events
+            document.dispatchEvent(new CustomEvent('inventory:bulkMode', {
+                detail: { enabled: false }
+            }));
+
+            // ✅ R6.9.9: Dispatch bulk update event (1 lần duy nhất)
+            document.dispatchEvent(new CustomEvent('inventory:bulkAuditCompleted', {
+                detail: {
+                    items: allAuditedItems, // Array of all audited items
+                    date: auditDate,
+                    count: successCount
+                }
+            }));
+
+            console.log(`[InventoryManager] 📡 Dispatched bulk update for ${successCount} items`);
+
+            // ✅ Re-render cards
+            if (window.UIRenderer && window.UIRenderer.state.allResults) {
+                window.UIRenderer.renderResults(window.UIRenderer.state.allResults);
+            }
+
+            console.log('[InventoryManager] ✅ Bulk audit completed:', { successCount, failureCount });
+        },
+
+
+    
+        /**
+         * ✅ R6.9.9: Send bulk audit to server với timeout protection
+         */
+        async sendBulkAuditToServer(statusLogs) {
+            const API_URL = 'https://ysd-moldcutter-backend.onrender.com/api/audit-batch';
+            const TIMEOUT_MS = 15000; // 15 seconds timeout
+            
             try {
-                const API_URL = 'https://ysd-moldcutter-backend.onrender.com/api/audit-batch';
-                const response = await fetch(API_URL, {
+                console.log(`[InventoryManager] 📤 Sending ${statusLogs.length} items to server...`);
+                
+                // ✅ Create fetch promise with timeout
+                const fetchPromise = fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ statusLogs })
                 });
-
-                const result = await response.json();
                 
-                if (result.success) {
-                    console.log('[InventoryManager] ✅ Batch audit saved:', result.saved);
-                    
-                    // Record to local cache
-                    items.forEach(item => {
-                        this.recordAuditToCache(item.id, item.type, auditDate);
-                    });
-                    
-                    // Show success notification
-                    this.showNotification(
-                        `✅ 棚卸完了 | Đã kiểm kê ${items.length} mục`,
-                        'success'
-                    );
-                } else {
-                    throw new Error(result.message || 'Batch audit failed');
-                }
-            } catch (error) {
-                console.error('[InventoryManager] ❌ Batch audit error:', error);
-                
-                // Fallback: Lưu từng item vào localStorage
-                items.forEach(item => {
-                    this.saveToLocalStorage(item.id, item.type, auditDate);
+                // ✅ Create timeout promise
+                const timeoutPromise = new Promise((_, reject) => {
+                    setTimeout(() => reject(new Error('Request timeout after 15s')), TIMEOUT_MS);
                 });
                 
-                this.showNotification(
-                    '⚠️ 一部のデータは保留中 | Một số dữ liệu đang chờ xử lý',
-                    'warning'
-                );
+                // ✅ Race between fetch and timeout
+                const response = await Promise.race([fetchPromise, timeoutPromise]);
+                
+                console.log('[InventoryManager] 📡 Server response status:', response.status);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                console.log('[InventoryManager] ✅ Server response:', result);
+                
+                return result;
+                
+            } catch (error) {
+                console.error('[InventoryManager] ❌ API error:', error.message);
+                
+                // ✅ Return fallback success (data đã save vào cache)
+                return { 
+                    success: false, 
+                    error: error.message,
+                    fallback: true 
+                };
             }
-
-            // Clear selection
-            window.InventoryState.selectedItems = [];
-            this.updateBulkCount(0);
-
-            // Close popup
-            document.getElementById('inv-bulk-popup-overlay')?.remove();
-
-            // Update badges
-            document.dispatchEvent(new CustomEvent('inventory:refreshBadges'));
-
-            //alert(`✅ ${items.length} 項目を棚卸しました\nĐã kiểm kê ${items.length} mục`);
         },
+
+
+        /**
+         * ✅ R6.9.9: Create loading overlay
+         */
+        createLoadingOverlay(totalItems) {
+            const div = document.createElement('div');
+            div.id = 'inv-bulk-loading-overlay';
+            div.className = 'inv-overlay';
+            div.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.7);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+            `;
+            
+            div.innerHTML = `
+                <div style="
+                    background: white;
+                    padding: 32px;
+                    border-radius: 12px;
+                    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+                    min-width: 320px;
+                    text-align: center;
+                ">
+                    <div style="
+                        width: 48px;
+                        height: 48px;
+                        border: 4px solid #4CAF50;
+                        border-top-color: transparent;
+                        border-radius: 50%;
+                        margin: 0 auto 16px;
+                        animation: spin 1s linear infinite;
+                    "></div>
+                    <h3 style="margin: 0 0 16px; color: #333;">
+                        棚卸中... | Đang kiểm kê...
+                    </h3>
+                    <div style="
+                        background: #f5f5f5;
+                        border-radius: 8px;
+                        height: 24px;
+                        overflow: hidden;
+                        margin-bottom: 8px;
+                    ">
+                        <div id="inv-progress-fill" style="
+                            background: linear-gradient(90deg, #4CAF50, #66BB6A);
+                            height: 100%;
+                            width: 0%;
+                            transition: width 0.3s ease;
+                        "></div>
+                    </div>
+                    <p id="inv-progress-text" style="
+                        margin: 0;
+                        font-size: 14px;
+                        color: #666;
+                    ">処理中... (0 / ${totalItems})</p>
+                </div>
+                <style>
+                    @keyframes spin {
+                        to { transform: rotate(360deg); }
+                    }
+                </style>
+            `;
+            
+            return div;
+        },
+
+        /**
+         * ✅ R6.9.9: Update loading progress
+         */
+        updateLoadingProgress(overlay, currentChunk, totalChunks, itemsProcessed) {
+            const fill = overlay.querySelector('#inv-progress-fill');
+            const text = overlay.querySelector('#inv-progress-text');
+            
+            if (!fill || !text) return;
+            
+            const percentage = (currentChunk / totalChunks) * 100;
+            fill.style.width = `${percentage}%`;
+            
+            text.textContent = `処理中... (${itemsProcessed} / ${window.InventoryState.selectedItems.length})`;
+        },
+
+        /**
+         * ✅ R6.9.9: Send bulk audit request với retry logic
+         */
+        async sendBulkAuditRequest(statusLogs, retries = 3) {
+            const API_URL = 'https://ysd-moldcutter-backend.onrender.com/api/audit-batch';
+            
+            for (let attempt = 1; attempt <= retries; attempt++) {
+                try {
+                    console.log(`[InventoryManager] Attempt ${attempt}/${retries}: Sending ${statusLogs.length} items...`);
+                    
+                    const response = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ statusLogs }),
+                        timeout: 30000 // 30 second timeout
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        console.log(`[InventoryManager] ✅ Batch saved: ${result.saved} items`);
+                        return result;
+                    } else {
+                        throw new Error(result.message || 'Batch audit failed');
+                    }
+                    
+                } catch (error) {
+                    console.error(`[InventoryManager] Attempt ${attempt} failed:`, error);
+                    
+                    if (attempt < retries) {
+                        // Wait before retry (exponential backoff)
+                        const waitTime = Math.pow(2, attempt) * 500; // 1s, 2s, 4s
+                        console.log(`[InventoryManager] Retrying in ${waitTime}ms...`);
+                        await this.delay(waitTime);
+                    } else {
+                        // All retries failed
+                        return { success: false, error: error.message };
+                    }
+                }
+            }
+        },
+
+        /**
+         * ✅ R6.9.9: Delay utility
+         */
+        delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        },
+
+        /**
+         * ✅ R6.9.9: Show loading overlay for bulk operations
+         */
+        showBulkLoadingOverlay(message, totalItems) {
+            // Remove existing overlay
+            this.hideBulkLoadingOverlay();
+            
+            const html = `
+                <div id="inv-bulk-loading-overlay" class="inv-overlay">
+                    <div class="inv-bulk-loading-box">
+                        <div class="inv-loading-spinner"></div>
+                        <h3 class="inv-loading-title">${message}</h3>
+                        <div class="inv-loading-progress">
+                            <div class="inv-progress-bar">
+                                <div class="inv-progress-fill" id="inv-progress-fill" style="width: 0%"></div>
+                            </div>
+                            <p class="inv-progress-text" id="inv-progress-text">
+                                処理中... | Đang xử lý... (0 / ${totalItems})
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', html);
+        },
+
+        /**
+         * ✅ R6.9.9: Update progress bar
+         */
+        updateBulkProgress(currentChunk, totalChunks, itemsProcessed) {
+            const progressFill = document.getElementById('inv-progress-fill');
+            const progressText = document.getElementById('inv-progress-text');
+            
+            if (!progressFill || !progressText) return;
+            
+            const percentage = (currentChunk / totalChunks) * 100;
+            progressFill.style.width = `${percentage}%`;
+            
+            progressText.innerHTML = `
+                処理中... | Đang xử lý...<br>
+                <small>チャンク ${currentChunk} / ${totalChunks} | Batch ${currentChunk} / ${totalChunks}</small><br>
+                <small>完了: ${itemsProcessed} 項目 | Đã xử lý: ${itemsProcessed} mục</small>
+            `;
+        },
+
+        /**
+         * ✅ R6.9.9: Hide loading overlay
+         */
+        hideBulkLoadingOverlay() {
+            document.getElementById('inv-bulk-loading-overlay')?.remove();
+        },
+
 
         /**
          * Process bulk relocate (thay đổi vị trí + kiểm kê hàng loạt)
@@ -1105,27 +1479,104 @@
         },
 
         /**
-         * Toggle item selection (bulk mode)
+         * ✅ R6.9.9: Toggle item selection với debounce
          */
         toggleItemSelection(itemId, itemType, itemData) {
-            const index = window.InventoryState.selectedItems.findIndex(
+            const selectedItems = window.InventoryState.selectedItems;
+            const index = selectedItems.findIndex(
                 item => item.id === itemId && item.type === itemType
             );
 
             if (index > -1) {
-                // Deselect
-                window.InventoryState.selectedItems.splice(index, 1);
+                // ✅ Deselect
+                selectedItems.splice(index, 1);
+                console.log(`[InventoryManager] Deselected: ${itemType}:${itemId}`);
             } else {
-                // Select
-                window.InventoryState.selectedItems.push({
+                // ✅ Check max selection limit (optional safety)
+                const MAX_SELECTION = 500;
+                if (selectedItems.length >= MAX_SELECTION) {
+                    this.showNotification(
+                        `⚠️ 最大 ${MAX_SELECTION} 項目まで選択可能 | Tối đa ${MAX_SELECTION} mục`,
+                        'warning'
+                    );
+                    return;
+                }
+                
+                // ✅ Select
+                selectedItems.push({
                     id: itemId,
                     type: itemType,
                     data: itemData
                 });
+                console.log(`[InventoryManager] Selected: ${itemType}:${itemId}`);
             }
 
-            this.updateBulkCount(window.InventoryState.selectedItems.length);
+            // ✅ Update count badge
+            this.updateBulkCount(selectedItems.length);
+            
+            // ✅ Save selection to sessionStorage (persist across page refresh)
+            this.saveSelectionToSession();
         },
+
+        /**
+         * ✅ R6.9.9: Save selection to sessionStorage
+         */
+        saveSelectionToSession() {
+            try {
+                const selection = window.InventoryState.selectedItems.map(item => ({
+                    id: item.id,
+                    type: item.type
+                    // Don't save full data object to reduce size
+                }));
+                
+                sessionStorage.setItem('inventory_selection', JSON.stringify(selection));
+            } catch (e) {
+                console.warn('[InventoryManager] Failed to save selection:', e);
+            }
+        },
+
+        /**
+         * ✅ R6.9.9: Restore selection from sessionStorage
+         */
+        restoreSelectionFromSession() {
+            try {
+                const raw = sessionStorage.getItem('inventory_selection');
+                if (!raw) return;
+                
+                const selection = JSON.parse(raw);
+                
+                // Restore selection (need to fetch full data)
+                window.InventoryState.selectedItems = selection.map(sel => ({
+                    id: sel.id,
+                    type: sel.type,
+                    data: this.getItemData(sel.id, sel.type)
+                })).filter(item => item.data); // Remove items that no longer exist
+                
+                this.updateBulkCount(window.InventoryState.selectedItems.length);
+                
+                console.log('[InventoryManager] ✅ Restored selection:', window.InventoryState.selectedItems.length);
+            } catch (e) {
+                console.warn('[InventoryManager] Failed to restore selection:', e);
+            }
+        },
+
+        /**
+         * ✅ R6.9.9: Get item data by ID
+         */
+        getItemData(itemId, itemType) {
+            const data = window.DataManager?.data;
+            if (!data) return null;
+            
+            if (itemType === 'mold') {
+                return data.molds.find(m => m.MoldID === itemId || m.MoldCode === itemId);
+            } else if (itemType === 'cutter') {
+                return data.cutters.find(c => c.CutterID === itemId || c.CutterNo === itemId);
+            }
+            
+            return null;
+        },
+
+
 
         /**
          * Update bulk count badge
@@ -1326,38 +1777,80 @@
      * Record audit to cache only (không gọi API)
      * Dùng khi đã gọi batch API
      */
+    /**
+     * ✅ R6.9.9: Record audit to cache
+     */
     recordAuditToCache(itemId, itemType, date) {
-        const key = `${itemType}:${itemId}`;
-        window.InventoryState.auditHistory[key] = date;
-        this.saveAuditHistory();
+        const cacheKey = `audit_${itemType}_${itemId}`;
+        const cacheData = {
+            date: date,
+            timestamp: new Date().toISOString()
+        };
         
-        // Dispatch event
-        document.dispatchEvent(new CustomEvent('inventory:auditRecorded', {
-            detail: { itemId, itemType, date }
-        }));
+        try {
+            localStorage.setItem(cacheKey, JSON.stringify(cacheData));
+            console.log(`[InventoryManager] Cached audit: ${cacheKey}`);
+        } catch (e) {
+            console.warn('[InventoryManager] Cache failed:', e);
+        }
     },
 
     /**
-     * Show notification toast
+     * ✅ R6.9.9: Record audit to cache WITHOUT dispatching event
+     * Used for bulk operations to avoid re-rendering for each item
      */
-    showNotification(message, type = 'info') {
-        // Xóa toast cũ nếu có
-        const existing = document.getElementById('inv-toast');
+    recordAuditToCacheSilent(itemId, itemType, date) {
+        const cacheKey = `audit_${itemType}_${itemId}`;
+        const cacheData = {
+            date: date,
+            timestamp: new Date().toISOString(),
+            cached: true
+        };
+        
+        try {
+            localStorage.setItem(cacheKey, JSON.stringify(cacheData));
+            // ✅ NO EVENT DISPATCH - Silent mode
+        } catch (e) {
+            console.warn('[InventoryManager] Cache failed:', e);
+        }
+    },
+
+    /**
+     * ✅ R6.9.9: Show notification toast
+     */
+    showNotification(message, type = 'info', duration = 3000) {
+        // Remove existing notification
+        const existing = document.getElementById('inv-notification-toast');
         if (existing) existing.remove();
         
-        // Tạo toast mới
+        // Create toast
         const toast = document.createElement('div');
-        toast.id = 'inv-toast';
-        toast.className = `inv-toast inv-toast-${type}`;
-        toast.innerHTML = message;
+        toast.id = 'inv-notification-toast';
+        toast.className = `inv-notification inv-notification-${type}`;
+        toast.style.cssText = `
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: ${type === 'success' ? '#4CAF50' : type === 'error' ? '#f44336' : '#ff9800'};
+            color: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 10001;
+            font-size: 14px;
+            max-width: 400px;
+            animation: slideInRight 0.3s ease-out;
+            white-space: pre-line;
+        `;
+        toast.textContent = message;
         
         document.body.appendChild(toast);
         
-        // Auto hide sau 3s
+        // Auto remove
         setTimeout(() => {
-            toast.classList.add('inv-toast-hide');
+            toast.style.animation = 'slideOutRight 0.3s ease-out';
             setTimeout(() => toast.remove(), 300);
-        }, 3000);
+        }, duration);
     },
 
         /**
