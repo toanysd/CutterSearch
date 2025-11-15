@@ -535,9 +535,13 @@ function throttle(func, limit) {
 
         } else {
           // ===== NORMAL MODE: Show detail =====
+          
+          // ✅ FIX: DISPATCH ĐÚNG EVENT mà các module khác đang lắng nghe
           document.dispatchEvent(new CustomEvent('quick:select', {
             detail: { index: idx, item: item }
           }));
+          
+          console.log('[UIRenderer] Card clicked, dispatched quick:select for:', itemId);
         }
       });
 
@@ -545,6 +549,7 @@ function throttle(func, limit) {
       container.dataset.delegationSetup = 'true';
       console.log('[UIRenderer] ✅ Event delegation setup complete');
     },
+
 
     renderTable(items) {
       return measurePerf('renderTable', () => {
@@ -993,7 +998,4 @@ function updateHeaderFromItem(item, itemType) {
 }
 
 
-
-const itemType = isMold ? 'mold' : 'cutter'; // đặt sau khi đã có biến isMold
-updateHeaderFromItem(item, itemType); // truyền đủ 2 tham số
 

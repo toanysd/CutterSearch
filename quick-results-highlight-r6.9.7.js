@@ -38,3 +38,4 @@ document.addEventListener('quick:select', (e)=>{
   select(id,type);
 });
 
+})(); // ← THÊM dòng này nếu thiếu
