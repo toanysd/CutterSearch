@@ -105,6 +105,14 @@ class MobilePanelController {
     // Bước 8: Auto-enter fullscreen on load (NEW - R7.0)
     this.autoEnterFullscreen();
 
+    // ✅ R6.9.10: Show prompt if user hasn't interacted yet
+    setTimeout(() => {
+        if (!document.body.classList.contains('simulated-fullscreen')) {
+            this.showFullscreenPrompt();
+        }
+    }, 1000); // Wait 1s after page load
+
+
     console.log('✅ MobilePanelController: Fully initialized (with fullscreen support)');
     }
 
@@ -1242,13 +1250,93 @@ class MobilePanelController {
   autoEnterFullscreen() {
     if (!this.isMobile) return;
     
-    // Request fullscreen on first user interaction
-    document.addEventListener('click', () => {
-      this.enterFullscreen();
-    }, { once: true });
-
-    console.log('✅ Auto-fullscreen enabled (on first click)');
+    // ✅ R6.9.10: Trigger fullscreen on FIRST user interaction (touch or click)
+    const triggerFullscreen = () => {
+        console.log('🚀 Triggering auto-fullscreen...');
+        this.enterFullscreen();
+    };
+    
+    // Listen to BOTH touch and click (iOS prioritizes touch)
+    document.addEventListener('touchstart', triggerFullscreen, { once: true, passive: true });
+    document.addEventListener('click', triggerFullscreen, { once: true });
+    
+    // ✅ AUTO-SCROLL TO HIDE ADDRESS BAR (iOS Safari fallback)
+    setTimeout(() => {
+        window.scrollTo(0, 1); // Scroll 1px to hide address bar
+    }, 100);
+    
+    console.log('✅ Auto-fullscreen enabled (on first touch/click + auto-hide address bar)');
   }
+
+  /**
+   * ✅ R6.9.10: Show fullscreen prompt on page load
+   */
+  showFullscreenPrompt() {
+    if (!this.isMobile) return;
+    
+    // Create overlay prompt
+    const prompt = document.createElement('div');
+    prompt.id = 'fullscreen-prompt';
+    prompt.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.85);
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn 0.3s ease-out;
+    `;
+    
+    prompt.innerHTML = `
+        <div style="
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            text-align: center;
+            max-width: 300px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        ">
+            <div style="font-size: 48px; margin-bottom: 16px;">📱</div>
+            <h3 style="margin: 0 0 12px 0; font-size: 18px; color: #333;">
+                全画面表示<br>
+                <small style="font-size: 14px; color: #666;">Chế độ toàn màn hình</small>
+            </h3>
+            <p style="margin: 0 0 20px 0; font-size: 14px; color: #666;">
+                タップして開始<br>
+                Chạm để bắt đầu
+            </p>
+            <button id="fullscreen-prompt-btn" style="
+                background: #1976D2;
+                color: white;
+                border: none;
+                padding: 12px 32px;
+                border-radius: 8px;
+                font-size: 16px;
+                font-weight: 600;
+                cursor: pointer;
+                width: 100%;
+            ">
+                開始 | Bắt đầu
+            </button>
+        </div>
+    `;
+    
+    document.body.appendChild(prompt);
+    
+    // Handle click
+    const btn = prompt.querySelector('#fullscreen-prompt-btn');
+    btn.addEventListener('click', () => {
+        this.enterFullscreen();
+        prompt.remove();
+    });
+    
+    console.log('✅ Fullscreen prompt shown');
+  }
+
 
   /**
    * Enter fullscreen mode
