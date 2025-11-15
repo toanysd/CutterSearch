@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>履歴管理 | Lịch Sử | Audit History - MoldCutterSearch</title>
+    <link rel="stylesheet" href="audit-history-viewer.css">
+</head>
+<body>
+    <!-- ======================================== 
+         HEADER
+         ======================================== -->
+    <header class="ahv-header">
+        <div class="ahv-header-left">
+            <button id="ahv-back-btn" class="ahv-btn ahv-btn-back" onclick="history.back()">
+                ← 戻る | Quay lại
+            </button>
+        </div>
+        <div class="ahv-header-center">
+            <h1 class="ahv-title">
+                📋 履歴管理<br>
+                <span class="ahv-subtitle">Quản Lý Lịch Sử | Audit History</span>
+            </h1>
+        </div>
+        <div class="ahv-header-right">
+            <button id="ahv-refresh-btn" class="ahv-btn ahv-btn-refresh">
+                🔄 更新 | Làm mới
+            </button>
+        </div>
+    </header>
+
+    <!-- ======================================== 
+         FILTER SECTION
+         ======================================== -->
+    <section class="ahv-filter-section">
+        <div class="ahv-filter-container">
+            <!-- Search Box -->
+            <div class="ahv-filter-group ahv-filter-search">
+                <label class="ahv-label">🔍 検索 | Tìm kiếm</label>
+                <input 
+                    type="text" 
+                    id="ahv-search-input" 
+                    class="ahv-input" 
+                    placeholder="金型コード、名前、メモ | Mã khuôn, tên, ghi chú..."
+                >
+            </div>
+
+            <!-- Date Range -->
+            <div class="ahv-filter-group">
+                <label class="ahv-label">📅 期間 | Thời gian</label>
+                <div class="ahv-date-range">
+                    <input type="date" id="ahv-date-from" class="ahv-input ahv-date">
+                    <span class="ahv-date-separator">〜</span>
+                    <input type="date" id="ahv-date-to" class="ahv-input ahv-date">
+                </div>
+            </div>
+
+            <!-- Action Type Filter -->
+            <div class="ahv-filter-group">
+                <label class="ahv-label">📂 種類 | Loại hành động</label>
+                <select id="ahv-action-filter" class="ahv-select">
+                    <option value="all">すべて | Tất cả</option>
+                    <option value="AUDIT_ONLY">棚卸のみ | Chỉ kiểm kê</option>
+                    <option value="AUDIT_WITH_RELOCATION">棚卸+移動 | Kiểm kê + Di chuyển</option>
+                    <option value="CHECK_IN">入庫 | Check-in</option>
+                    <option value="CHECK_OUT">出庫 | Check-out</option>
+                    <option value="LOCATION_CHANGE">位置変更 | Đổi vị trí</option>
+                </select>
+            </div>
+
+            <!-- Rack/Layer Filter -->
+            <div class="ahv-filter-group">
+                <label class="ahv-label">🏢 棚段 | Giá-Tầng</label>
+                <input 
+                    type="text" 
+                    id="ahv-rack-filter" 
+                    class="ahv-input" 
+                    placeholder="例: 112, 201..."
+                >
+            </div>
+
+            <!-- Employee Filter -->
+            <div class="ahv-filter-group">
+                <label class="ahv-label">👤 担当者 | Nhân viên</label>
+                <select id="ahv-employee-filter" class="ahv-select">
+                    <option value="all">すべて | Tất cả</option>
+                    <!-- Dynamically populated -->
+                </select>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="ahv-filter-actions">
+                <button id="ahv-apply-filter-btn" class="ahv-btn ahv-btn-primary">
+                    ✓ 適用 | Áp dụng
+                </button>
+                <button id="ahv-clear-filter-btn" class="ahv-btn ahv-btn-secondary">
+                    ✕ クリア | Xóa lọc
+                </button>
+                <button id="ahv-export-btn" class="ahv-btn ahv-btn-export">
+                    📤 Export CSV
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ======================================== 
+         STATISTICS SECTION
+         ======================================== -->
+    <section class="ahv-stats-section">
+        <div class="ahv-stats-container">
+            <div class="ahv-stat-card">
+                <div class="ahv-stat-icon">📋</div>
+                <div class="ahv-stat-info">
+                    <div class="ahv-stat-label">総件数 | Tổng</div>
+                    <div class="ahv-stat-value" id="ahv-stat-total">0</div>
+                </div>
+            </div>
+            <div class="ahv-stat-card">
+                <div class="ahv-stat-icon">✅</div>
+                <div class="ahv-stat-info">
+                    <div class="ahv-stat-label">棚卸 | Kiểm kê</div>
+                    <div class="ahv-stat-value" id="ahv-stat-audit">0</div>
+                </div>
+            </div>
+            <div class="ahv-stat-card">
+                <div class="ahv-stat-icon">📍</div>
+                <div class="ahv-stat-info">
+                    <div class="ahv-stat-label">移動 | Di chuyển</div>
+                    <div class="ahv-stat-value" id="ahv-stat-location">0</div>
+                </div>
+            </div>
+            <div class="ahv-stat-card">
+                <div class="ahv-stat-icon">📥</div>
+                <div class="ahv-stat-info">
+                    <div class="ahv-stat-label">入出庫 | Check-in/out</div>
+                    <div class="ahv-stat-value" id="ahv-stat-checkinout">0</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ======================================== 
+         RESULTS TABLE
+         ======================================== -->
+    <section class="ahv-results-section">
+        <div class="ahv-results-header">
+            <h2 class="ahv-results-title">
+                📊 検索結果 | Kết Quả
+                <span id="ahv-results-count" class="ahv-results-count">(0件)</span>
+            </h2>
+            <div class="ahv-sort-controls">
+                <label class="ahv-label-inline">並び替え | Sắp xếp:</label>
+                <select id="ahv-sort-select" class="ahv-select-inline">
+                    <option value="date-desc">日時 降順 | Mới nhất</option>
+                    <option value="date-asc">日時 昇順 | Cũ nhất</option>
+                    <option value="moldid-asc">金型コード 昇順 | Mã tăng dần</option>
+                    <option value="moldid-desc">金型コード 降順 | Mã giảm dần</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Table Container -->
+        <div class="ahv-table-container">
+            <table class="ahv-table" id="ahv-results-table">
+                <thead>
+                    <tr>
+                        <th class="ahv-th-date">日時 | Thời gian</th>
+                        <th class="ahv-th-code">金型コード | Mã</th>
+                        <th class="ahv-th-name">名前 | Tên</th>
+                        <th class="ahv-th-type">種類 | Loại</th>
+                        <th class="ahv-th-rack">棚段 | Giá-Tầng</th>
+                        <th class="ahv-th-employee">担当者 | NV</th>
+                        <th class="ahv-th-action">アクション | Hành động</th>
+                        <th class="ahv-th-notes">メモ | Ghi chú</th>
+                    </tr>
+                </thead>
+                <tbody id="ahv-results-tbody">
+                    <!-- Dynamically populated -->
+                    <tr class="ahv-no-results">
+                        <td colspan="8" class="ahv-no-results-cell">
+                            <div class="ahv-no-results-icon">🔍</div>
+                            <div class="ahv-no-results-text">
+                                データがありません<br>
+                                Không có dữ liệu
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="ahv-pagination" id="ahv-pagination">
+            <!-- Dynamically populated -->
+        </div>
+    </section>
+
+    <!-- ======================================== 
+         LOADING OVERLAY
+         ======================================== -->
+    <div id="ahv-loading-overlay" class="ahv-loading-overlay" style="display: none;">
+        <div class="ahv-spinner"></div>
+        <div class="ahv-loading-text">読み込み中... | Đang tải...</div>
+    </div>
+
+    <!-- ======================================== 
+         SCRIPTS
+         ======================================== -->
+    <script src="audit-history-viewer.js"></script>
+</body>
+</html>

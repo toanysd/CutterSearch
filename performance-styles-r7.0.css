@@ -1,0 +1,523 @@
+/* ========================================================================
+   PERFORMANCE STYLES R7.0
+   ========================================================================
+   Optimized CSS for iPhone performance
+   
+   Features:
+   - Hardware acceleration hints
+   - Reduced animations
+   - Optimized transitions
+   - Loading states
+   - Will-change properties
+   - Touch optimization
+   
+   Created: 2025-11-14
+   ======================================================================== */
+
+/* ======================================== 
+   PERFORMANCE BASE
+   ======================================== */
+
+/* Enable hardware acceleration for scrolling */
+#quick-results-list,
+.quick-results-grid,
+#quick-results {
+    -webkit-overflow-scrolling: touch;
+    overflow-y: auto;
+    will-change: scroll-position;
+    transform: translateZ(0); /* Force GPU acceleration */
+}
+
+/* Optimize result cards for rendering */
+.result-card {
+    will-change: transform;
+    contain: layout style paint; /* CSS Containment API */
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Reduce animations on low-end devices */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* ======================================== 
+   LOADING OVERLAY
+   ======================================== */
+
+.perf-loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999;
+    animation: perf-fade-in 0.2s ease;
+}
+
+.perf-loading-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.perf-spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: perf-spin 0.8s linear infinite;
+}
+
+.perf-loading-text {
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    text-align: center;
+    padding: 0 20px;
+}
+
+@keyframes perf-fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes perf-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ======================================== 
+   OPTIMIZED CARD TRANSITIONS
+   ======================================== */
+
+.result-card {
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.result-card:active {
+    transform: scale(0.98);
+}
+
+/* Remove expensive box-shadow on scroll */
+.result-card:not(:hover) {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* ======================================== 
+   LAZY LOAD SENTINEL
+   ======================================== */
+
+#lazy-load-sentinel {
+    height: 1px;
+    width: 100%;
+    background: transparent;
+    pointer-events: none;
+}
+
+/* ======================================== 
+   OPTIMIZED BADGES
+   ======================================== */
+
+.result-badge,
+.status-badge,
+.inv-audit-badge,
+.inv-audit-badge-today {
+    will-change: auto; /* Only animate when needed */
+    transform: translateZ(0);
+}
+
+/* Remove transitions on badges during scroll */
+.scrolling .result-badge,
+.scrolling .status-badge {
+    transition: none !important;
+}
+
+/* ======================================== 
+   TOUCH OPTIMIZATION
+   ======================================== */
+
+/* Increase tap target size for mobile */
+@media (max-width: 768px) {
+    .result-card {
+        min-height: 60px;
+        padding: 14px;
+        touch-action: manipulation; /* Faster touch response */
+    }
+    
+    button,
+    .action-btn,
+    .nav-btn {
+        min-height: 44px; /* iOS recommendation */
+        min-width: 44px;
+        touch-action: manipulation;
+    }
+}
+
+/* Prevent accidental text selection during touch */
+.result-card,
+.action-btn,
+button {
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+    -webkit-touch-callout: none;
+    user-select: none;
+}
+
+/* ======================================== 
+   WILL-CHANGE HINTS
+   ======================================== */
+
+/* Apply will-change only to elements that will animate */
+.result-card:hover,
+.result-card:focus {
+    will-change: transform, box-shadow;
+}
+
+/* Remove will-change after animation */
+.result-card:not(:hover):not(:focus) {
+    will-change: auto;
+}
+
+/* ======================================== 
+   FONT RENDERING
+   ======================================== */
+
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeSpeed; /* Faster rendering */
+}
+
+/* Use system fonts for better performance */
+body,
+input,
+button,
+select,
+textarea {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 
+                 'Helvetica Neue', Arial, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN',
+                 'Yu Gothic', 'Meiryo', sans-serif;
+}
+
+/* ======================================== 
+   REDUCE REPAINTS
+   ======================================== */
+
+/* Group repaints by using CSS containment */
+.result-card {
+    contain: layout style paint;
+}
+
+.detail-panel {
+    contain: layout style;
+}
+
+.navbar,
+.action-buttons {
+    contain: layout;
+}
+
+/* ======================================== 
+   SCROLL PERFORMANCE
+   ======================================== */
+
+/* Optimize scrollable containers */
+.scrollable,
+#quick-results-list,
+.results-container {
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    
+    /* Enable GPU acceleration */
+    transform: translate3d(0, 0, 0);
+    will-change: scroll-position;
+}
+
+/* Hide scrollbar on mobile for cleaner UI */
+@media (max-width: 768px) {
+    .scrollable::-webkit-scrollbar,
+    #quick-results-list::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .scrollable,
+    #quick-results-list {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+}
+
+/* ======================================== 
+   IMAGE OPTIMIZATION
+   ======================================== */
+
+/* Lazy loaded images */
+img[data-src] {
+    background: #f0f0f0;
+    min-height: 100px;
+}
+
+img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    image-rendering: -webkit-optimize-contrast;
+}
+
+/* ======================================== 
+   REDUCED MOTION PREFERENCE
+   ======================================== */
+
+@media (prefers-reduced-motion: reduce) {
+    .perf-spinner {
+        animation: none;
+        border: 4px solid white;
+    }
+    
+    .result-card {
+        transition: none;
+    }
+    
+    * {
+        animation-duration: 0.001s !important;
+        transition-duration: 0.001s !important;
+    }
+}
+
+/* ======================================== 
+   OPTIMIZED MODALS
+   ======================================== */
+
+.modal-overlay,
+.inv-overlay {
+    will-change: opacity;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+}
+
+.modal-content,
+.inv-modal {
+    will-change: transform, opacity;
+    transform: translate3d(0, 0, 0);
+}
+
+/* ======================================== 
+   DEBOUNCE VISUAL FEEDBACK
+   ======================================== */
+
+/* Show typing indicator */
+input[type="text"]:focus,
+input[type="search"]:focus {
+    border-color: #2196F3;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
+}
+
+/* ======================================== 
+   BATTERY SAVER MODE
+   ======================================== */
+
+/* Detect low battery and reduce effects */
+@media (prefers-reduced-motion: reduce), 
+       (prefers-contrast: high) {
+    .result-card {
+        box-shadow: none;
+        border: 1px solid #ddd;
+    }
+    
+    .perf-loading-overlay {
+        backdrop-filter: none;
+        background: rgba(0, 0, 0, 0.8);
+    }
+}
+
+/* ======================================== 
+   GPU ACCELERATION HINTS
+   ======================================== */
+
+/* Force GPU for expensive elements */
+.result-card,
+.modal-overlay,
+.navbar,
+.action-buttons,
+.detail-panel {
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+}
+
+/* ======================================== 
+   MOBILE-SPECIFIC OPTIMIZATIONS
+   ======================================== */
+
+@media (max-width: 768px) {
+    /* Reduce complexity on mobile */
+    .result-card {
+        box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+    }
+    
+    /* Optimize transitions */
+    .result-card,
+    button,
+    .action-btn {
+        transition-duration: 0.1s;
+    }
+    
+    /* Prevent zoom on double-tap */
+    button,
+    input,
+    select {
+        touch-action: manipulation;
+    }
+}
+
+/* ======================================== 
+   DARK MODE PERFORMANCE
+   ======================================== */
+
+@media (prefers-color-scheme: dark) {
+    /* Optimize for OLED screens */
+    body {
+        background: #000;
+    }
+    
+    .result-card {
+        background: #1a1a1a;
+        border-color: #333;
+    }
+}
+
+/* ======================================== 
+   CRITICAL CSS - ABOVE THE FOLD
+   ======================================== */
+
+/* Prioritize rendering of visible elements */
+.navbar,
+.search-container,
+#quick-results-list {
+    contain: layout;
+}
+
+/* ======================================== 
+   AVOID LAYOUT THRASHING
+   ======================================== */
+
+/* Fixed sizes to prevent reflow */
+.result-badge {
+    width: 50px;
+    height: 24px;
+    line-height: 24px;
+}
+
+/* ======================================== 
+   PASSIVE EVENT LISTENERS HINT
+   ======================================== */
+
+/* CSS-based scroll hints */
+.scrollable {
+    scroll-behavior: auto; /* Disable smooth scroll for performance */
+}
+
+/* ======================================== 
+   MEMORY OPTIMIZATION
+   ======================================== */
+
+/* Limit number of visible cards via max-height */
+@media (max-width: 768px) {
+    #quick-results-list {
+        max-height: calc(100vh - 200px);
+    }
+}
+
+/* ======================================== 
+   PRINT OPTIMIZATION
+   ======================================== */
+
+@media print {
+    .perf-loading-overlay,
+    .navbar,
+    .action-buttons,
+    .perf-spinner {
+        display: none !important;
+    }
+    
+    .result-card {
+        page-break-inside: avoid;
+        box-shadow: none;
+        border: 1px solid #ddd;
+    }
+}
+
+/* ======================================== 
+   ANIMATION PERFORMANCE
+   ======================================== */
+
+/* Only animate transform and opacity (cheapest) */
+@keyframes slide-in {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.result-card {
+    animation: slide-in 0.2s ease-out;
+    animation-fill-mode: backwards;
+}
+
+/* Disable animation after first render */
+.result-card.rendered {
+    animation: none;
+}
+
+/* ======================================== 
+   NETWORK PERFORMANCE HINTS
+   ======================================== */
+
+/* Preload critical resources */
+link[rel="preload"] {
+    /* Handled in HTML */
+}
+
+/* ======================================== 
+   ACCESSIBILITY & PERFORMANCE BALANCE
+   ======================================== */
+
+/* Ensure keyboard focus is visible */
+button:focus-visible,
+.result-card:focus-visible {
+    outline: 2px solid #2196F3;
+    outline-offset: 2px;
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+    .result-card {
+        border: 2px solid currentColor;
+    }
+}
+
+/* ======================================== 
+   END OF PERFORMANCE STYLES R7.0
+   ======================================== */

@@ -1,0 +1,1042 @@
+/**
+ * ui-renderer-r6.9.8.js
+ * 
+ * ✅ PERFORMANCE OPTIMIZED VERSION
+ * ✅ 100% BACKWARD COMPATIBLE với r6.9.7
+ * 
+ * OPTIMIZATIONS:
+ * - Lazy loading (render 30 items, load more on scroll)
+ * - Event delegation (reduce event listeners)
+ * - Debounced scroll events (100ms)
+ * - RequestAnimationFrame for smooth updates
+ * - DocumentFragment for batch DOM operations
+ * - Memory cleanup on destroy
+ * - Performance monitoring
+ * 
+ * Version: r6.9.8
+ * Date: 2025.11.14
+ * Base: ui-renderer-r6.9.7.js
+ */
+
+(function () {
+  'use strict';
+
+  // ========================================
+  // PERFORMANCE CONFIG
+  // ========================================
+  const PERF_CONFIG = {
+    INITIAL_RENDER_COUNT: 30,        // Render 30 items đầu
+    LOAD_MORE_COUNT: 20,             // Mỗi lần scroll load thêm 20
+    LOAD_MORE_THRESHOLD: 500,        // Load khi cách đáy 500px
+    DEBOUNCE_SCROLL: 100,            // Debounce scroll event 100ms
+    DEBOUNCE_SEARCH: 300,            // Debounce search 300ms
+    RAF_THROTTLE: true,              // Dùng RAF cho animations
+    ENABLE_PERF_MONITOR: false,      // Bật performance logging
+  };
+
+  // ========================================
+  // SELECTORS (giữ nguyên từ r6.9.7)
+  // ========================================
+  const SELECTORS = {
+    quickListCandidates: [
+      '#quick-results-list',
+      '.quick-results-grid',
+      '#quick-results',
+      '[data-role="quick-results"]'
+    ],
+    tableBodyCandidates: [
+      '#results-table-body',
+      '#all-results-body',
+      '.results-table-body',
+      '[data-role="results-body"]'
+    ],
+    detailCompany: '#detail-company',
+    detailRackId: '#detail-rack-id',
+    detailLayerNum: '#detail-layer-num',
+    detailRackLocation: '#detail-rack-location',
+    detailLayerNotes: '#detail-layer-notes',
+    detailCodeName: '#detail-code-name',
+    detailName: '#detail-name',
+    detailDimensions: '#detail-dimensions',
+    detailCutline: '#detail-cutline',
+    detailDate: '#detail-date',
+    detailTeflon: '#detail-teflon',
+    detailJobStatus: '#detail-job-status',
+    detailCheckIn: '#detail-checkin',
+    detailInventory: '#detail-inventory',
+    detailComments: '#detail-comments',
+    detailLastCheckIn: '#detail-last-checkin',
+    detailLastInventory: '#detail-last-inventory'
+  };
+
+  // ========================================
+  // PERFORMANCE UTILITIES
+  // ========================================
+
+  /**
+   * Debounce function - Chạy sau khoảng thời gian chờ
+   */
+  function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  }
+
+  /**
+   * Throttle function - Giới hạn số lần chạy trong khoảng thời gian
+   */
+  function throttle(func, limit) {
+    let inThrottle;
+    return function(...args) {
+      if (!inThrottle) {
+        func.apply(this, args);
+        inThrottle = true;
+        setTimeout(() => inThrottle = false, limit);
+      }
+    };
+  }
+
+  /**
+   * RequestAnimationFrame wrapper
+   */
+  function rafThrottle(func) {
+    let rafId = null;
+    return function(...args) {
+      if (rafId) return;
+      rafId = requestAnimationFrame(() => {
+        func.apply(this, args);
+        rafId = null;
+      });
+    };
+  }
+
+  /**
+   * Performance monitor
+   */
+  const PerfMonitor = {
+    marks: new Map(),
+    
+    start(label) {
+      if (PERF_CONFIG.ENABLE_PERF_MONITOR) {
+        this.marks.set(label, performance.now());
+      }
+    },
+    
+    end(label) {
+      if (PERF_CONFIG.ENABLE_PERF_MONITOR) {
+        const start = this.marks.get(label);
+        if (start) {
+          const duration = performance.now() - start;
+          console.log(`[PERF] ${label}: ${duration.toFixed(2)}ms`);
+          this.marks.delete(label);
+        }
+      }
+    }
+  };
+
+  // ========================================
+  // DOM CACHE (giảm queries)
+  // ========================================
+  const DOMCache = {
+    quickList: null,
+    tableBody: null,
+    detailElements: {},
+    
+    init() {
+      // Cache quick results list
+      for (const sel of SELECTORS.quickListCandidates) {
+        const el = document.querySelector(sel);
+        if (el) {
+          this.quickList = el;
+          break;
+        }
+      }
+      
+      // Cache table body
+      for (const sel of SELECTORS.tableBodyCandidates) {
+        const el = document.querySelector(sel);
+        if (el) {
+          this.tableBody = el;
+          break;
+        }
+      }
+      
+      // Cache detail panel elements
+      for (const [key, sel] of Object.entries(SELECTORS)) {
+        if (key.startsWith('detail')) {
+          this.detailElements[key] = document.querySelector(sel);
+        }
+      }
+    },
+    
+    clear() {
+      this.quickList = null;
+      this.tableBody = null;
+      this.detailElements = {};
+    }
+  };
+
+  // ========================================
+  // LAZY LOADING STATE
+  // ========================================
+  const LazyState = {
+    allItems: [],              // Toàn bộ items
+    renderedCount: 0,          // Số items đã render
+    isLoading: false,          // Đang load thêm
+    scrollContainer: null,     // Container để theo dõi scroll
+    scrollHandler: null,       // Handler để cleanup
+    
+    init(items, container) {
+      this.allItems = items;
+      this.renderedCount = 0;
+      this.isLoading = false;
+      this.scrollContainer = container;
+      this.attachScrollListener();
+    },
+    
+    attachScrollListener() {
+      if (!this.scrollContainer) return;
+      
+      // Sử dụng throttle để giảm số lần check
+      this.scrollHandler = throttle(() => {
+        this.checkLoadMore();
+      }, PERF_CONFIG.DEBOUNCE_SCROLL);
+      
+      this.scrollContainer.addEventListener('scroll', this.scrollHandler, { passive: true });
+    },
+    
+    checkLoadMore() {
+      if (this.isLoading) return;
+      if (this.renderedCount >= this.allItems.length) return;
+      
+      const container = this.scrollContainer;
+      const scrollBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+      
+      if (scrollBottom < PERF_CONFIG.LOAD_MORE_THRESHOLD) {
+        this.loadMore();
+      }
+    },
+    
+    loadMore() {
+      this.isLoading = true;
+      PerfMonitor.start('lazy-load-more');
+      
+      const startIdx = this.renderedCount;
+      const endIdx = Math.min(
+        startIdx + PERF_CONFIG.LOAD_MORE_COUNT,
+        this.allItems.length
+      );
+      
+      const itemsToRender = this.allItems.slice(startIdx, endIdx);
+      
+      // Render với RAF để không block UI
+      if (PERF_CONFIG.RAF_THROTTLE) {
+        requestAnimationFrame(() => {
+          this.renderBatch(itemsToRender);
+          this.renderedCount = endIdx;
+          this.isLoading = false;
+          PerfMonitor.end('lazy-load-more');
+        });
+      } else {
+        this.renderBatch(itemsToRender);
+        this.renderedCount = endIdx;
+        this.isLoading = false;
+        PerfMonitor.end('lazy-load-more');
+      }
+    },
+    
+    renderBatch(items) {
+      // Override bởi render function
+    },
+    
+    cleanup() {
+      if (this.scrollContainer && this.scrollHandler) {
+        this.scrollContainer.removeEventListener('scroll', this.scrollHandler);
+      }
+      this.allItems = [];
+      this.renderedCount = 0;
+      this.scrollContainer = null;
+      this.scrollHandler = null;
+    }
+  };
+
+  // ========================================
+  // HELPER FUNCTIONS (giữ nguyên từ r6.9.7)
+  // ========================================
+
+  function findContainer(candidates) {
+    for (const sel of candidates) {
+      const el = document.querySelector(sel);
+      if (el) return el;
+    }
+    return null;
+  }
+
+  function safeText(val) {
+    if (!val) return '';
+    return String(val);
+  }
+
+  function formatDateJP(dateStr) {
+    if (!dateStr) return '';
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d)) return dateStr;
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}/${m}/${day}`;
+    } catch {
+      return dateStr;
+    }
+  }
+
+  function getStatusBadgeHTML(status) {
+    if (!status) return '';
+    const s = String(status).toLowerCase();
+    let cls = 'badge-neutral';
+    if (s === 'in' || s === 'checkin') cls = 'badge-success';
+    else if (s === 'out' || s === 'checkout') cls = 'badge-warning';
+    else if (s.includes('修理')) cls = 'badge-danger';
+    return `<span class="badge ${cls}">${safeText(status)}</span>`;
+  }
+
+  function getTeflonBadgeHTML(teflonDate) {
+    if (!teflonDate) return '<span class="badge badge-neutral">未加工</span>';
+    const d = new Date(teflonDate);
+    if (isNaN(d)) return '<span class="badge badge-neutral">未加工</span>';
+    
+    const now = new Date();
+    const diffDays = Math.floor((now - d) / (1000 * 60 * 60 * 24));
+    
+    let cls = 'badge-success';
+    if (diffDays > 365) cls = 'badge-danger';
+    else if (diffDays > 180) cls = 'badge-warning';
+    
+    return `<span class="badge ${cls}">加工済 (${diffDays}日前)</span>`;
+  }
+
+  // ========================================
+  // CACHED COMPUTATIONS
+  // ========================================
+  const ComputeCache = new Map();
+
+  function getCachedBadge(type, value) {
+    const key = `${type}:${value}`;
+    if (ComputeCache.has(key)) {
+      return ComputeCache.get(key);
+    }
+    
+    let result;
+    if (type === 'status') {
+      result = getStatusBadgeHTML(value);
+    } else if (type === 'teflon') {
+      result = getTeflonBadgeHTML(value);
+    }
+    
+    ComputeCache.set(key, result);
+    return result;
+  }
+
+  function clearComputeCache() {
+    ComputeCache.clear();
+  }
+
+  // ========================================
+  // RENDER QUICK RESULTS (Optimized)
+  // ========================================
+
+  /**
+   * Render quick results với lazy loading
+   */
+  function renderQuickResults(items) {
+    PerfMonitor.start('render-quick-results');
+    
+    const container = DOMCache.quickList || findContainer(SELECTORS.quickListCandidates);
+    if (!container) {
+      console.warn('[UIRenderer] Quick results container not found');
+      return;
+    }
+
+    // Cache container
+    if (!DOMCache.quickList) DOMCache.quickList = container;
+
+    // Cleanup previous lazy state
+    LazyState.cleanup();
+
+    // Clear container
+    container.innerHTML = '';
+
+    if (!items || items.length === 0) {
+      container.innerHTML = '<div class="no-results">検索結果なし</div>';
+      PerfMonitor.end('render-quick-results');
+      return;
+    }
+
+    // Init lazy loading
+    LazyState.init(items, container);
+    
+    // Override render function
+    LazyState.renderBatch = (batchItems) => {
+      const fragment = document.createDocumentFragment();
+      
+      batchItems.forEach(item => {
+        const card = createQuickResultCard(item);
+        fragment.appendChild(card);
+      });
+      
+      container.appendChild(fragment);
+    };
+
+    // Initial render
+    const initialCount = Math.min(PERF_CONFIG.INITIAL_RENDER_COUNT, items.length);
+    const initialItems = items.slice(0, initialCount);
+    LazyState.renderBatch(initialItems);
+    LazyState.renderedCount = initialCount;
+
+    // Attach event delegation
+    attachQuickResultsEvents(container);
+
+    PerfMonitor.end('render-quick-results');
+    
+    console.log(`[UIRenderer] Rendered ${initialCount}/${items.length} items (lazy loading enabled)`);
+  }
+
+  /**
+   * Tạo quick result card (không thay đổi)
+   */
+  function createQuickResultCard(item) {
+    const div = document.createElement('div');
+    div.className = 'quick-result-card';
+    div.dataset.id = item.id || item.displayCode;
+    div.dataset.type = item.itemType || 'mold';
+    
+    // Code & Name
+    const codeName = `${safeText(item.displayCode)} - ${safeText(item.displayName)}`;
+    
+    // Location (Giá-Tầng)
+    const rackId = safeText(item.rackId);
+    const layerNum = safeText(item.layerNum);
+    const location = rackId && layerNum ? `${rackId}-${layerNum}` : '未配置';
+    
+    // Status badge
+    const statusBadge = getCachedBadge('status', item.status);
+    
+    // Teflon badge (for molds)
+    const teflonBadge = item.itemType === 'mold' ? getCachedBadge('teflon', item.teflonDate) : '';
+    
+    // Inventory badge (nếu có)
+    const invBadge = getInventoryBadgeHTML(item);
+    
+    div.innerHTML = `
+      <div class="qr-line-1">
+        <strong>${codeName}</strong>
+        ${invBadge}
+      </div>
+      <div class="qr-line-2">
+        📍 ${location} ${statusBadge}
+      </div>
+      ${teflonBadge ? `<div class="qr-line-3">${teflonBadge}</div>` : ''}
+    `;
+    
+    return div;
+  }
+
+  /**
+   * Get inventory badge HTML
+   */
+  function getInventoryBadgeHTML(item) {
+    if (!item.lastInventoryDate) return '';
+    
+    const invDate = formatDateJP(item.lastInventoryDate);
+    const today = new Date().toISOString().split('T')[0];
+    const isToday = item.lastInventoryDate === today;
+    
+    const cls = isToday ? 'inv-badge-today' : 'inv-badge-past';
+    return `<span class="inv-badge ${cls}">棚卸: ${invDate}</span>`;
+  }
+
+  /**
+   * Event delegation cho quick results
+   */
+  function attachQuickResultsEvents(container) {
+    // Remove old listener nếu có
+    if (container._clickHandler) {
+      container.removeEventListener('click', container._clickHandler);
+    }
+    
+    // Single click handler cho tất cả cards
+    const clickHandler = (e) => {
+      const card = e.target.closest('.quick-result-card');
+      if (!card) return;
+      
+      const id = card.dataset.id;
+      const type = card.dataset.type;
+      
+      if (!id || !type) return;
+      
+      // Highlight card
+      highlightCard(card);
+      
+      // Dispatch event để load detail
+      document.dispatchEvent(new CustomEvent('quick:select', {
+        detail: { id, type }
+      }));
+    };
+    
+    container.addEventListener('click', clickHandler);
+    container._clickHandler = clickHandler; // Store để cleanup sau
+  }
+
+  /**
+   * Highlight selected card
+   */
+  function highlightCard(card) {
+    const container = card.parentElement;
+    if (!container) return;
+    
+    // Remove previous highlight
+    container.querySelectorAll('.qr-selected').forEach(c => {
+      c.classList.remove('qr-selected');
+    });
+    
+    // Add highlight
+    card.classList.add('qr-selected');
+    
+    // Smooth scroll vào view
+    card.scrollIntoView({ 
+      behavior: 'smooth', 
+      block: 'nearest' 
+    });
+  }
+
+  // ========================================
+  // RENDER TABLE (Optimized với lazy loading)
+  // ========================================
+
+  /**
+   * Render bảng kết quả đầy đủ
+   */
+  function renderTable(items) {
+    PerfMonitor.start('render-table');
+    
+    const tbody = DOMCache.tableBody || findContainer(SELECTORS.tableBodyCandidates);
+    if (!tbody) {
+      console.warn('[UIRenderer] Table body not found');
+      return;
+    }
+
+    // Cache tbody
+    if (!DOMCache.tableBody) DOMCache.tableBody = tbody;
+
+    // Clear table
+    tbody.innerHTML = '';
+
+    if (!items || items.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="10">検索結果なし</td></tr>';
+      PerfMonitor.end('render-table');
+      return;
+    }
+
+    // Sử dụng DocumentFragment để batch insert
+    const fragment = document.createDocumentFragment();
+
+    items.forEach((item, idx) => {
+      const tr = createTableRow(item, idx);
+      fragment.appendChild(tr);
+    });
+
+    tbody.appendChild(fragment);
+
+    // Event delegation cho table
+    attachTableEvents(tbody);
+
+    PerfMonitor.end('render-table');
+    console.log(`[UIRenderer] Rendered ${items.length} rows in table`);
+  }
+
+  /**
+   * Tạo table row
+   */
+  function createTableRow(item, idx) {
+    const tr = document.createElement('tr');
+    tr.dataset.id = item.id || item.displayCode;
+    tr.dataset.type = item.itemType || 'mold';
+
+    const cells = [
+      idx + 1,
+      safeText(item.displayCode),
+      safeText(item.displayName),
+      `${safeText(item.rackId)}-${safeText(item.layerNum)}`,
+      getCachedBadge('status', item.status),
+      formatDateJP(item.lastCheckInDate),
+      formatDateJP(item.lastInventoryDate),
+      item.itemType === 'mold' ? getCachedBadge('teflon', item.teflonDate) : '',
+      safeText(item.dimensions),
+      `<button class="btn-view-detail" data-id="${item.id}" data-type="${item.itemType}">詳細</button>`
+    ];
+
+    cells.forEach(cellContent => {
+      const td = document.createElement('td');
+      td.innerHTML = cellContent;
+      tr.appendChild(td);
+    });
+
+    return tr;
+  }
+
+  /**
+   * Event delegation cho table
+   */
+  function attachTableEvents(tbody) {
+    // Remove old listener
+    if (tbody._clickHandler) {
+      tbody.removeEventListener('click', tbody._clickHandler);
+    }
+
+    const clickHandler = (e) => {
+      // Click vào row
+      const tr = e.target.closest('tr[data-id]');
+      if (tr) {
+        const id = tr.dataset.id;
+        const type = tr.dataset.type;
+        
+        // Highlight row
+        tbody.querySelectorAll('tr.selected').forEach(r => r.classList.remove('selected'));
+        tr.classList.add('selected');
+        
+        // Dispatch event
+        document.dispatchEvent(new CustomEvent('table:select', {
+          detail: { id, type }
+        }));
+      }
+
+      // Click vào detail button
+      const btn = e.target.closest('.btn-view-detail');
+      if (btn) {
+        const id = btn.dataset.id;
+        const type = btn.dataset.type;
+        
+        document.dispatchEvent(new CustomEvent('detail:open', {
+          detail: { id, type }
+        }));
+      }
+    };
+
+    tbody.addEventListener('click', clickHandler);
+    tbody._clickHandler = clickHandler;
+  }
+
+  // ========================================
+  // RENDER DETAIL PANEL (Optimized)
+  // ========================================
+
+  /**
+   * Render detail panel với batch updates
+   */
+  function renderDetailPanel(item) {
+    if (!item) {
+      clearDetailPanel();
+      return;
+    }
+
+    PerfMonitor.start('render-detail');
+
+    // Batch tất cả DOM updates trong RAF
+    if (PERF_CONFIG.RAF_THROTTLE) {
+      requestAnimationFrame(() => {
+        updateDetailDOM(item);
+        PerfMonitor.end('render-detail');
+      });
+    } else {
+      updateDetailDOM(item);
+      PerfMonitor.end('render-detail');
+    }
+
+    // Dispatch event
+    document.dispatchEvent(new CustomEvent('detail:changed', {
+      detail: { item, itemType: item.itemType }
+    }));
+  }
+
+  /**
+   * Update detail DOM elements
+   */
+  function updateDetailDOM(item) {
+    const els = DOMCache.detailElements;
+
+    // Company
+    if (els.detailCompany) {
+      els.detailCompany.textContent = safeText(item.company);
+    }
+
+    // Rack Location
+    if (els.detailRackId) {
+      els.detailRackId.textContent = safeText(item.rackId);
+    }
+    if (els.detailLayerNum) {
+      els.detailLayerNum.textContent = safeText(item.layerNum);
+    }
+    if (els.detailRackLocation) {
+      els.detailRackLocation.textContent = safeText(item.rackLocation);
+    }
+    if (els.detailLayerNotes) {
+      els.detailLayerNotes.textContent = safeText(item.layerNotes);
+    }
+
+    // Code & Name
+    if (els.detailCodeName) {
+      els.detailCodeName.textContent = `${safeText(item.displayCode)} - ${safeText(item.displayName)}`;
+    }
+    if (els.detailName) {
+      els.detailName.textContent = safeText(item.displayName);
+    }
+
+    // Dimensions
+    if (els.detailDimensions) {
+      els.detailDimensions.textContent = safeText(item.dimensions);
+    }
+
+    // Cutline (for cutters)
+    if (els.detailCutline && item.itemType === 'cutter') {
+      els.detailCutline.textContent = safeText(item.cutline);
+    }
+
+    // Date
+    if (els.detailDate) {
+      els.detailDate.textContent = formatDateJP(item.date);
+    }
+
+    // Teflon (for molds)
+    if (els.detailTeflon && item.itemType === 'mold') {
+      els.detailTeflon.innerHTML = getCachedBadge('teflon', item.teflonDate);
+    }
+
+    // Job Status
+    if (els.detailJobStatus) {
+      els.detailJobStatus.innerHTML = getCachedBadge('status', item.status);
+    }
+
+    // Check-in
+    if (els.detailCheckIn) {
+      const checkInStatus = item.status === 'in' ? 'チェックイン済' : 'チェックアウト';
+      els.detailCheckIn.textContent = checkInStatus;
+    }
+    if (els.detailLastCheckIn) {
+      els.detailLastCheckIn.textContent = formatDateJP(item.lastCheckInDate);
+    }
+
+    // Inventory
+    if (els.detailInventory) {
+      const invStatus = item.lastInventoryDate ? '棚卸済' : '未棚卸';
+      els.detailInventory.textContent = invStatus;
+    }
+    if (els.detailLastInventory) {
+      els.detailLastInventory.textContent = formatDateJP(item.lastInventoryDate);
+    }
+
+    // Comments
+    if (els.detailComments) {
+      els.detailComments.textContent = safeText(item.comments);
+    }
+  }
+
+  /**
+   * Clear detail panel
+   */
+  function clearDetailPanel() {
+    const els = DOMCache.detailElements;
+    
+    Object.values(els).forEach(el => {
+      if (el) {
+        el.textContent = '';
+        el.innerHTML = '';
+      }
+    });
+
+    // Dispatch clear event
+    document.dispatchEvent(new CustomEvent('detail:cleared'));
+  }
+
+  // ========================================
+  // UPDATE FUNCTIONS (Dynamic badge updates)
+  // ========================================
+
+  /**
+   * Update location badge (Giá-Tầng)
+   */
+  function updateLocationBadge(itemId, itemType, rackId, layerNum) {
+    PerfMonitor.start('update-location-badge');
+
+    const location = `${rackId}-${layerNum}`;
+
+    // Update quick results
+    const qrCard = document.querySelector(
+      `.quick-result-card[data-id="${CSS.escape(itemId)}"][data-type="${itemType}"]`
+    );
+    if (qrCard) {
+      const line2 = qrCard.querySelector('.qr-line-2');
+      if (line2) {
+        // Keep status badge, chỉ update location
+        const statusBadge = line2.querySelector('.badge');
+        const statusHTML = statusBadge ? statusBadge.outerHTML : '';
+        line2.innerHTML = `📍 ${location} ${statusHTML}`;
+        
+        // Add sync icon
+        const syncIcon = document.createElement('span');
+        syncIcon.className = 'sync-icon';
+        syncIcon.textContent = '🔄';
+        line2.appendChild(syncIcon);
+        
+        setTimeout(() => syncIcon.remove(), 2000);
+      }
+    }
+
+    // Update table
+    const tableRow = document.querySelector(
+      `tr[data-id="${CSS.escape(itemId)}"][data-type="${itemType}"]`
+    );
+    if (tableRow) {
+      const locationCell = tableRow.cells[3]; // Column 4 = Location
+      if (locationCell) {
+        locationCell.textContent = location;
+      }
+    }
+
+    // Update detail panel
+    const els = DOMCache.detailElements;
+    if (els.detailRackId) els.detailRackId.textContent = rackId;
+    if (els.detailLayerNum) els.detailLayerNum.textContent = layerNum;
+
+    PerfMonitor.end('update-location-badge');
+    console.log(`[UIRenderer] Updated location badge: ${itemId} → ${location}`);
+  }
+
+  /**
+   * Update check-in badge
+   */
+  function updateCheckInBadge(itemId, itemType, status, checkInDate) {
+    PerfMonitor.start('update-checkin-badge');
+
+    const statusBadge = getCachedBadge('status', status);
+
+    // Update quick results
+    const qrCard = document.querySelector(
+      `.quick-result-card[data-id="${CSS.escape(itemId)}"][data-type="${itemType}"]`
+    );
+    if (qrCard) {
+      const line2 = qrCard.querySelector('.qr-line-2');
+      if (line2) {
+        // Extract location text
+        const locationText = line2.textContent.split('📍')[1]?.split(' ')[0] || '';
+        line2.innerHTML = `📍 ${locationText} ${statusBadge}`;
+        
+        // Add sync icon
+        const syncIcon = document.createElement('span');
+        syncIcon.className = 'sync-icon';
+        syncIcon.textContent = '🔄';
+        line2.appendChild(syncIcon);
+        
+        setTimeout(() => syncIcon.remove(), 2000);
+      }
+    }
+
+    // Update table
+    const tableRow = document.querySelector(
+      `tr[data-id="${CSS.escape(itemId)}"][data-type="${itemType}"]`
+    );
+    if (tableRow) {
+      const statusCell = tableRow.cells[4]; // Column 5 = Status
+      const checkInCell = tableRow.cells[5]; // Column 6 = Check-in date
+      if (statusCell) statusCell.innerHTML = statusBadge;
+      if (checkInCell) checkInCell.textContent = formatDateJP(checkInDate);
+    }
+
+    // Update detail panel
+    const els = DOMCache.detailElements;
+    if (els.detailJobStatus) {
+      els.detailJobStatus.innerHTML = statusBadge;
+    }
+    if (els.detailLastCheckIn) {
+      els.detailLastCheckIn.textContent = formatDateJP(checkInDate);
+    }
+    if (els.detailCheckIn) {
+      const checkInStatus = status === 'in' ? 'チェックイン済' : 'チェックアウト';
+      els.detailCheckIn.textContent = checkInStatus;
+    }
+
+    PerfMonitor.end('update-checkin-badge');
+    console.log(`[UIRenderer] Updated check-in badge: ${itemId} → ${status}`);
+  }
+
+  /**
+   * Update inventory badge
+   */
+  function updateInventoryBadge(itemId, itemType, inventoryDate) {
+    PerfMonitor.start('update-inventory-badge');
+
+    const invDateFormatted = formatDateJP(inventoryDate);
+    const today = new Date().toISOString().split('T')[0];
+    const isToday = inventoryDate === today;
+    const badgeClass = isToday ? 'inv-badge-today' : 'inv-badge-past';
+    const badgeHTML = `<span class="inv-badge ${badgeClass}">棚卸: ${invDateFormatted}</span>`;
+
+    // Update quick results
+    const qrCard = document.querySelector(
+      `.quick-result-card[data-id="${CSS.escape(itemId)}"][data-type="${itemType}"]`
+    );
+    if (qrCard) {
+      // Remove old badge nếu có
+      const oldBadge = qrCard.querySelector('.inv-badge');
+      if (oldBadge) oldBadge.remove();
+      
+      // Add new badge vào line-1
+      const line1 = qrCard.querySelector('.qr-line-1');
+      if (line1) {
+        line1.insertAdjacentHTML('beforeend', badgeHTML);
+      }
+    }
+
+    // Update table
+    const tableRow = document.querySelector(
+      `tr[data-id="${CSS.escape(itemId)}"][data-type="${itemType}"]`
+    );
+    if (tableRow) {
+      const invCell = tableRow.cells[6]; // Column 7 = Inventory date
+      if (invCell) {
+        invCell.textContent = invDateFormatted;
+      }
+    }
+
+    // Update detail panel
+    const els = DOMCache.detailElements;
+    if (els.detailLastInventory) {
+      els.detailLastInventory.textContent = invDateFormatted;
+    }
+    if (els.detailInventory) {
+      els.detailInventory.textContent = '棚卸済';
+    }
+
+    PerfMonitor.end('update-inventory-badge');
+    console.log(`[UIRenderer] Updated inventory badge: ${itemId} → ${invDateFormatted}`);
+  }
+
+  // ========================================
+  // CLEANUP & MEMORY MANAGEMENT
+  // ========================================
+
+  /**
+   * Cleanup tất cả resources
+   */
+  function cleanup() {
+    console.log('[UIRenderer] Cleaning up resources...');
+    
+    // Cleanup lazy loading
+    LazyState.cleanup();
+    
+    // Clear DOM cache
+    DOMCache.clear();
+    
+    // Clear compute cache
+    clearComputeCache();
+    
+    // Clear performance marks
+    PerfMonitor.marks.clear();
+    
+    console.log('[UIRenderer] Cleanup complete');
+  }
+
+  /**
+   * Refresh/reload (cleanup + re-init)
+   */
+  function refresh() {
+    cleanup();
+    DOMCache.init();
+    console.log('[UIRenderer] Refreshed');
+  }
+
+  // ========================================
+  // INITIALIZATION
+  // ========================================
+
+  /**
+   * Initialize UI Renderer
+   */
+  function init() {
+    console.log('[UIRenderer] Initializing r6.9.8...');
+    
+    // Init DOM cache
+    DOMCache.init();
+    
+    // Log performance config
+    if (PERF_CONFIG.ENABLE_PERF_MONITOR) {
+      console.log('[UIRenderer] Performance monitoring enabled');
+      console.log('[UIRenderer] Config:', PERF_CONFIG);
+    }
+    
+    console.log('[UIRenderer] Initialized successfully');
+  }
+
+  // ========================================
+  // PUBLIC API (100% backward compatible)
+  // ========================================
+
+  window.UIRenderer = {
+    // Core render functions
+    renderQuickResults,
+    renderTable,
+    renderDetailPanel,
+    clearDetailPanel,
+    
+    // Update functions (NEW in r6.9.7, kept in r6.9.8)
+    updateLocationBadge,
+    updateCheckInBadge,
+    updateInventoryBadge,
+    
+    // Utility functions
+    formatDateJP,
+    getStatusBadgeHTML,
+    getTeflonBadgeHTML,
+    
+    // Lifecycle
+    init,
+    cleanup,
+    refresh,
+    
+    // Performance monitoring (NEW)
+    enablePerfMonitor: () => {
+      PERF_CONFIG.ENABLE_PERF_MONITOR = true;
+      console.log('[UIRenderer] Performance monitoring enabled');
+    },
+    disablePerfMonitor: () => {
+      PERF_CONFIG.ENABLE_PERF_MONITOR = false;
+      console.log('[UIRenderer] Performance monitoring disabled');
+    },
+    
+    // Config (NEW)
+    config: PERF_CONFIG
+  };
+
+  // Auto-init khi DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+  // Cleanup khi page unload (prevent memory leaks)
+  window.addEventListener('beforeunload', cleanup);
+
+  console.log('[UIRenderer] r6.9.8 loaded successfully');
+
+})();
+
+// ========================================
+// END OF ui-renderer-r6.9.8.js
+// ========================================

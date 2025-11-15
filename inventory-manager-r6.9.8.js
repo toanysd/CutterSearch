@@ -1,5 +1,5 @@
 /* ========================================================================
-   INVENTORY MANAGER R6.9.5
+   INVENTORY MANAGER R6.9.8
    ========================================================================
    Quản lý toàn diện chức năng kiểm kê (棚卸 | Inventory Management)
    
@@ -313,9 +313,18 @@
                             </div>
                             
                         </div>
+
+    
                         
                         <!-- ✅ FOOTER - BOTTOM -->
                         <div class="inv-modal-footer">
+
+                            <!-- ✅ History Button (Left side) -->
+                            <button id="inv-history-btn" class="inv-btn inv-btn-history" type="button">
+                                <span class="inv-btn-icon">📊</span>
+                                <span class="inv-btn-text">履歴 | Lịch sử</span>
+                            </button>
+
                             <button class="inv-btn inv-btn-secondary" id="inv-cancel-btn">
                                 <i class="fas fa-times"></i>
                                 キャンセル | Hủy
@@ -431,6 +440,13 @@
                     this.closeSettings();
                 });
             });
+
+                // ✅ THÊM: History button
+            document.getElementById('inv-history-btn')?.addEventListener('click', () => {
+                console.log('[InventoryManager] Opening history viewer...');
+                this.openHistoryViewer();
+            });
+
 
             // Overlay click
             document.getElementById('inventory-settings-overlay')?.addEventListener('click', (e) => {
@@ -950,30 +966,72 @@
             });
         },
 
+    
         /**
          * Process bulk audit (kiểm kê hàng loạt)
+         * ✅ R6.9.8: Gọi batch API thay vì từng item
          */
-        processBulkAudit() {
+        async processBulkAudit() {
             const items = window.InventoryState.selectedItems;
             const operator = window.InventoryState.operator;
+            const auditDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
             
             console.log('[InventoryManager] 📋 Processing bulk audit for', items.length, 'items');
 
-            items.forEach(item => {
-                // Dispatch checkin event
-                document.dispatchEvent(new CustomEvent('triggerCheckin', {
-                    detail: {
-                        item: item.data,
-                        type: item.type,
-                        mode: 'inventory',
-                        operator,
-                        source: 'inventoryBulk'
-                    }
-                }));
+            // ✅ Chuẩn bị batch statusLogs
+            const statusLogs = items.map(item => ({
+                MoldID: item.type === 'mold' ? item.id : '',
+                CutterID: item.type === 'cutter' ? item.id : '',
+                ItemType: item.type,
+                Status: 'AUDIT',
+                Timestamp: new Date().toISOString(),
+                EmployeeID: operator,
+                DestinationID: '',
+                Notes: '棚卸 | Kiểm kê (hàng loạt)',
+                AuditDate: auditDate,
+                AuditType: 'AUDIT_ONLY'
+            }));
 
-                // Record audit
-                this.recordAudit(item.id, item.type, new Date().toISOString());
-            });
+            // ✅ Gọi batch API
+            try {
+                const API_URL = 'https://ysd-moldcutter-backend.onrender.com/api/audit-batch';
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ statusLogs })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    console.log('[InventoryManager] ✅ Batch audit saved:', result.saved);
+                    
+                    // Record to local cache
+                    items.forEach(item => {
+                        this.recordAuditToCache(item.id, item.type, auditDate);
+                    });
+                    
+                    // Show success notification
+                    this.showNotification(
+                        `✅ 棚卸完了 | Đã kiểm kê ${items.length} mục`,
+                        'success'
+                    );
+                } else {
+                    throw new Error(result.message || 'Batch audit failed');
+                }
+            } catch (error) {
+                console.error('[InventoryManager] ❌ Batch audit error:', error);
+                
+                // Fallback: Lưu từng item vào localStorage
+                items.forEach(item => {
+                    this.saveToLocalStorage(item.id, item.type, auditDate);
+                });
+                
+                this.showNotification(
+                    '⚠️ 一部のデータは保留中 | Một số dữ liệu đang chờ xử lý',
+                    'warning'
+                );
+            }
 
             // Clear selection
             window.InventoryState.selectedItems = [];
@@ -1081,42 +1139,54 @@
         },
 
         /**
-         * Record audit history
+         * Record audit history (đơn lẻ)
+         * ✅ R6.9.8: Gọi endpoint /api/checklog với AuditDate và AuditType
          */
-          recordAudit(itemId, itemType, date) {
+        async recordAudit(itemId, itemType, date) {
             const key = `${itemType}:${itemId}`;
             window.InventoryState.auditHistory[key] = date;
-            
+
             // Save to statuslogs.csv via server
-            this.saveToStatusLogs(itemId, itemType, date, window.InventoryState.operator);
-            
+            await this.saveToStatusLogs(itemId, itemType, date, window.InventoryState.operator);
+
             // Save to localStorage (fallback)
             this.saveAuditHistory();
-            
+
             console.log('[InventoryManager] Audit recorded:', key, date);
-            
-            // ✅ R6.9.7: Dispatch event để UI refresh ngay lập tức
+
+            // ✅ Dispatch event để UI refresh ngay lập tức
             document.dispatchEvent(new CustomEvent('inventory:auditRecorded', {
-            detail: { itemId, itemType, date }
+                detail: { itemId, itemType, date }
             }));
             console.log('[InventoryManager] 📡 Event dispatched: inventory:auditRecorded');
         },
 
 
 
+
+     
         /**
          * Save audit record to statuslogs.csv via server API
+         * ✅ R6.9.8: Sử dụng endpoint /api/checklog (đã có AuditDate, AuditType)
          */
         async saveToStatusLogs(itemId, itemType, date, operator) {
-        const API_URL = 'https://ysd-moldcutter-backend.onrender.com/api/audit';
-        
-        const record = {
-            itemId: itemId,
-            itemType: itemType,
-            auditDate: date,
-            operator: operator || window.InventoryState.operator || '',
-            notes: 'Inventory audit'
-        };
+            const API_URL = 'https://ysd-moldcutter-backend.onrender.com/api/checklog'; // ✅ FIXED ENDPOINT
+            
+            const auditDate = typeof date === 'string' ? date.split('T')[0] : new Date().toISOString().split('T')[0];
+            
+            const record = {
+                MoldID: itemType === 'mold' ? itemId : '',
+                CutterID: itemType === 'cutter' ? itemId : '',
+                ItemType: itemType,
+                Status: 'AUDIT',
+                Timestamp: new Date().toISOString(),
+                EmployeeID: operator || window.InventoryState.operator || '',
+                DestinationID: '',
+                Notes: '棚卸 | Kiểm kê',
+                AuditDate: auditDate,        // ✅ NEW
+                AuditType: 'AUDIT_ONLY'      // ✅ NEW
+            };
+
         
         try {
             const response = await fetch(API_URL, {
@@ -1252,7 +1322,68 @@
         document.dispatchEvent(new CustomEvent('inventory:modeChanged', { detail: { active: st.active } }));
         },
 
+            /**
+     * Record audit to cache only (không gọi API)
+     * Dùng khi đã gọi batch API
+     */
+    recordAuditToCache(itemId, itemType, date) {
+        const key = `${itemType}:${itemId}`;
+        window.InventoryState.auditHistory[key] = date;
+        this.saveAuditHistory();
+        
+        // Dispatch event
+        document.dispatchEvent(new CustomEvent('inventory:auditRecorded', {
+            detail: { itemId, itemType, date }
+        }));
+    },
+
+    /**
+     * Show notification toast
+     */
+    showNotification(message, type = 'info') {
+        // Xóa toast cũ nếu có
+        const existing = document.getElementById('inv-toast');
+        if (existing) existing.remove();
+        
+        // Tạo toast mới
+        const toast = document.createElement('div');
+        toast.id = 'inv-toast';
+        toast.className = `inv-toast inv-toast-${type}`;
+        toast.innerHTML = message;
+        
+        document.body.appendChild(toast);
+        
+        // Auto hide sau 3s
+        setTimeout(() => {
+            toast.classList.add('inv-toast-hide');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    },
+
+        /**
+     * ✅ R6.9.8: Open audit history viewer
+     * Opens in new tab/window
+     */
+    openHistoryViewer() {
+        const url = 'audit-history-viewer.html';
+        
+        // Check if file exists
+        if (typeof window.AuditHistoryViewer === 'undefined') {
+            // Open in new tab
+            window.open(url, '_blank', 'noopener,noreferrer');
+        } else {
+            // If loaded in same page (future modal implementation)
+            console.log('[InventoryManager] History viewer already loaded');
+        }
+        
+        console.log('[InventoryManager] 📊 History viewer opened:', url);
+    },
+
+
+
     };
+
+    
 
     // ========================================
     // AUTO-INIT
