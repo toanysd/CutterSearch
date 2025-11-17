@@ -1023,6 +1023,38 @@ input:focus, select:focus, textarea:focus {
 .actions-row-3col .btn-teflon   { --btn-color: var(--kiosk-pink); }
 .actions-row-3col .btn-comment  { --btn-color: var(--kiosk-gray); }
 
+
+/* ✅ R6.9.10: Support 4-column layout for separated buttons */
+.actions-row-4col {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px; /* Slightly smaller gap for 4 buttons */
+}
+
+/* Adjust font size for 4-button layout */
+.actions-row-4col .action-btn {
+    font-size: 11px;
+    padding: 8px 4px;
+}
+
+.actions-row-4col .action-icon {
+    font-size: 18px;
+    margin-bottom: 4px;
+}
+
+.actions-row-4col .btn-label-vi {
+    font-size: 9px;
+}
+
+/* Responsive: Stack on very small tablets */
+@media (max-width: 900px) {
+    .actions-row-4col {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+}
+
+
 /* Hàng nút lớn – lùi mép, chiều cao vừa đủ */
 .checkin-checkout-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-sm); }
 .action-btn-large {

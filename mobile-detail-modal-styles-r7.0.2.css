@@ -1,0 +1,1026 @@
+/* ========================================================================
+   MOBILE DETAIL MODAL STYLES R7.0.2 - FINAL
+   ========================================================================
+   Modern, color-coded, compact design with clear section headers
+   
+   🎨 COLOR SCHEME:
+   - Location: Blue (#1565C0)
+   - Basic Info: Green (#388E3C)
+   - Design Info: Purple (#7B1FA2)
+   - Product Info: Orange (#F57C00)
+   - Status/Notes: Red/Cyan (varies by status)
+   - Related Equipment: Blue (Mold) / Orange (Cutter)
+   
+   Created: 2025-11-17 (R7.0.2 Final)
+   ======================================================================== */
+
+/* ========================================
+   1. MODAL CONTAINER & OVERLAY
+   ======================================== */
+
+@media (max-width: 767px) {
+    .mobile-detail-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.85);
+        z-index: 10000;
+        display: flex;
+        flex-direction: column;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.25s ease;
+    }
+    
+    .mobile-detail-modal.show {
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    .mobile-detail-modal.hidden {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+    .mobile-detail-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: calc(100vh - 180px);
+        background: rgba(0, 0, 0, 0.85);
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.25s ease;
+    }
+    
+    .mobile-detail-modal.show {
+        opacity: 1;
+        visibility: visible;
+    }
+}
+
+/* ========================================
+   2. MODAL HEADER
+   ======================================== */
+
+@media (max-width: 1024px) {
+    .mobile-modal-header {
+        background: linear-gradient(135deg, #1565C0 0%, #0D47A1 100%);
+        color: white;
+        padding: 12px 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        flex-shrink: 0;
+    }
+    
+    .modal-title {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    
+    .modal-title-ja {
+        font-size: 17px;
+        font-weight: 700;
+        line-height: 1.2;
+        color: white;
+    }
+    
+    .modal-title-vi {
+        font-size: 12px;
+        font-weight: 400;
+        opacity: 0.95;
+        color: white;
+    }
+    
+    .modal-close-btn {
+        background: rgba(255, 255, 255, 0.25);
+        border: none;
+        color: white;
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+    }
+    
+    .modal-close-btn:active {
+        background: rgba(255, 255, 255, 0.35);
+        transform: scale(0.92);
+    }
+}
+
+/* ========================================
+   3. MODE TOGGLE SWITCH
+   ======================================== */
+
+@media (max-width: 1024px) {
+    .mode-toggle-container {
+        background: linear-gradient(to bottom, #ffffff 0%, #f5f7fa 100%);
+        padding: 10px 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        border-bottom: 2px solid #E3F2FD;
+        flex-shrink: 0;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    
+    .mode-toggle-label {
+        font-size: 11px;
+        color: #666;
+        font-weight: 600;
+    }
+    
+    .mode-toggle-switch {
+        display: flex;
+        gap: 8px;
+    }
+    
+    .toggle-btn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 14px;
+        background: white;
+        border: 2px solid #E0E0E0;
+        border-radius: 8px;
+        font-size: 11px;
+        font-weight: 600;
+        color: #666;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    
+    .toggle-btn i {
+        font-size: 13px;
+    }
+    
+    .toggle-btn.active {
+        background: linear-gradient(135deg, #1565C0 0%, #0D47A1 100%);
+        border-color: #0D47A1;
+        color: white;
+        box-shadow: 0 2px 4px rgba(13, 71, 161, 0.3);
+    }
+    
+    .toggle-btn:active {
+        transform: scale(0.95);
+    }
+    
+    .toggle-label-ja,
+    .toggle-label-vi {
+        font-size: 10px;
+    }
+}
+
+/* ========================================
+   4. MODAL BODY
+   ======================================== */
+
+@media (max-width: 767px) {
+    .mobile-modal-body {
+        flex: 1;
+        background: #F5F7FA;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 10px;
+        padding-bottom: 175px;
+    }
+    
+    .mobile-modal-body.inventory-mode {
+        padding-bottom: 115px;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+    .mobile-modal-body {
+        flex: 1;
+        background: #F5F7FA;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 12px;
+        padding-bottom: 155px;
+    }
+}
+
+/* Loading state */
+@media (max-width: 1024px) {
+    .modal-loading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 20px;
+        color: #0D47A1;
+    }
+    
+    .modal-loading i {
+        font-size: 40px;
+        margin-bottom: 16px;
+    }
+}
+
+/* ========================================
+   5. SECTION - COMMON STYLES WITH HEADERS
+   ======================================== */
+
+@media (max-width: 1024px) {
+    .modal-section {
+        background: white;
+        border-radius: 10px;
+        padding: 0;
+        margin-bottom: 10px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        border: 1px solid #E0E0E0;
+    }
+    
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        font-weight: 700;
+        color: white;
+        padding: 10px 14px;
+        margin-bottom: 0;
+        border-bottom: none;
+        background: linear-gradient(135deg, #424242 0%, #212121 100%);
+    }
+    
+    .section-header i {
+        font-size: 14px;
+        flex-shrink: 0;
+    }
+    
+    .section-header span {
+        flex: 1;
+        line-height: 1.3;
+        font-size: 12px;
+    }
+    
+    /* Alternative section-title (for compatibility) */
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        font-weight: 700;
+        color: white;
+        padding: 10px 14px;
+        margin-bottom: 0;
+        background: linear-gradient(135deg, #424242 0%, #212121 100%);
+    }
+    
+    .section-title i {
+        font-size: 14px;
+    }
+    
+    .title-ja {
+        font-size: 12px;
+        margin-right: 6px;
+    }
+    
+    .title-vi {
+        font-size: 10px;
+        opacity: 0.9;
+    }
+}
+
+/* ========================================
+   6. LOCATION SECTION - BLUE THEME
+   ======================================== */
+
+@media (max-width: 1024px) {
+    .location-section {
+        border-left: 4px solid #1565C0;
+    }
+    
+    .location-section .section-header {
+        background: linear-gradient(135deg, #1E88E5 0%, #1565C0 100%);
+    }
+    
+    .badges-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        padding: 10px;
+        background: linear-gradient(to bottom, #E3F2FD 0%, #BBDEFB 50%);
+        border-bottom: 1px solid #90CAF9;
+    }
+    
+    .location-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 7px 13px;
+        background: linear-gradient(135deg, #1565C0 0%, #0D47A1 100%);
+        color: white;
+        border-radius: 7px;
+        font-size: 15px;
+        font-weight: 700;
+        font-family: 'Courier New', monospace;
+        box-shadow: 0 2px 5px rgba(13, 71, 161, 0.4);
+    }
+    
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 6px 10px;
+        border-radius: 6px;
+        font-size: 10px;
+        font-weight: 700;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    
+    .status-badge i {
+        font-size: 9px;
+    }
+    
+    .badge-checkin {
+        background: linear-gradient(135deg, #66BB6A 0%, #43A047 100%);
+        color: white;
+    }
+    
+    .badge-checkout {
+        background: linear-gradient(135deg, #EF5350 0%, #E53935 100%);
+        color: white;
+    }
+    
+    .badge-audit {
+        background: linear-gradient(135deg, #FFA726 0%, #FB8C00 100%);
+        color: white;
+    }
+    
+    .badge-inactive {
+        background: linear-gradient(135deg, #BDBDBD 0%, #9E9E9E 100%);
+        color: white;
+    }
+}
+
+/* ========================================
+   7. BASIC INFO SECTION - GREEN THEME
+   ======================================== */
+
+@media (max-width: 1024px) {
+    .modal-section:has(.fa-info-circle) {
+        border-left: 4px solid #388E3C;
+    }
+    
+    .modal-section:has(.fa-info-circle) .section-header {
+        background: linear-gradient(135deg, #66BB6A 0%, #388E3C 100%);
+    }
+}
+
+/* ========================================
+   8. DESIGN INFO SECTION - PURPLE THEME
+   ======================================== */
+
+@media (max-width: 1024px) {
+    .modal-section:has(.fa-drafting-compass) {
+        border-left: 4px solid #7B1FA2;
+    }
+    
+    .modal-section:has(.fa-drafting-compass) .section-header {
+        background: linear-gradient(135deg, #AB47BC 0%, #7B1FA2 100%);
+    }
+}
+
+/* ========================================
+   9. PRODUCT INFO SECTION - ORANGE THEME
+   ======================================== */
+
+@media (max-width: 1024px) {
+    .modal-section:has(.fa-box-open) {
+        border-left: 4px solid #F57C00;
+    }
+    
+    .modal-section:has(.fa-box-open) .section-header {
+        background: linear-gradient(135deg, #FFB74D 0%, #F57C00 100%);
+    }
+}
+
+/* ========================================
+   10. INFO GRID - TABLE LAYOUT (COMPACT)
+   ======================================== */
+
+@media (max-width: 1024px) {
+    .info-grid-2col {
+        display: block;
+        margin: 0;
+        background: white;
+    }
+    
+    .info-grid {
+        display: block;
+        margin: 0;
+        background: white;
+    }
+    
+    .info-item,
+    .info-row {
+        display: flex;
+        align-items: stretch;
+        border-bottom: 1px solid #F0F0F0;
+        background: white;
+        padding: 0;
+        margin: 0;
+        gap: 0;
+        min-height: 34px;
+    }
+    
+    .info-item:last-child,
+    .info-row:last-child {
+        border-bottom: none;
+    }
+    
+    .info-item:nth-child(even),
+    .info-row:nth-child(even) {
+        background: #FAFAFA;
+    }
+    
+    .info-item.full-width {
+        display: flex;
+    }
+    
+    .info-label {
+        flex: 0 0 140px;
+        font-size: 10px;
+        color: #424242;
+        font-weight: 600;
+        line-height: 1.3;
+        padding: 8px 12px;
+        background: linear-gradient(to right, #F5F5F5 0%, #FAFAFA 100%);
+        border-right: 2px solid #E0E0E0;
+        margin-bottom: 0;
+        display: flex;
+        align-items: center;
+    }
+    
+    .info-value {
+        flex: 1;
+        font-size: 12px;
+        color: #212121;
+        font-weight: 600;
+        line-height: 1.4;
+        word-break: break-word;
+        padding: 8px 12px;
+        display: flex;
+        align-items: center;
+    }
+    
+    .info-value.empty {
+        color: #BDBDBD;
+        font-style: italic;
+        font-weight: 400;
+    }
+    
+    .info-value.note-text {
+        color: #F57C00;
+        font-style: italic;
+        font-size: 11px;
+        font-weight: 500;
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 374px) {
+    .info-label {
+        flex: 0 0 110px;
+        font-size: 9px;
+        padding: 6px 8px;
+    }
+    
+    .info-value {
+        font-size: 11px;
+        padding: 6px 8px;
+    }
+}
+
+@media (min-width: 415px) and (max-width: 767px) {
+    .info-label {
+        flex: 0 0 150px;
+        font-size: 10px;
+    }
+    
+    .info-value {
+        font-size: 12px;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+    .info-label {
+        flex: 0 0 190px;
+        font-size: 11px;
+        padding: 10px 14px;
+    }
+    
+    .info-value {
+        font-size: 13px;
+        padding: 10px 14px;
+    }
+}
+
+/* ========================================
+   11. RELATED EQUIPMENT - COLOR CODED
+   ======================================== */
+
+@media (max-width: 1024px) {
+    .related-equipment-section {
+        border-left: 4px solid #1976D2;
+    }
+    
+    .related-equipment-section .section-header {
+        background: linear-gradient(135deg, #42A5F5 0%, #1976D2 100%);
+    }
+    
+    .related-equipment-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 10px;
+    }
+    
+    .related-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        border-radius: 8px;
+        padding: 10px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: 2px solid transparent;
+    }
+    
+    .related-item:active {
+        transform: scale(0.97);
+    }
+    
+    /* MOLD - Blue theme */
+    .related-item-mold {
+        background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
+        border-color: #90CAF9;
+        border-left: 5px solid #1565C0;
+    }
+    
+    .related-item-mold .related-item-icon {
+        background: linear-gradient(135deg, #42A5F5 0%, #1565C0 100%);
+        box-shadow: 0 2px 6px rgba(21, 101, 192, 0.4);
+    }
+    
+    .related-item-mold .related-item-code {
+        color: #0D47A1;
+    }
+    
+    /* CUTTER - Orange theme */
+    .related-item-cutter {
+        background: linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%);
+        border-color: #FFCC80;
+        border-left: 5px solid #F57C00;
+    }
+    
+    .related-item-cutter .related-item-icon {
+        background: linear-gradient(135deg, #FFB74D 0%, #F57C00 100%);
+        box-shadow: 0 2px 6px rgba(245, 124, 0, 0.4);
+    }
+    
+    .related-item-cutter .related-item-code {
+        color: #E65100;
+    }
+    
+    .related-item-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+    
+    .related-item-info {
+        flex: 1;
+    }
+    
+    .related-item-code {
+        font-size: 14px;
+        font-weight: 700;
+        margin-bottom: 3px;
+    }
+    
+    .related-item-name {
+        font-size: 11px;
+        color: #666;
+        margin-bottom: 4px;
+        font-weight: 500;
+    }
+    
+    .related-item-location {
+        font-size: 10px;
+        color: #999;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    .related-item-arrow {
+        color: #90CAF9;
+        font-size: 16px;
+        flex-shrink: 0;
+    }
+    
+    .no-related {
+        text-align: center;
+        padding: 20px;
+        color: #999;
+        font-size: 13px;
+        font-style: italic;
+    }
+}
+
+/* ========================================
+   12. STATUS & NOTES - THEMED SECTIONS
+   ======================================== */
+
+@media (max-width: 1024px) {
+    .status-notes-section {
+        border-left: 4px solid #00897B;
+    }
+    
+    .status-notes-section .section-header {
+        background: linear-gradient(135deg, #26A69A 0%, #00897B 100%);
+    }
+    
+    .additional-data-section {
+        border-left: 4px solid #5E35B1;
+    }
+    
+    .additional-data-section .section-header {
+        background: linear-gradient(135deg, #7E57C2 0%, #5E35B1 100%);
+    }
+    
+    .status-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        padding: 10px;
+    }
+    
+    .status-item {
+        background: #FAFAFA;
+        border-radius: 6px;
+        padding: 8px;
+        border: 1px solid #E0E0E0;
+    }
+    
+    .status-label {
+        font-size: 10px;
+        color: #666;
+        margin-bottom: 4px;
+        font-weight: 600;
+    }
+    
+    .status-value {
+        font-size: 12px;
+        font-weight: 700;
+        color: #212121;
+    }
+    
+    .notes-area {
+        background: linear-gradient(135deg, #FFFBF0 0%, #FFF9E0 100%);
+        border: 2px solid #FFD54F;
+        border-radius: 8px;
+        padding: 10px;
+        margin: 10px;
+    }
+    
+    .notes-label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        font-weight: 700;
+        color: #F57C00;
+        margin-bottom: 8px;
+    }
+    
+    .notes-label i {
+        font-size: 13px;
+    }
+    
+    .notes-content {
+        font-size: 12px;
+        color: #666;
+        line-height: 1.5;
+        white-space: pre-wrap;
+    }
+}
+
+/* ========================================
+   13. ACTION BUTTONS - COMPACT (4x2)
+   ======================================== */
+
+@media (max-width: 767px) {
+    .mobile-modal-actions {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: white;
+        padding: 8px;
+        box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.15);
+        z-index: 100;
+        border-top: 2px solid #E0E0E0;
+    }
+    
+    .action-buttons-grid.normal-mode {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 6px;
+    }
+    
+    .action-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 8px 4px;
+        background: white;
+        border: 2px solid #90CAF9;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        min-height: 64px;
+    }
+    
+    .action-btn i {
+        font-size: 18px;
+        color: #0D47A1;
+        margin-bottom: 4px;
+    }
+    
+    .action-btn .btn-label-ja {
+        font-size: 9px;
+        font-weight: 700;
+        color: #0D47A1;
+        text-align: center;
+        line-height: 1.1;
+    }
+    
+    .action-btn .btn-label-vi {
+        font-size: 7px;
+        color: #666;
+        margin-top: 2px;
+        text-align: center;
+        line-height: 1.05;
+    }
+    
+    .action-btn:active {
+        transform: scale(0.93);
+    }
+    
+    /* Button-specific colors */
+    .btn-checkin {
+        border-color: #66BB6A;
+        background: linear-gradient(to bottom, #E8F5E9 0%, #C8E6C9 100%);
+    }
+    .btn-checkin i, .btn-checkin .btn-label-ja { color: #2E7D32; }
+    
+    .btn-checkout {
+        border-color: #EF5350;
+        background: linear-gradient(to bottom, #FFEBEE 0%, #FFCDD2 100%);
+    }
+    .btn-checkout i, .btn-checkout .btn-label-ja { color: #C62828; }
+    
+    .btn-location {
+        border-color: #FFA726;
+        background: linear-gradient(to bottom, #FFF3E0 0%, #FFE0B2 100%);
+    }
+    .btn-location i, .btn-location .btn-label-ja { color: #E65100; }
+    
+    .btn-transport {
+        border-color: #AB47BC;
+        background: linear-gradient(to bottom, #F3E5F5 0%, #E1BEE7 100%);
+    }
+    .btn-transport i, .btn-transport .btn-label-ja { color: #6A1B9A; }
+    
+    .btn-teflon {
+        border-color: #26C6DA;
+        background: linear-gradient(to bottom, #E0F7FA 0%, #B2EBF2 100%);
+    }
+    .btn-teflon i, .btn-teflon .btn-label-ja { color: #00838F; }
+    
+    .btn-print {
+        border-color: #78909C;
+        background: linear-gradient(to bottom, #ECEFF1 0%, #CFD8DC 100%);
+    }
+    .btn-print i, .btn-print .btn-label-ja { color: #37474F; }
+    
+    .btn-qrcode {
+        border-color: #5C6BC0;
+        background: linear-gradient(to bottom, #E8EAF6 0%, #C5CAE9 100%);
+    }
+    .btn-qrcode i, .btn-qrcode .btn-label-ja { color: #1A237E; }
+    
+    .btn-comments {
+        border-color: #42A5F5;
+        background: linear-gradient(to bottom, #E3F2FD 0%, #BBDEFB 100%);
+    }
+    .btn-comments i, .btn-comments .btn-label-ja { color: #0D47A1; }
+}
+
+/* iPad */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .mobile-modal-actions {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: white;
+        padding: 12px;
+        box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.15);
+        z-index: 100;
+        border-top: 2px solid #E0E0E0;
+    }
+    
+    .action-buttons-grid.normal-mode {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+    }
+    
+    .action-btn {
+        padding: 12px 8px;
+        min-height: 74px;
+    }
+    
+    .action-btn i {
+        font-size: 22px;
+        margin-bottom: 5px;
+    }
+    
+    .action-btn .btn-label-ja {
+        font-size: 11px;
+    }
+    
+    .action-btn .btn-label-vi {
+        font-size: 9px;
+    }
+}
+
+/* ========================================
+   14. INVENTORY MODE (1x2)
+   ======================================== */
+
+@media (max-width: 1024px) {
+    .action-buttons-grid.inventory-mode {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+    
+    .action-buttons-grid.inventory-mode .action-btn {
+        min-height: 68px;
+        padding: 14px 12px;
+    }
+    
+    .action-buttons-grid.inventory-mode .action-btn i {
+        font-size: 24px;
+    }
+    
+    .action-buttons-grid.inventory-mode .btn-label-ja {
+        font-size: 13px;
+    }
+    
+    .action-buttons-grid.inventory-mode .btn-label-vi {
+        font-size: 11px;
+    }
+    
+    .btn-inv-audit {
+        border-color: #FFA726;
+        background: linear-gradient(to bottom, #FFF3E0 0%, #FFE0B2 100%);
+    }
+    .btn-inv-audit i, .btn-inv-audit .btn-label-ja { color: #E65100; }
+    
+    .btn-inv-relocate {
+        border-color: #42A5F5;
+        background: linear-gradient(to bottom, #E3F2FD 0%, #BBDEFB 100%);
+    }
+    .btn-inv-relocate i, .btn-inv-relocate .btn-label-ja { color: #0D47A1; }
+}
+
+/* ========================================
+   15. SCROLLBAR
+   ======================================== */
+
+@media (max-width: 1024px) {
+    .mobile-modal-body::-webkit-scrollbar {
+        width: 4px;
+    }
+    
+    .mobile-modal-body::-webkit-scrollbar-track {
+        background: #F5F7FA;
+    }
+    
+    .mobile-modal-body::-webkit-scrollbar-thumb {
+        background: linear-gradient(to bottom, #90CAF9 0%, #42A5F5 100%);
+        border-radius: 2px;
+    }
+}
+
+/* ========================================
+   16. SAFE AREA INSETS
+   ======================================== */
+
+@supports (padding: max(0px)) {
+    @media (max-width: 767px) {
+        .mobile-modal-header {
+            padding-top: max(12px, env(safe-area-inset-top));
+        }
+        
+        .mobile-modal-actions {
+            padding-bottom: max(8px, env(safe-area-inset-bottom));
+        }
+    }
+}
+
+/* ========================================
+   17. ANIMATIONS
+   ======================================== */
+
+@media (max-width: 1024px) {
+    @keyframes slideUp {
+        from {
+            transform: translateY(20px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    .mobile-detail-modal.show .mobile-modal-header {
+        animation: slideUp 0.3s ease;
+    }
+    
+    .mobile-detail-modal.show .mobile-modal-body {
+        animation: fadeIn 0.4s ease;
+    }
+    
+    .modal-section {
+        animation: slideUp 0.35s ease;
+    }
+}
+
+/* ========================================
+   18. DISABLE ON DESKTOP
+   ======================================== */
+
+@media (min-width: 1025px) {
+    .mobile-detail-modal {
+        display: none !important;
+    }
+}
+
+/* ========================================
+   19. UTILITY CLASSES
+   ======================================== */
+
+@media (max-width: 1024px) {
+    .text-center { text-align: center; }
+    .text-muted { color: #999; }
+    .font-weight-bold { font-weight: 700; }
+    .mb-0 { margin-bottom: 0; }
+    .hidden { display: none !important; }
+}
+
+/* ========================================
+   END OF FILE - R7.0.2 FINAL (COLOR-CODED)
+   ======================================== */
