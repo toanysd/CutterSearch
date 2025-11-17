@@ -799,13 +799,18 @@
          * Update badge "ON" trên nút
          */
         updateBadge(active) {
-            console.log('[InventoryManager] 📛 Badge updated:', active ? 'ON' : 'OFF');
+            console.log(`[InventoryManager] Badge updated: ${active ? 'ON' : 'OFF'}`);
             
-            // ========================================
+            // ✅ R6.9.10: FIX - Update btn-inventory-settings instead of btn-location
             // 1. UPDATE DESKTOP/IPAD BUTTON
-            // ========================================
-            const actionBtn = document.getElementById('btn-location');
+            const actionBtn = document.getElementById('btn-inventory-settings'); // ✅ ĐÚNG NÚT
+            
             if (actionBtn) {
+                // ✅ CRITICAL: Set position BEFORE appending badge
+                actionBtn.style.position = 'relative';
+                actionBtn.style.overflow = 'visible';
+                
+                // Remove existing badge
                 const existingBadge = actionBtn.querySelector('.inventory-badge');
                 if (existingBadge) existingBadge.remove();
                 
@@ -813,13 +818,31 @@
                     const badge = document.createElement('span');
                     badge.className = 'inventory-badge';
                     badge.textContent = 'ON';
+                    badge.style.cssText = `
+                        position: absolute !important;
+                        top: 4px !important;
+                        right: 4px !important;
+                        background: #00c853 !important;
+                        color: white !important;
+                        font-size: 9px !important;
+                        font-weight: 700 !important;
+                        padding: 2px 6px !important;
+                        border-radius: 4px !important;
+                        line-height: 1 !important;
+                        box-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
+                        z-index: 10 !important;
+                        pointer-events: none !important;
+                    `;
                     actionBtn.appendChild(badge);
+                    
+                    // ✅ DEBUG: Verify position
+                    console.log('[InventoryManager] Badge appended to:', actionBtn.id);
                 }
+            } else {
+                console.error('[InventoryManager] btn-inventory-settings not found!');
             }
             
-            // ========================================
-            // 2. UPDATE MOBILE BOTTOM NAV
-            // ========================================
+            // 2. UPDATE MOBILE BOTTOM NAV (giữ nguyên code cũ)
             const navBtn = document.getElementById('nav-inventory-btn');
             const navIcon = document.getElementById('nav-inventory-icon');
             const navLabel = document.getElementById('nav-inventory-label');
@@ -833,28 +856,38 @@
                 const viSpan = navLabel.querySelector('.btn-label-vi');
                 
                 if (active) {
-                    // ✅ MODE ON → "棚卸し" + Badge
+                    // MODE ON
                     navIcon.className = 'fas fa-map-marker-alt bottom-nav-icon';
-                    if (jpSpan) jpSpan.textContent = '棚卸し';
+                    if (jpSpan) jpSpan.textContent = '位置';
                     if (viSpan) viSpan.textContent = 'Đang kiểm kê';
                     
                     // Add badge
                     const badge = document.createElement('span');
                     badge.className = 'inventory-badge';
                     badge.textContent = 'ON';
+                    badge.style.cssText = `
+                        position: absolute;
+                        top: 4px;
+                        right: 4px;
+                        background: #00c853;
+                        color: white;
+                        font-size: 9px;
+                        font-weight: 700;
+                        padding: 2px 5px;
+                        border-radius: 3px;
+                        z-index: 10;
+                    `;
                     navBtn.appendChild(badge);
                 } else {
-                    // ✅ MODE OFF → "棚卸設定"
+                    // MODE OFF
                     navIcon.className = 'fas fa-clipboard-check bottom-nav-icon';
-                    if (jpSpan) jpSpan.textContent = '棚卸設定';
+                    if (jpSpan) jpSpan.textContent = '棚卸';
                     if (viSpan) viSpan.textContent = 'Thiết lập kiểm kê';
                 }
             }
             
             // Dispatch event
-            document.dispatchEvent(new CustomEvent('inventory:modeChanged', {
-                detail: { active }
-            }));
+            document.dispatchEvent(new CustomEvent('inventory:modeChanged', { detail: { active } }));
         },
 
 

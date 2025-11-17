@@ -759,12 +759,13 @@ function throttle(func, limit) {
       console.log('[UIRenderer] 🎨 Updated detail panel for:', item.displayCode || item.MoldCode || item.CutterNo);
     },
 
-    // ✅ GIỐNG R6.3 - KHÔNG THAY ĐỔI
+    // ✅ 
     updateCheckInOutStatus(item) {
       if (!item) return;
 
       const statusLogs = window.DataManager?.data?.statuslogs;
-      if (!statusLogs || statusLogs.length === 0) {
+        if (!statusLogs || statusLogs.length === 0) { // ✅ ĐÚNG: statusLogs
+
         console.warn('[UIRenderer] statuslogs not loaded yet, retrying...');
         setTimeout(() => this.updateCheckInOutStatus(item), 200);
         return;
@@ -902,16 +903,106 @@ function throttle(func, limit) {
       });
     },
 
-    // =========================================
-    // ✅ HÀM MỚI 2: UPDATE CHECKIN BADGE
-    // =========================================
+    /**
+     * ✅ R6.9.10: UPDATE CHECK-IN/OUT/AUDIT STATUS BADGE
+     * Xử lý 3 trạng thái: check-in (xanh), check-out (đỏ), AUDIT (xanh)
+     * Fix: Dùng đúng class CSS (checkin-in / checkin-out / checkin-audit)
+     */
     updateCheckInBadge(item) {
-      console.log('[UIRenderer] 🎯 updateCheckInBadge called');
+        if (!item) {
+            console.warn('[UIRenderer] ⚠ updateCheckInBadge: item is null');
+            return;
+        }
 
-      // Gọi lại hàm updateCheckInOutStatus() đã có sẵn
-      // (vì logic đã có sẵn và hoạt động tốt)
-      this.updateCheckInOutStatus(item);
+        const statusLogs = window.DataManager?.data?.statuslogs;
+        if (!statusLogs || statusLogs.length === 0) {
+            console.warn('[UIRenderer] ⚠ statuslogs not loaded yet, retrying...');
+            setTimeout(() => this.updateCheckInBadge(item), 200);
+            return;
+        }
+
+        try {
+            const itemId = item.MoldID || item.MoldCode || item.CutterID || item.CutterNo || null;
+            if (!itemId) {
+                console.warn('[UIRenderer] ⚠ Item has no valid ID');
+                return;
+            }
+
+            // ✅ Filter logs cho item này
+            const itemLogs = statusLogs.filter((log) => {
+                const logMoldId = String(log.MoldID || '').trim();
+                const compareId = String(itemId).trim();
+                return logMoldId === compareId;
+            });
+
+            const statusBadge = document.querySelector('#detail-checkin-status');
+            if (!statusBadge) {
+                console.warn('[UIRenderer] ⚠ #detail-checkin-status not found');
+                return;
+            }
+
+            // ✅ CRITICAL: Remove ALL old classes first
+            statusBadge.classList.remove(
+                'checkin-in', 
+                'checkin-out', 
+                'checkin-audit', 
+                'badge-pending', 
+                'no-history'
+            );
+
+            // ✅ Trường hợp 1: Không có lịch sử
+            if (itemLogs.length === 0) {
+                console.log('[UIRenderer] No status logs for', itemId);
+                statusBadge.classList.add('no-history');
+                statusBadge.textContent = '-';
+                statusBadge.title = 'Chưa có lịch sử nhập xuất';
+                return;
+            }
+
+            // ✅ Sắp xếp logs theo thời gian (mới nhất lên đầu)
+            itemLogs.sort((a, b) => new Date(b.Timestamp) - new Date(a.Timestamp));
+            const latestLog = itemLogs[0];
+            const status = (latestLog.Status || '').trim().toLowerCase();
+            const isPending = latestLog.pending === true;
+
+            console.log('[UIRenderer] Latest log:', status, isPending, 'timestamp:', latestLog.Timestamp);
+
+            let badgeHTML = '<span class="badge-text">';
+            let syncIcon = '';
+
+            // ✅ R6.9.10: Xử lý 3 trạng thái
+            if (status === 'check-in' || status.includes('in')) {
+                badgeHTML += 'IN';
+                statusBadge.classList.add('checkin-in'); // ✅ XANH LÁ
+            } else if (status === 'check-out' || status.includes('out')) {
+                badgeHTML += 'OUT';
+                statusBadge.classList.add('checkin-out'); // ✅ ĐỎ
+            } else if (status === 'audit' || status.toUpperCase() === 'AUDIT') {
+                badgeHTML += 'AUDIT';
+                statusBadge.classList.add('checkin-audit'); // ✅ XANH LÁ (GIỐNG IN)
+            } else {
+                badgeHTML += '-';
+                statusBadge.classList.add('no-history');
+            }
+            badgeHTML += '</span>';
+
+            // ✅ Sync icon (pending / synced)
+            if (isPending) {
+                syncIcon = '<span class="sync-icon pending" title="Đang đồng bộ...">◉</span>';
+                statusBadge.classList.add('badge-pending');
+            } else {
+                syncIcon = '<span class="sync-icon synced" title="Đã đồng bộ">✓</span>';
+            }
+
+            statusBadge.innerHTML = badgeHTML + syncIcon;
+
+            console.log('[UIRenderer] ✅ Badge updated:', status, isPending ? 'pending' : 'synced');
+        } catch (err) {
+            console.error('[UIRenderer] ❌ Error updating status:', err);
+        }
     },
+
+
 
     clearDetail() {
       this.state.currentDetailItem = null;

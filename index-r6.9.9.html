@@ -17,7 +17,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- Main Stylesheet -->
-    <link rel="stylesheet" href="styles-r6.9.8.css">
+    <link rel="stylesheet" href="styles-r6.9.9.css">
 
     <!-- <link rel="stylesheet" href="iphone-ui-r1.css"> -->
     <link rel="stylesheet" href="mobile-compact-styles-r6.9.7.css"> 
@@ -473,18 +473,37 @@
 
                 <!-- Đồng bộ: dùng panel-body cho toàn bộ nút -->
                 <div class="panel-body actions-body">
-                    <!-- Row 1 -->
-                    <div class="actions-row-3col">
-                    <button class="action-btn btn-location" id="btn-location">
-                        <i class="action-icon fas fa-map-marker-alt"></i><span>位置変更</span>
-                    </button>
-                    <button class="action-btn btn-shipment" id="shipment-btn">
-                        <i class="action-icon fas fa-shipping-fast"></i><span>出荷登録</span>
-                    </button>
-                    <button class="action-btn btn-teflon" id="teflon-btn">
-                        <i class="action-icon fas fa-flask"></i><span>テフロン</span>
-                    </button>
+                    <!-- ✅ R6.9.10: Row 1 - Location, Inventory Settings, Check In/Out, Teflon (4 buttons) -->
+                    <div class="actions-row-4col">
+                        <!-- Button 1: Location Update -->
+                        <button class="action-btn btn-location" id="btn-location" title="位置更新 | Cập nhật vị trí">
+                            <i class="action-icon fas fa-map-marker-alt"></i>
+                            <span class="btn-label-ja">位置</span><br>
+                            <small class="btn-label-vi">Vị trí</small>
+                        </button>
+                        
+                        <!-- Button 2: Inventory Settings (NEW) -->
+                        <button class="action-btn btn-inventory-settings" id="btn-inventory-settings" title="棚卸設定 | Thiết lập kiểm kê">
+                            <i class="action-icon fas fa-clipboard-check"></i>
+                            <span class="btn-label-ja">棚卸設定</span><br>
+                            <small class="btn-label-vi">Kiểm kê</small>
+                        </button>
+                        
+                        <!-- Button 3: Check In/Out -->
+                        <button class="action-btn btn-check-in-out" id="btn-check-in-out" title="入出庫 | Nhập/Xuất kho">
+                            <i class="action-icon fas fa-arrow-right-arrow-left"></i>
+                            <span class="btn-label-ja">入出庫</span><br>
+                            <small class="btn-label-vi">Nhập xuất</small>
+                        </button>
+
+                        <!-- Button 4: Teflon -->
+                        <button class="action-btn btn-teflon" id="btn-teflon" title="テフロン処理 | Xử lý Teflon">
+                            <i class="action-icon fas fa-fill-drip"></i>
+                            <span class="btn-label-ja">テフロン</span><br>
+                            <small class="btn-label-vi">Teflon</small>
+                        </button>
                     </div>
+
 
                     <!-- Row 2 -->
                     <div class="actions-row-3col">
@@ -795,7 +814,7 @@
     <!-- Action Modules -->
     <link rel="stylesheet" href="checkin-checkout-r6.9.css">
     <script src="checkin-checkout-r6.9.8.js"></script>
-    <script src="action-buttons-r6.9.7.js"></script>
+    <script src="action-buttons-r6.9.9.js"></script>
     <!-- Location Manager Module -->
     <script src="location-manager-r6.9.js"></script>
     <!-- Location Manager Module CSS -->
