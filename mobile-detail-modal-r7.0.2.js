@@ -23,29 +23,34 @@ class MobileDetailModal {
         this.modalContent = null;
         this.modalBody = null;
         this.currentItem = null;
-        this.currentItemType = null; // 'mold' or 'cutter'
-        // R7.0.2: Hỗ trợ cả iPhone và iPad
-        this.isMobile = window.innerWidth < 768;
-        this.isTablet = window.innerWidth >= 768 && window.innerWidth <= 1024;
-        this.shouldShowModal = this.isMobile || this.isTablet;
-
-        // R7.0.2: Inventory mode toggle
-        this.inventoryMode = false; // false = checkin mode, true = inventory mode
-
-        // Data references (from DataManager)
+        this.currentItemType = null;
+        
+        // R7.0.2: Reference to enriched data from DataManager
         this.data = {
             molds: [],
             cutters: [],
+            customers: [],
             molddesign: [],
-            jobs: [],
+            moldcutter: [],
+            shiplog: [],
+            locationlog: [],
             employees: [],
             racklayers: [],
-            destinations: [],
-            customers: []
+            racks: [], // ✅ THÊM
+            companies: [], // ✅ THÊM
+            statuslogs: [], // ✅ THÊM
+            usercomments: [],
+            jobs: [],
+            processingitems: []
         };
         
-        console.log('🏗️ MobileDetailModal initialized');
+        this.shouldShowModal = window.innerWidth < 1025;
+        this.isMobile = window.innerWidth < 768;
+        this.isTablet = window.innerWidth >= 768 && window.innerWidth < 1025;
+        this.inventoryMode = false; // ✅ THÊM: Track inventory mode state
     }
+
+
 
     /**
      * ========================================
@@ -79,37 +84,43 @@ class MobileDetailModal {
     createModalStructure() {
         // Remove existing modal if any
         const existing = document.getElementById('mobile-detail-modal');
-        if (existing) existing.remove();
-
-        // Create modal HTML
+        if (existing) {
+            existing.remove();
+        }
+        
+        // ✅ FIX: Create modal HTML with CORRECT header structure
         const modalHTML = `
             <div id="mobile-detail-modal" class="mobile-detail-modal hidden">
                 <div class="mobile-modal-header">
-                    <h2 class="modal-title">
-                        <span class="modal-title-ja">詳細情報</span>
-                        <span class="modal-title-vi">Chi tiết</span>
-                    </h2>
-                    <button class="modal-close-btn" aria-label="Close">
+                    <div class="modal-title">
+                        <div class="title-left">
+                            <span class="title-label-ja">詳細情報</span>
+                            <span class="title-label-vi">Chi tiết</span>
+                        </div>
+                        <div class="title-center">
+                            <span class="item-type-label"></span>
+                            <span class="item-id-code"></span>
+                        </div>
+                    </div>
+                    <button class="modal-close-btn">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
-                
                 <div class="mobile-modal-body">
                     <!-- Content will be dynamically inserted -->
                     <div class="modal-loading">
                         <i class="fas fa-spinner fa-spin"></i>
-                        <p>読み込み中... / Đang tải...</p>
+                        <p>Đang tải...</p>
                     </div>
                 </div>
-                
                 <div class="mobile-modal-actions">
                     <!-- Action buttons will be dynamically inserted -->
                 </div>
             </div>
         `;
-
+        
         document.body.insertAdjacentHTML('beforeend', modalHTML);
-
+        
         // Cache elements
         this.modal = document.getElementById('mobile-detail-modal');
         this.modalContent = this.modal.querySelector('.mobile-modal-body');
@@ -117,6 +128,7 @@ class MobileDetailModal {
         
         console.log('✅ Modal structure created');
     }
+
 
     /**
      * Bind events
@@ -143,8 +155,8 @@ class MobileDetailModal {
         });
 
         console.log('✅ Modal events bound');
+        
     }
-
     /**
      * Load data references from DataManager
      */
@@ -157,19 +169,23 @@ class MobileDetailModal {
             this.data.jobs = DataManager.data.jobs || [];
             this.data.employees = DataManager.data.employees || [];
             this.data.racklayers = DataManager.data.racklayers || [];
+            this.data.racks = DataManager.data.racks || []; // ✅ THÊM
             this.data.destinations = DataManager.data.destinations || [];
             this.data.customers = DataManager.data.customers || [];
-            this.data.moldcutter = DataManager.data.moldcutter || []; // ✅ THÊM
+            this.data.companies = DataManager.data.companies || []; // ✅ THÊM
+            this.data.moldcutter = DataManager.data.moldcutter || [];
+            this.data.statuslogs = DataManager.data.statuslogs || []; // ✅ THÊM
             
             console.log('✅ Data references loaded:', {
                 molds: this.data.molds.length,
                 cutters: this.data.cutters.length,
                 molddesign: this.data.molddesign.length,
-                jobs: this.data.jobs.length
+                jobs: this.data.jobs.length,
+                statuslogs: this.data.statuslogs.length,
+                companies: this.data.companies.length
             });
         } else {
             console.warn('⚠️ DataManager not ready yet');
-            // Retry sau 1 giây
             setTimeout(() => {
                 this.loadDataReferences();
             }, 1000);
@@ -177,53 +193,121 @@ class MobileDetailModal {
     }
 
 
+
     /**
-     * ========================================
-     * SHOW/HIDE MODAL
-     * ========================================
+     * Show/hide modal
      */
     show(item, type = 'mold') {
         if (!this.isMobile || !item) return;
-
-        console.log('🔍 Opening detail modal:', { item, type });
-
+        
+        console.log('[Modal] Opening detail modal', item, type);
         this.currentItem = item;
         this.currentItemType = type;
-        // Update header title
-        const titleJa = this.modal.querySelector('.modal-title-ja');
-        const titleVi = this.modal.querySelector('.modal-title-vi');
         
-        const itemName = type === 'mold' 
-            ? (item.MoldCode || item.displayCode || 'N/A')
-            : (item.CutterNo || item.displayCode || 'N/A');
+        // ✅ FIX: Update header title with CORRECT format
+        const typeLabel = this.modal.querySelector('.item-type-label');
+        const idCode = this.modal.querySelector('.item-id-code');
         
-        if (titleJa) {
-            titleJa.textContent = `${type === 'mold' ? '金型' : '抜型'}: ${itemName}`;
+        if (typeLabel && idCode) {
+            if (type === 'mold') {
+                typeLabel.textContent = '金型:';
+                idCode.textContent = `${item.MoldID || '-'} ${item.MoldCode || item.MoldName || '-'}`;
+            } else {
+                typeLabel.textContent = '抜型:';
+                idCode.textContent = `${item.CutterID || item.CutterNo || '-'} ${item.CutterName || item.Name || '-'}`;
+            }
         }
         
-        if (titleVi) {
-            titleVi.textContent = type === 'mold' ? 'Chi tiết khuôn' : 'Chi tiết dao cắt';
-        }
-
-
         // Reload data if needed
         if (this.data.molds.length === 0) {
             this.loadDataReferences();
         }
-
+        
         // Render content
         this.renderContent();
-
+        
         // Render action buttons
         this.renderActionButtons();
-
+        
         // Show modal
         this.modal.classList.remove('hidden');
         this.modal.classList.add('show');
-        document.body.style.overflow = 'hidden'; // Prevent background scroll
-
+        document.body.style.overflow = 'hidden';
+        
         console.log('✅ Modal shown');
     }
+
+
+    /**
+     * R7.0.2: Update check-in/out status badge (logic from ui-renderer)
+     */
+    updateCheckInOutStatus(item) {
+        if (!item) return;
+        
+        const statusLogs = window.DataManager?.data?.statuslogs;
+        if (!statusLogs || statusLogs.length === 0) {
+            console.warn('[Modal] statuslogs not loaded');
+            return;
+        }
+        
+        const itemId = item.MoldID || item.CutterID;
+        if (!itemId) return;
+        
+        const itemLogs = statusLogs.filter(log => 
+            String(log.MoldID || '').trim() === String(itemId).trim()
+        );
+        
+        // Tìm badge trong modal
+        const statusBadge = this.modalBody.querySelector('.status-badge');
+        if (!statusBadge) return;
+        
+        statusBadge.classList.remove('badge-checkin', 'badge-checkout', 'badge-audit', 'no-history');
+        
+        if (itemLogs.length === 0) {
+            statusBadge.classList.add('no-history');
+            statusBadge.innerHTML = '<i class="fas fa-question-circle"></i><span>未確認</span>';
+            return;
+        }
+        
+        // Lấy log mới nhất
+        itemLogs.sort((a, b) => new Date(b.Timestamp) - new Date(a.Timestamp));
+        const latestLog = itemLogs[0];
+        const status = (latestLog.Status || '').toLowerCase();
+        
+        if (status.includes('in')) {
+            statusBadge.classList.add('badge-checkin');
+            statusBadge.innerHTML = '<i class="fas fa-sign-in-alt"></i><span>チェックイン</span>';
+        } else if (status.includes('out')) {
+            statusBadge.classList.add('badge-checkout');
+            statusBadge.innerHTML = '<i class="fas fa-sign-out-alt"></i><span>チェックアウト</span>';
+        } else if (status.includes('audit')) {
+            statusBadge.classList.add('badge-audit');
+            statusBadge.innerHTML = '<i class="fas fa-clipboard-check"></i><span>棚卸</span>';
+        }
+    }
+
+
+    /**
+     * R7.0.2: Get display name for header (MoldName or CutterNo + CutterName)
+     */
+    getCurrentItemDisplayName() {
+        if (!this.currentItem) return '';
+        
+        if (this.currentItemType === 'mold') {
+            // Mold: use MoldName, fallback to MoldCode
+            return this.currentItem.MoldName || this.currentItem.MoldCode || this.currentItem.MoldID;
+        } else {
+            // Cutter: combine CutterNo + CutterName
+            const cutterNo = this.currentItem.CutterNo || '';
+            const cutterName = this.currentItem.CutterName || this.currentItem.Name || '';
+            
+            if (cutterNo && cutterName) {
+                return `${cutterNo}  ${cutterName}`;
+            }
+            return cutterNo || cutterName || this.currentItem.CutterID;
+        }
+    }
+
 
     hide() {
         if (!this.modal) return;
@@ -287,7 +371,7 @@ class MobileDetailModal {
         // Section 6: Additional Data (Jobs, Design, etc.)
         html += this.renderAdditionalData(item, type);
 
-        this.modalContent.innerHTML = html;
+        this.modalContent.innerHTML = html;       
 
         // Bind related equipment links
         this.bindRelatedEquipmentLinks();
@@ -296,6 +380,8 @@ class MobileDetailModal {
        this.bindToggleButtons();
 
     }
+
+    
 
     /**
      * R7.0.2: Render mode toggle switch (Check-in ↔ Kiểm kê)
@@ -326,81 +412,191 @@ class MobileDetailModal {
     }
 
 
-        /**
-     * Section 1: Location Section - Optimized R7.0.2
+     /**
+     * R7.0.2: Render location section - FIXED LOGIC
+     * Badge logic matches ui-renderer-r7.0.2.js
      */
     renderLocationSection(item, type) {
-        const location = item.displayLocation || item.RackLayerID || '未設定';
-        const company = item.storageCompanyInfo?.CompanyName || item.storageCompany || '-';
-        const rackLocation = item.RackLocation || '-';
-        const rackNotes = item.RackNotes || '';
-        const layerNotes = item.LayerNotes || '';
+        // Get data
+        const companyInfo = this.getStorageCompanyInfo(item);
+        const statusInfo = this.getStorageStatus(item);
         
-        // Trạng thái badges
-        const checkinStatus = item.CheckInStatus || item.checkinStatus || '';
-        const checkoutStatus = item.CheckOutStatus || item.checkoutStatus || '';
-        const auditStatus = item.AuditStatus || item.auditStatus || '';
+        // ✅ FIX: Get rack/layer info correctly
+        const rackLayerInfo = item.rackLayerInfo || {};
+        const rackInfo = item.rackInfo || {};
         
-        // Tạo badges HTML (1 hàng ngang)
-        let statusBadges = '';
+        // ✅ Logic from ui-renderer-r7.0.2.js
+        const rackId = rackInfo.RackID || rackLayerInfo.RackID || '-';
+        const rackSymbol = rackInfo.RackSymbol || rackInfo.RackNumber || rackId;
+        const layerNum = rackLayerInfo.RackLayerNumber || '-';
+        const rackLocation = rackInfo.RackLocation || item.displayRackLocation || '-';
+        const rackNotes = rackInfo.RackNotes || '-';
+        const layerNotes = rackLayerInfo.RackLayerNotes || '-';
         
-        if (location !== '未設定') {
-            statusBadges += `<span class="location-badge">${location}</span>`;
-        }
-        
-        if (checkinStatus) {
-            statusBadges += `<span class="status-badge badge-checkin"><i class="fas fa-sign-in-alt"></i> Check-in</span>`;
-        }
-        
-        if (checkoutStatus) {
-            statusBadges += `<span class="status-badge badge-checkout"><i class="fas fa-sign-out-alt"></i> Check-out</span>`;
-        }
-        
-        if (auditStatus) {
-            statusBadges += `<span class="status-badge badge-audit"><i class="fas fa-clipboard-check"></i> 在庫確認</span>`;
-        }
-        
-        if (!statusBadges) {
-            statusBadges = `<span class="status-badge badge-inactive">未設定</span>`;
-        }
+        console.log('📍 renderLocationSection:', {
+            itemID: item.MoldID || item.CutterID,
+            rackId, rackSymbol, layerNum, rackLocation,
+            storageCompany: item.storage_company,
+            isExternal: companyInfo.isExternal
+        });
         
         return `
             <div class="modal-section location-section">
                 <div class="section-header">
                     <i class="fas fa-map-marker-alt"></i>
-                    <span>現在の保管位置 / Vị trí lưu trữ</span>
+                    <span>保管情報 / Thông tin lưu trữ</span>
                 </div>
                 
-                <!-- Badges Row (1 hàng ngang) -->
-                <div class="badges-row">
-                    ${statusBadges}
+                <!-- ✅ THÊM: TIÊU ĐỀ NHÓM THÔNG TIN LƯU TRỮ HIỆN TẠI -->
+                <div class="current-storage-header">
+                    <i class="fas fa-info-circle"></i>
+                    <span>現在の保管情報 / Thông tin lưu trữ hiện tại</span>
                 </div>
                 
-                <!-- Info Grid 2 columns -->
-                <div class="info-grid-2col">
-                    <div class="info-item">
-                        <div class="info-label">会社 / Công ty</div>
-                        <div class="info-value">${company}</div>
+                <!-- NHÓM TRÊN: Check-in Status + Company (same row) -->
+                <div class="storage-status-row">
+                    <!-- Check-in Badge -->
+                    <div class="status-badge ${statusInfo.class}">
+                        <i class="${statusInfo.icon}"></i>
+                        <span>${statusInfo.textShort}</span>
                     </div>
-                    <div class="info-item">
-                        <div class="info-label">棚内位置 / Vị trí giá</div>
-                        <div class="info-value">${rackLocation}</div>
+                    
+                    <!-- Company Badge -->
+                    <div class="company-badge ${companyInfo.needsHighlight ? 'external-company' : 'ysd-company'}">
+                        <i class="fas fa-warehouse"></i>
+                        <div class="company-text">
+                            <div class="company-name">${companyInfo.nameShort}</div>
+                        </div>
                     </div>
-                    ${rackNotes ? `
-                    <div class="info-item full-width">
-                        <div class="info-label">棚メモ / Ghi chú giá</div>
-                        <div class="info-value note-text">${rackNotes}</div>
-                    </div>
-                    ` : ''}
-                    ${layerNotes ? `
-                    <div class="info-item full-width">
-                        <div class="info-label">段メモ / Ghi chú tầng</div>
-                        <div class="info-value note-text">${layerNotes}</div>
-                    </div>
-                    ` : ''}
                 </div>
+                
+                <!-- NHÓM DƯỚI: YSD Location Details -->
+                ${!companyInfo.isExternal ? `
+                <div class="ysd-location-group">
+                    <div class="ysd-location-header">
+                        <i class="fas fa-warehouse"></i>
+                        <span>YSD保管位置 / Vị trí lưu trữ mặc định tại YSD</span>
+                    </div>
+                    
+                    <!-- Row: Rack-Layer Badges + RackLocation (2 columns) -->
+                    <div class="location-badges-row">
+                        <!-- Column 1: Rack-Layer Badges -->
+                        <div class="badges-col">
+                            <span class="label-text">棚-段 / Giá-Tầng:</span>
+                            <div class="badge-group">
+                                <div class="badge-circle">${rackId}</div>
+                                <span class="badge-separator">-</span>
+                                <div class="badge-rectangle">${layerNum}</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Column 2: RackLocation -->
+                        <div class="location-col">
+                            <span class="label-text">棚の位置 / Vị trí:</span>
+                            <div class="location-value">${rackLocation}</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Notes Grid -->
+                    <div class="info-grid-2col notes-grid">
+                        <div class="info-item">
+                            <div class="info-label">棚メモ / Ghi chú giá</div>
+                            <div class="info-value">${rackNotes}</div>
+                        </div>
+                        
+                        <div class="info-item">
+                            <div class="info-label">段メモ / Ghi chú tầng</div>
+                            <div class="info-value">${layerNotes}</div>
+                        </div>
+                    </div>
+                </div>
+                ` : `
+                <!-- External storage message -->
+                <div class="external-storage-message">
+                    <i class="fas fa-info-circle"></i>
+                    <span>この金型は外部に保管されています / Khuôn đang lưu trữ bên ngoài</span>
+                </div>
+                `}
             </div>
         `;
+    }
+
+
+    /**
+     * Helper: Get storage status from statuslogs (CORRECT LOGIC)
+     */
+    getStorageStatus(item) {
+        if (!item) return {
+            class: 'no-history',
+            icon: 'fas fa-question-circle',
+            text: '未確認 / Chưa rõ',
+            textShort: '未確認'
+        };
+        
+        // ✅ LOGIC ĐÚNG: Lấy từ statuslogs
+        const statusLogs = window.DataManager?.data?.statuslogs || [];
+        const itemId = item.MoldID || item.CutterID;
+        
+        if (!itemId || statusLogs.length === 0) {
+            return {
+                class: 'badge-checkin', // Default
+                icon: 'fas fa-sign-in-alt',
+                text: 'チェックイン / Check-in',
+                textShort: 'チェックイン'
+            };
+        }
+        
+        // Tìm logs của item
+        const itemLogs = statusLogs.filter(log => 
+            String(log.MoldID || '').trim() === String(itemId).trim()
+        );
+        
+        if (itemLogs.length === 0) {
+            return {
+                class: 'no-history',
+                icon: 'fas fa-question-circle',
+                text: '未確認 / Chưa rõ',
+                textShort: '未確認'
+            };
+        }
+        
+        // Lấy log mới nhất
+        itemLogs.sort((a, b) => new Date(b.Timestamp) - new Date(a.Timestamp));
+        const latestLog = itemLogs[0];
+        const status = (latestLog.Status || '').toLowerCase();
+        
+        const statusMap = {
+            'checkin': {
+                class: 'badge-checkin',
+                icon: 'fas fa-sign-in-alt',
+                text: 'チェックイン / Check-in',
+                textShort: 'チェックイン'
+            },
+            'checkout': {
+                class: 'badge-checkout',
+                icon: 'fas fa-sign-out-alt',
+                text: 'チェックアウト / Check-out',
+                textShort: 'チェックアウト'
+            },
+            'audit': {
+                class: 'badge-audit',
+                icon: 'fas fa-clipboard-check',
+                text: '棚卸 / Kiểm kê',
+                textShort: '棚卸'
+            }
+        };
+        
+        // Detect status
+        if (status.includes('in')) {
+            return statusMap['checkin'];
+        } else if (status.includes('out')) {
+            return statusMap['checkout'];
+        } else if (status.includes('audit')) {
+            return statusMap['audit'];
+        }
+        
+        // Default
+        return statusMap['checkin'];
     }
 
 
@@ -411,19 +607,45 @@ class MobileDetailModal {
     renderBasicInfo(item, type) {
         const isMold = type === 'mold';
         
-        // Lấy dữ liệu
+        // ✅ R7.0.2: Lấy dữ liệu từ các bảng liên quan
+        const design = isMold ? this.getMoldDesignInfo(item) : null;
+        const job = this.getJobInfo(item);
+        const customer = this.getCustomerInfo(item);
+        const company = this.getCompanyInfo(item);
+        
+        // Thông tin cơ bản
         const moldID = isMold ? (item.MoldID || '-') : (item.CutterID || '-');
         const name = isMold ? (item.MoldName || item.Name || '-') : (item.CutterName || item.Name || '-');
         const code = isMold ? (item.MoldCode || '-') : (item.CutterNo || '-');
         
-        // Kích thước kết hợp
-        const dimensions = item.Dimensions || `${item.Length || 0}×${item.Width || 0}`;
+        const dimensions = this.getMoldDimensions(item, design);
+
+        // ✅ R7.0.2: Lấy kích thước dao cắt từ molddesign
+        const cutterDimensions = this.getCutterDimensions(item, design);
+
         
-        // Thông tin khác
-        const weight = item.MoldDesignWeight || item.Weight || '-';
-        const trayInfo = item.TrayInfo || '-';
-        const material = item.Material || item.PlasticType || '-';
-        const cutSize = item.CutSize || '-';
+        // ✅ Trọng lượng từ design
+        const weight = design?.MoldDesignWeight || design?.DesignWeight || item.Weight || '-';
+        
+        // ✅ Thông tin khác từ design và job
+        const trayInfo = design?.TrayInfoForMoldDesign || job?.TrayInfo || item.TrayInfo || '-';
+        const material = design?.DesignForPlasticType || job?.Material || item.Material || item.PlasticType || '-';
+        
+        // ✅ Thông tin công ty
+        const companyDisplay = this.getCustomerDisplay(item);
+
+        // Debug log
+        console.log('📊 renderBasicInfo:', {
+            itemID: moldID,
+            hasDesign: !!design,
+            hasJob: !!job,
+            dimensions: dimensions,
+            weight: weight,
+            trayInfo: trayInfo,
+            companyDisplay: companyDisplay
+        });
+
+
         const productionDate = item.ProductionDate || '-';
         const notes = item.Notes || '';
         
@@ -452,20 +674,21 @@ class MobileDetailModal {
                         <div class="info-value">${dimensions}</div>
                     </div>
                     <div class="info-item">
-                        <div class="info-label">重量 / Khối lượng</div>
-                        <div class="info-value">${weight}</div>
+                        <div class="info-label">金型重量 / Khối lượng khuôn</div>
+                        <div class="info-value">${weight !== '-' ? weight + (design?.MoldDesignWeight ? ' kg' : '') : '-'}</div>
                     </div>
                     <div class="info-item">
-                        <div class="info-label">トレイ / Khay</div>
+                        <div class="info-label">トレイ情報（指示書より） / Khay</div>
                         <div class="info-value">${trayInfo}</div>
                     </div>
                     <div class="info-item">
-                        <div class="info-label">材質 / Loại nhựa</div>
-                        <div class="info-value">${material}</div>
+                        <div class="info-label">カットサイズ / Kích thước cắt</div>
+                        <div class="info-value">${cutterDimensions}</div>
                     </div>
                     <div class="info-item">
-                        <div class="info-label">カットサイズ / Kích thước cắt</div>
-                        <div class="info-value">${cutSize}</div>
+                        <div class="info-label">設計時の材質 / Loại nhựa</div>
+                        <div class="info-value">${material}</div>
+                    </div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">製造日 / Ngày SX</div>
@@ -484,18 +707,26 @@ class MobileDetailModal {
 
 
         /**
-     * Section 3: Design/Technical Information - Grid 2 cột
-     */
-    renderTechnicalInfo(item, type) {
+         * Section 3: Design/Technical Information - Grid 2 cột
+         */
+        renderTechnicalInfo(item, type) {
         // R7.0.2: Chỉ hiển thị thông tin thiết kế cho KHUÔN
         if (type !== 'mold') {
             return ''; // Dao cắt không có thông tin thiết kế
         }
         
-        // Tìm design data từ molddesign table
-        const designData = this.data.molddesign.find(d => 
-            d.MoldID === item.MoldID || d.MoldCode === item.MoldCode
-        ) || {};
+        // ✅ FIX: Dùng helper function thay vì find trực tiếp
+        const designData = this.getMoldDesignInfo(item) || {};
+        
+        // Debug log
+        console.log('🔧 renderTechnicalInfo:', {
+            MoldID: item.MoldID,
+            MoldDesignID: item.MoldDesignID,
+            designData: designData,
+            hasDesignCode: !!designData.DesignCode,
+            hasPockets: !!designData.Pockets
+        });
+
 
         
         return `
@@ -508,82 +739,100 @@ class MobileDetailModal {
                 <div class="info-grid-2col">
                     <div class="info-item">
                         <div class="info-label">設計コード / Mã thiết kế</div>
-                        <div class="info-value">${designData.DesignCode || 'N/A'}</div>
+                        <div class="info-value">${designData.DesignCode || designData.MoldDesignCode || 'N/A'}</div>
                     </div>
+                    
                     <div class="info-item">
                         <div class="info-label">順/逆型 / Thuận/Nghịch</div>
-                        <div class="info-value">${designData.MoldType || 'N/A'}</div>
+                        <div class="info-value">${designData.ForwardReverse || designData.Orientation || 'N/A'}</div>
                     </div>
-                    <div class="info-item">
-                        <div class="info-label">ポケット数 / Số pockets</div>
-                        <div class="info-value">${designData.Pockets || 'N/A'}</div>
-                    </div>
+
                     <div class="info-item">
                         <div class="info-label">設置方向 / Hướng lắp</div>
-                        <div class="info-value">${designData.InstallDirection || 'N/A'}</div>
+                        <div class="info-value">${designData.InstallDirection || designData.MoldSetupType || 'N/A'}</div>
                     </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">ポケット数 / Số pockets</div>
+                        <div class="info-value">${designData.PocketCount || designData.PocketNumbers || 'N/A'}</div>
+                    </div>
+                    
+                    
+                    
                     <div class="info-item">
                         <div class="info-label">設計重量 / KL thiết kế</div>
-                        <div class="info-value">${designData.DesignWeight || 'N/A'}</div>
+                        <div class="info-value">${designData.MoldDesignWeight ? designData.MoldDesignWeight + ' kg' : (designData.DesignWeight || 'N/A')}</div>
                     </div>
+                    
                     <div class="info-item">
-                        <div class="info-label">金型片数 / Số mảnh khuôn</div>
-                        <div class="info-value">${designData.MoldPieces || 'N/A'}</div>
+                        <div class="info-label">面数 / Số mảnh khuôn</div>
+                        <div class="info-value">${designData.PieceCount || designData.MoldPieces || 'N/A'}</div>
                     </div>
+                    
                     <div class="info-item">
                         <div class="info-label">Pitch / Khoảng cách</div>
-                        <div class="info-value">${designData.Pitch || '0'}</div>
+                        <div class="info-value">${designData.Pitch || 'N/A'}</div>
                     </div>
+                    
                     <div class="info-item">
                         <div class="info-label">C面取 / Góc vát</div>
-                        <div class="info-value">${designData.Chamfer || 'N/A'}</div>
+                        <div class="info-value">${designData.ChamferC || designData.ChamferSize || 'N/A'}</div>
                     </div>
+                    
                     <div class="info-item">
                         <div class="info-label">Rコーナー / Góc bo</div>
-                        <div class="info-value">${designData.RCorner || 'N/A'}</div>
+                        <div class="info-value">${designData.CornerR || designData.CornerRadius || 'N/A'}</div>
                     </div>
+                    
                     <div class="info-item">
                         <div class="info-label">深さ / Chiều sâu</div>
-                        <div class="info-value">${designData.Depth || 'N/A'}</div>
+                        <div class="info-value">${designData.MoldDesignDepth || designData.CavityDepth || 'N/A'}</div>
                     </div>
+                    
                     <div class="info-item">
                         <div class="info-label">Under depth</div>
                         <div class="info-value">${designData.UnderDepth || 'N/A'}</div>
                     </div>
+                    
                     <div class="info-item">
                         <div class="info-label">抜き勾配 / Góc nghiêng</div>
-                        <div class="info-value">${designData.DraftAngle || 'N/A'}</div>
+                        <div class="info-value">${designData.DraftAngle || designData.TaperAngle || 'N/A'}</div>
                     </div>
+                    
                     <div class="info-item">
                         <div class="info-label">彫刻 / Chữ khắc</div>
-                        <div class="info-value">${designData.Engraving || 'N/A'}</div>
+                        <div class="info-value">${designData.TextContent || designData.EngravingText || 'N/A'}</div>
                     </div>
+                    
                     <div class="info-item">
                         <div class="info-label">公差 X,Y / Dung sai</div>
-                        <div class="info-value">${designData.ToleranceX || 'N/A'}, ${designData.ToleranceY || 'N/A'}</div>
+                        <div class="info-value">${designData.ToleranceX || (designData.ToleranceX && designData.ToleranceY ? `${designData.ToleranceX}, ${designData.ToleranceY}` : 'N/A')}</div>
                     </div>
+                    
                     <div class="info-item">
-                        <div class="info-label">図面番号 / Số bản vẽ</div>
-                        <div class="info-value">${designData.DrawingNo || 'N/A'}</div>
+                        <div class="info-label">お客先図面番号 / Số bản vẽ</div>
+                        <div class="info-value">${designData.CustomerDrawingNo || designData.DrawingNo || 'N/A'}</div>
                     </div>
+                    
                     <div class="info-item">
-                        <div class="info-label">設備コード / Mã thiết bị</div>
-                        <div class="info-value">${designData.EquipmentCode || 'N/A'}</div>
+                        <div class="info-label">お客先設備コード / Mã thiết bị</div>
+                        <div class="info-value">${designData.CustomerEquipmentNo || designData.MachineCode || 'N/A'}</div>
                     </div>
+                    
                     <div class="info-item">
                         <div class="info-label">プラグ有無 / Có nắp</div>
-                        <div class="info-value">${designData.HasPlug || 'N/A'}</div>
+                        <div class="info-value">${designData.Plug || designData.HasPlug || 'N/A'}</div>
                     </div>
+                    
                     <div class="info-item">
                         <div class="info-label">試作 / Chạy thử</div>
-                        <div class="info-value">${designData.Prototype || '-'}</div>
+                        <div class="info-value">${designData.Prototype || designData.PrototypeStatus || 'N/A'}</div>
                     </div>
-                    ${designData.DesignNotes ? `
+                    
                     <div class="info-item full-width">
                         <div class="info-label">設計備考 / Ghi chú thiết kế</div>
-                        <div class="info-value">${designData.DesignNotes}</div>
+                        <div class="info-value note-text">${designData.DesignNotes || designData.VersionNote || '-'}</div>
                     </div>
-                    ` : ''}
                 </div>
             </div>
         `;
@@ -593,10 +842,34 @@ class MobileDetailModal {
      * Product Information (for cutters or additional mold info)
      */
     renderProductInfo(item, type) {
-        // Tìm job data
-        const jobData = this.data.jobs.find(j => 
-            j.MoldID === item.MoldID || j.CutterID === item.CutterID
-        ) || {};
+        const isMold = type === 'mold';
+        
+        // ✅ FIX: Dùng helper functions
+        const jobData = this.getJobInfo(item) || {};
+        const design = isMold ? this.getMoldDesignInfo(item) : null;
+        
+        // Format cutline size (V4.31 logic)
+        let cutlineSize = 'N/A';
+        if (isMold) {
+            if (design?.CutlineX && design?.CutlineY) {
+                cutlineSize = `${design.CutlineX}×${design.CutlineY}`;
+            }
+        } else {
+            if (item.CutlineLength && item.CutlineWidth) {
+                cutlineSize = `${item.CutlineLength}×${item.CutlineWidth}`;
+                if (item.CutterCorner) cutlineSize += `-R${item.CutterCorner}`;
+                if (item.CutterChamfer) cutlineSize += `-C${item.CutterChamfer}`;
+            }
+        }
+        
+        console.log('📦 renderProductInfo:', {
+            type,
+            hasJob: !!jobData,
+            hasDesign: !!design,
+            cutlineSize: cutlineSize,
+            trayWeight: jobData.TrayWeight || design?.TrayWeight
+        });
+
         
         return `
             <div class="modal-section">
@@ -607,48 +880,84 @@ class MobileDetailModal {
                 
                 <div class="info-grid-2col">
                     <div class="info-item">
-                        <div class="info-label">トレイ情報 / Thông tin khay</div>
-                        <div class="info-value">${jobData.TrayInfo || 'N/A'}</div>
+                        <div class="info-label">カットサイズ / Kích thước cắt</div>
+                        <div class="info-value">${cutlineSize}</div>
                     </div>
+                    
                     <div class="info-item">
-                        <div class="info-label">材質 / Chất liệu</div>
-                        <div class="info-value">${jobData.Material || 'N/A'}</div>
+                        <div class="info-label">製造日 / Ngày SX</div>
+                        <div class="info-value">${jobData.DeliveryDeadline || 'N/A'}</div>
                     </div>
+                    
                     <div class="info-item">
-                        <div class="info-label">製品寸法 / Kích thước SP</div>
-                        <div class="info-value">${jobData.ProductSize || 'N/A'}</div>
+                        <div class="info-label">トレイ情報（お客先より） / Thông tin khay</div>
+                        <div class="info-value">${design.CustomerTrayName || 'N/A'}</div>
                     </div>
+
+                    <div class="info-item">
+                        <div class="info-label">トレイ情報（指示書より） / Thông tin khay</div>
+                        <div class="info-value">${design?.TrayInfoForMoldDesign || 'N/A'}</div>
+                    </div>
+                    
                     <div class="info-item">
                         <div class="info-label">トレイ重量 / KL khay</div>
-                        <div class="info-value">${jobData.TrayWeight || 'N/A'}</div>
+                        <div class="info-value">${jobData.TrayWeight || design?.TrayWeight ? (jobData.TrayWeight || design?.TrayWeight) + ' g' : 'N/A'}</div>
                     </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">設計時の材質 / Chất liệu</div>
+                        <div class="info-value">${jobData.Material || design?.DesignForPlasticType || 'N/A'}</div>
+                    </div>
+                    
                     <div class="info-item">
                         <div class="info-label">初回出荷日 / Ngày xuất đầu</div>
-                        <div class="info-value">${jobData.FirstShipmentDate || 'N/A'}</div>
+                        <div class="info-value">${jobData.FirstShipmentDate || jobData.DeliveryDeadline || 'N/A'}</div>
                     </div>
+                    
                     <div class="info-item">
                         <div class="info-label">別抜き / Dao cắt riêng</div>
-                        <div class="info-value">${jobData.SeparateCut || 'N/A'}</div>
+                        <div class="info-value">${jobData.SeparateCut || jobData.SeparateCutter || 'N/A'}</div>
                     </div>
+                    
                     <div class="info-item">
                         <div class="info-label">見積 / Báo giá</div>
-                        <div class="info-value">${jobData.Quotation || 'N/A'}</div>
+                        <div class="info-value">${jobData.PriceQuote || jobData.QuoteNumber || 'N/A'}</div>
                     </div>
+                    
                     <div class="info-item">
                         <div class="info-label">単価 / Đơn giá</div>
-                        <div class="info-value">${jobData.UnitPrice || 'N/A'}</div>
+                        <div class="info-value">${jobData.UnitPrice ? (typeof jobData.UnitPrice === 'number' ? jobData.UnitPrice.toLocaleString('ja-JP') + ' 円' : jobData.UnitPrice) : 'N/A'}</div>
                     </div>
+                    
                     <div class="info-item">
                         <div class="info-label">箱の種類 / Loại thùng</div>
-                        <div class="info-value">${jobData.BoxType || 'N/A'}</div>
+                        <div class="info-value">${jobData.BoxType || jobData.LoaiThungDong || 'N/A'}</div>
                     </div>
+                    
                     <div class="info-item">
                         <div class="info-label">袋詰め / Bọc túi</div>
-                        <div class="info-value">${jobData.Bagging || 'N/A'}</div>
+                        <div class="info-value">${jobData.Bagging || jobData.BaoNilon || 'N/A'}</div>
+                    </div>
+                    
+                    
+                    <div class="info-item">
+                        <div class="info-label">納期 / Hạn giao</div>
+                        <div class="info-value">${jobData.DeliveryDeadline || jobData.DueDate || 'N/A'}</div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-label">注文番号 / Số đơn hàng</div>
+                        <div class="info-value">${jobData.OrderNumber || jobData.JobNumber || 'N/A'}</div>
+                    </div>
+                    
+                    <div class="info-item full-width">
+                        <div class="info-label">製品備考 / Ghi chú sản phẩm</div>
+                        <div class="info-value note-text">${jobData.ProductNotes || jobData.JobNote || '-'}</div>
                     </div>
                 </div>
             </div>
         `;
+
     }
 
 
@@ -1335,13 +1644,295 @@ class MobileDetailModal {
      */
 
     /**
-     * Get mold design info from molddesign table
+     * R7.0.2: Get mold design info with V4.31 logic
+     * @param {Object} moldItem - Mold item
+     * @returns {Object} Design data with enriched info
      */
-    getMoldDesignInfo(moldID) {
-        if (!moldID || !this.data.molddesign) return null;
+    getMoldDesignInfo(moldItem) {
+        if (!moldItem) return null;
         
-        return this.data.molddesign.find(design => design.MoldID === moldID);
+        // Priority 1: Check if already enriched
+        if (moldItem.designInfo) {
+            return moldItem.designInfo;
+        }
+        
+        // Priority 2: Find by MoldDesignID
+        if (moldItem.MoldDesignID) {
+            const design = this.data.molddesign.find(d => 
+                d.MoldDesignID === moldItem.MoldDesignID
+            );
+            if (design) return design;
+        }
+        
+        // Priority 3: Find by MoldCode match
+        if (moldItem.MoldCode) {
+            const design = this.data.molddesign.find(d => 
+                d.MoldCode === moldItem.MoldCode || 
+                d.DesignCode === moldItem.MoldCode
+            );
+            if (design) return design;
+        }
+        
+        // Priority 4: Return empty object with debug
+        console.warn('⚠️ No design info found for mold:', {
+            MoldID: moldItem.MoldID,
+            MoldCode: moldItem.MoldCode,
+            MoldDesignID: moldItem.MoldDesignID
+        });
+        
+        return null;
     }
+
+    /**
+     * R7.0.2: Get customer info (V4.31 logic)
+     */
+    getCustomerInfo(item) {
+        if (!item || !item.CustomerID) return null;
+        
+        // Check if already enriched
+        if (item.customerInfo) {
+            return item.customerInfo;
+        }
+        
+        const customer = this.data.customers.find(c => 
+            c.CustomerID === item.CustomerID
+        );
+        
+        return customer || null;
+    }
+
+    /**
+     * R7.0.2: Get company info (V4.31 logic)
+     */
+    getCompanyInfo(item) {
+        const customer = this.getCustomerInfo(item);
+        if (!customer || !customer.CompanyID) return null;
+        
+        const company = this.data.companies.find(c => 
+            c.CompanyID === customer.CompanyID
+        );
+        
+        return company || null;
+    }
+
+    /**
+     * R7.0.2: Get job info (V4.31 logic)
+     */
+    getJobInfo(item) {
+        if (!item || !item.MoldDesignID) return null;
+        
+        // Check if already enriched
+        if (item.jobInfo) {
+            return item.jobInfo;
+        }
+        
+        const job = this.data.jobs.find(j => 
+            j.MoldDesignID === item.MoldDesignID
+        );
+        
+        return job || null;
+    }
+
+    /**
+     * R7.0.2: Get rack layer info with full details (V4.31 logic)
+     * @param {Object} item - Mold/Cutter item
+     * @returns {Object} Full rack and layer information
+     */
+    getRackLayerInfo(item) {
+        if (!item || !item.RackLayerID) {
+            return {
+                layer: null,
+                rack: null,
+                badge: '未確認',
+                location: '未確認'
+            };
+        }
+        
+        // Find rack layer
+        const rackLayer = this.data.racklayers.find(rl => 
+            rl.RackLayerID === item.RackLayerID
+        );
+        
+        if (!rackLayer) {
+            console.warn('⚠️ RackLayer not found:', item.RackLayerID);
+            return {
+                layer: null,
+                rack: null,
+                badge: '未確認',
+                location: '未確認'
+            };
+        }
+        
+        // Find rack info
+        const rack = this.data.racks.find(r => 
+            r.RackID === rackLayer.RackID
+        );
+        
+        if (!rack) {
+            console.warn('⚠️ Rack not found:', rackLayer.RackID);
+        }
+        
+        // Build badge (RackSymbol-LayerNumber)
+        const rackSymbol = rack?.RackSymbol || rack?.RackNumber || '?';
+        const layerNumber = rackLayer.RackLayerNumber || '?';
+        const badge = `${rackSymbol}-${layerNumber}`;
+        
+        return {
+            layer: rackLayer,
+            rack: rack || null,
+            badge: badge,
+            location: rack?.RackLocation || '未確認',
+            rackNotes: rack?.RackNotes || null,
+            layerNotes: rackLayer.RackLayerNotes || null
+        };
+    }
+
+    /**
+     * R7.0.2: Get storage company info
+     */
+    getStorageCompanyInfo(item) {
+        if (!item) return { name: '-', isYSD: false, needsHighlight: false };
+        
+        // ✅ FIX: Lấy company data từ DataManager
+        const companies = window.DataManager?.data?.companies || [];
+        const storageCompany = item.storage_company || 2; // Default YSD = 2
+        
+        // Tìm company trong companies.csv
+        const companyData = companies.find(c => c.CompanyID === storageCompany);
+        
+        let companyName = '-';
+        if (companyData) {
+            companyName = companyData.CompanyShortName || companyData.CompanyName || '-';
+        } else {
+            // Fallback: Map theo ID
+            const defaultMap = {
+                1: '顧客',
+                2: 'YSD本社',
+                3: '外部倉庫'
+            };
+            companyName = defaultMap[storageCompany] || '-';
+        }
+        
+        const isYSD = companyName.toUpperCase().includes('YSD');
+        
+        return {
+            name: companyName,
+            nameShort: companyName,
+            isYSD: isYSD,
+            isExternal: !isYSD,
+            needsHighlight: !isYSD,
+            color: isYSD ? '#42A5F5' : '#FFB74D'
+        };
+    }
+
+
+
+    /**
+     * R7.0.2: Format dimensions (V4.31 logic)
+     */
+    getMoldDimensions(item, designData) {
+        // Priority 1: Design data
+        if (designData) {
+            if (designData.MoldDesignLength && designData.MoldDesignWidth && designData.MoldDesignHeight) {
+                return `${designData.MoldDesignLength}×${designData.MoldDesignWidth}×${designData.MoldDesignHeight}`;
+            }
+            if (designData.MoldDesignDim) {
+                return designData.MoldDesignDim;
+            }
+        }
+        
+        // Priority 2: Mold data
+        if (item.MoldLength && item.MoldWidth && item.MoldHeight) {
+            return `${item.MoldLength}×${item.MoldWidth}×${item.MoldHeight}`;
+        }
+        
+        // Priority 3: Size field
+        if (item.Size) {
+            return item.Size;
+        }
+        
+        return '0×0';
+    }
+
+    /**
+     * R7.0.2: Format cutter dimensions from molddesign (V4.31 logic)
+     * @param {Object} item - Mold item
+     * @param {Object} designData - Design data from molddesign table
+     * @returns {String} Formatted cutter dimensions (CutlineX×CutlineY-CornerR-ChamferC)
+     */
+    getCutterDimensions(item, designData) {
+        // Priority 1: Design data (from molddesign table)
+        if (designData) {
+            const cutlineX = designData.CutlineX || designData.CutterLength || null;
+            const cutlineY = designData.CutlineY || designData.CutterWidth || null;
+            const cornerR = designData.CornerR || designData.RCorner || null;
+            const chamferC = designData.ChamferC || designData.Chamfer || null;
+            
+            // Build dimension string
+            if (cutlineX && cutlineY) {
+                let dimString = `${cutlineX}×${cutlineY}`;
+                
+                // Add corner R if exists
+                if (cornerR) {
+                    dimString += ` - ${cornerR}`;
+                }
+                
+                // Add chamfer C if exists
+                if (chamferC) {
+                    dimString += ` - ${chamferC}`;
+                }
+                
+                return dimString;
+            }
+            
+            // Fallback: Check if there's a combined dimension field
+            if (designData.CutterDimensions || designData.CutlineDim) {
+                return designData.CutterDimensions || designData.CutlineDim;
+            }
+        }
+        
+        // Priority 2: Direct fields from item (for cutters)
+        if (item.CutlineLength && item.CutlineWidth) {
+            let dimString = `${item.CutlineLength}×${item.CutlineWidth}`;
+            
+            if (item.CutterCorner) {
+                dimString += `-R${item.CutterCorner}`;
+            }
+            
+            if (item.CutterChamfer) {
+                dimString += `-C${item.CutterChamfer}`;
+            }
+            
+            return dimString;
+        }
+        
+        // Priority 3: Size field
+        if (item.CutterSize || item.Size) {
+            return item.CutterSize || item.Size;
+        }
+        
+        return '-';
+    }
+
+
+    /**
+     * R7.0.2: Get customer display name (V4.31 logic)
+     */
+    getCustomerDisplay(item) {
+        const customer = this.getCustomerInfo(item);
+        const company = this.getCompanyInfo(item);
+        
+        if (!customer) return '-';
+        
+        let displayName = customer.CustomerShortName || customer.CustomerName || customer.CustomerID;
+        
+        if (company && company.CompanyShortName) {
+            displayName = `${company.CompanyShortName} (${displayName})`;
+        }
+        
+        return displayName;
+    }
+
 
     /**
      * Get related cutters for a mold

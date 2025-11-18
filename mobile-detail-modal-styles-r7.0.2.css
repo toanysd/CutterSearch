@@ -68,10 +68,7 @@
     }
 }
 
-/* ========================================
-   2. MODAL HEADER
-   ======================================== */
-
+/* ✅ 2. MODAL HEADER - FIXED LAYOUT */
 @media (max-width: 1024px) {
     .mobile-modal-header {
         background: linear-gradient(135deg, #1565C0 0%, #0D47A1 100%);
@@ -87,22 +84,56 @@
     .modal-title {
         flex: 1;
         display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    /* ✅ Left: 詳細情報 / Chi tiết */
+    .title-left {
+        display: flex;
         flex-direction: column;
         gap: 2px;
+        flex-shrink: 0;
     }
     
-    .modal-title-ja {
-        font-size: 17px;
+    .title-label-ja {
+        font-size: 13px;
         font-weight: 700;
-        line-height: 1.2;
         color: white;
+        line-height: 1.2;
     }
     
-    .modal-title-vi {
-        font-size: 12px;
+    .title-label-vi {
+        font-size: 9px;
         font-weight: 400;
-        opacity: 0.95;
+        color: rgba(255, 255, 255, 0.9);
+        line-height: 1;
+    }
+    
+    /* ✅ Center: 金型: 2895 JAE-317 R1 */
+    .title-center {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding-left: 12px;
+        border-left: 2px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .item-type-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.85);
+        flex-shrink: 0;
+    }
+    
+    .item-id-code {
+        font-size: 13px;
+        font-weight: 700;
         color: white;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
     
     .modal-close-btn {
@@ -127,27 +158,81 @@
     }
 }
 
-/* ========================================
-   3. MODE TOGGLE SWITCH
-   ======================================== */
 
+
+/* ✅ R7.0.2: Toggle Button Styles - FIXED */
 @media (max-width: 1024px) {
-    .mode-toggle-container {
-        background: linear-gradient(to bottom, #ffffff 0%, #f5f7fa 100%);
-        padding: 10px 14px;
+    .toggle-btn {
+        padding: 6px 14px;
+        border: none;
+        border-radius: 6px;
+        font-size: 10px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
         display: flex;
         align-items: center;
-        justify-content: center;
-        gap: 12px;
-        border-bottom: 2px solid #E3F2FD;
-        flex-shrink: 0;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        gap: 4px;
+        background: white;
+        color: #9E9E9E;
+        border: 1px solid #E0E0E0;
+    }
+    
+    .toggle-btn i {
+        font-size: 11px;
+    }
+    
+    /* Check-in mode active - Blue */
+    .toggle-btn[data-mode="checkin"].active {
+        background: linear-gradient(135deg, #42A5F5 0%, #1976D2 100%);
+        color: white;
+        box-shadow: 0 2px 5px rgba(66, 165, 245, 0.5);
+        border-color: #1565C0;
+    }
+    
+    /* Inventory mode active - Orange */
+    .toggle-btn[data-mode="inventory"].active {
+        background: linear-gradient(135deg, #FFA726 0%, #FB8C00 100%);
+        color: white;
+        box-shadow: 0 2px 5px rgba(255, 167, 38, 0.5);
+        border-color: #F57C00;
+    }
+    
+    .toggle-btn:active {
+        transform: scale(0.95);
+    }
+}
+
+/* ✅ 3. MODE TOGGLE CONTAINER - NEW */
+@media (max-width: 1024px) {
+    .mode-toggle-container {
+        background: linear-gradient(135deg, #F5F7FA 0%, #EEF2F5 100%);
+        border: 2px solid #E0E0E0;
+        border-radius: 10px;
+        padding: 10px 12px;
+        margin: 10px 10px 0 10px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     }
     
     .mode-toggle-label {
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        margin-bottom: 8px;
         font-size: 11px;
-        color: #666;
-        font-weight: 600;
+        font-weight: 700;
+        color: #424242;
+    }
+    
+    .toggle-label-ja {
+        font-size: 11px;
+        color: #212121;
+    }
+    
+    .toggle-label-vi {
+        font-size: 10px;
+        color: #616161;
     }
     
     .mode-toggle-switch {
@@ -155,42 +240,90 @@
         gap: 8px;
     }
     
+    /* ✅ Toggle Button Styles */
     .toggle-btn {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        padding: 8px 14px;
-        background: white;
-        border: 2px solid #E0E0E0;
-        border-radius: 8px;
-        font-size: 11px;
-        font-weight: 600;
-        color: #666;
+        flex: 1;
+        padding: 8px 12px;
+        border: none;
+        border-radius: 6px;
+        font-size: 10px;
+        font-weight: 700;
         cursor: pointer;
         transition: all 0.2s ease;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        background: white;
+        color: #9E9E9E;
+        border: 2px solid #E0E0E0;
+        min-height: 42px;
     }
     
     .toggle-btn i {
-        font-size: 13px;
+        font-size: 12px;
     }
     
-    .toggle-btn.active {
-        background: linear-gradient(135deg, #1565C0 0%, #0D47A1 100%);
-        border-color: #0D47A1;
+    /* Check-in mode active - Blue */
+    .toggle-btn[data-mode="checkin"].active {
+        background: linear-gradient(135deg, #42A5F5 0%, #1976D2 100%);
         color: white;
-        box-shadow: 0 2px 4px rgba(13, 71, 161, 0.3);
+        box-shadow: 0 2px 5px rgba(66, 165, 245, 0.5);
+        border-color: #1565C0;
+    }
+    
+    /* Inventory mode active - Orange */
+    .toggle-btn[data-mode="inventory"].active {
+        background: linear-gradient(135deg, #FFA726 0%, #FB8C00 100%);
+        color: white;
+        box-shadow: 0 2px 5px rgba(255, 167, 38, 0.5);
+        border-color: #F57C00;
     }
     
     .toggle-btn:active {
         transform: scale(0.95);
     }
+}
+
+
+/* ✅ R7.0.2: Mode Toggle Container - THÊM MỚI */
+@media (max-width: 1024px) {
+    .mode-toggle-container {
+        background: linear-gradient(135deg, #F5F7FA 0%, #EEF2F5 100%);
+        border: 2px solid #E0E0E0;
+        border-radius: 10px;
+        padding: 10px 12px;
+        margin: 10px 10px 0 10px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
     
-    .toggle-label-ja,
+    .mode-toggle-label {
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        margin-bottom: 8px;
+        font-size: 11px;
+        font-weight: 700;
+        color: #424242;
+    }
+    
+    .toggle-label-ja {
+        font-size: 11px;
+        color: #212121;
+    }
+    
     .toggle-label-vi {
         font-size: 10px;
+        color: #616161;
+    }
+    
+    .mode-toggle-switch {
+        display: flex;
+        gap: 8px;
     }
 }
+
 
 /* ========================================
    4. MODAL BODY
@@ -307,75 +440,279 @@
 }
 
 /* ========================================
-   6. LOCATION SECTION - BLUE THEME
+   6. LOCATION SECTION - FIXED LAYOUT
    ======================================== */
+
+/* ✅ CURRENT STORAGE HEADER - NEW */
+@media (max-width: 1024px) {
+    .current-storage-header {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 12px;
+        background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
+        border-bottom: 2px solid #90CAF9;
+        font-size: 10px;
+        font-weight: 700;
+        color: #0D47A1;
+    }
+    
+    .current-storage-header i {
+        font-size: 12px;
+        color: #1565C0;
+    }
+}
+
 
 @media (max-width: 1024px) {
     .location-section {
         border-left: 4px solid #1565C0;
     }
     
-    .location-section .section-header {
-        background: linear-gradient(135deg, #1E88E5 0%, #1565C0 100%);
-    }
-    
-    .badges-row {
+    /* NHÓM TRÊN: Status + Company - COMPACT với chiều cao cố định */
+    .storage-status-row {
         display: flex;
-        flex-wrap: wrap;
         gap: 6px;
-        padding: 10px;
-        background: linear-gradient(to bottom, #E3F2FD 0%, #BBDEFB 50%);
-        border-bottom: 1px solid #90CAF9;
+        padding: 8px 10px;
+        background: linear-gradient(to bottom, #FAFAFA 0%, #F5F5F5 100%);
+        border-bottom: 1px solid #E0E0E0;
+        align-items: stretch; /* ✅ THÊM: Đảm bảo cả 2 badge cùng chiều cao */
     }
     
-    .location-badge {
-        display: inline-flex;
-        align-items: center;
-        padding: 7px 13px;
-        background: linear-gradient(135deg, #1565C0 0%, #0D47A1 100%);
-        color: white;
-        border-radius: 7px;
-        font-size: 15px;
-        font-weight: 700;
-        font-family: 'Courier New', monospace;
-        box-shadow: 0 2px 5px rgba(13, 71, 161, 0.4);
-    }
-    
+    /* ✅ Status Badge - SOFTER COLORS */
     .status-badge {
-        display: inline-flex;
+        display: flex;
+        flex-direction: row;
         align-items: center;
-        gap: 4px;
-        padding: 6px 10px;
+        justify-content: center;
+        gap: 6px;
+        padding: 8px 12px;
         border-radius: 6px;
         font-size: 10px;
         font-weight: 700;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        flex: 1;
+        min-width: 0;
+        min-height: 40px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.12); /* ✅ Giảm shadow */
+        text-align: center;
     }
     
     .status-badge i {
-        font-size: 9px;
+        font-size: 13px; /* ✅ Tăng size icon cho cân đối */
+        flex-shrink: 0;
     }
     
+    /* ✅ Check-in - SOFTER GREEN */
     .badge-checkin {
-        background: linear-gradient(135deg, #66BB6A 0%, #43A047 100%);
-        color: white;
+        background: linear-gradient(135deg, #A5D6A7 0%, #81C784 100%); /* ✅ Nhạt hơn */
+        color: #1B5E20; /* ✅ Chữ đậm hơn */
+        border: 1px solid #66BB6A;
     }
     
+    /* ✅ Check-out - SOFTER RED */
     .badge-checkout {
-        background: linear-gradient(135deg, #EF5350 0%, #E53935 100%);
-        color: white;
+        background: linear-gradient(135deg, #EF9A9A 0%, #E57373 100%); /* ✅ Nhạt hơn */
+        color: #B71C1C; /* ✅ Chữ đậm hơn */
+        border: 1px solid #EF5350;
     }
     
+    /* ✅ Audit - SOFTER ORANGE */
     .badge-audit {
+        background: linear-gradient(135deg, #FFCC80 0%, #FFB74D 100%); /* ✅ Nhạt hơn */
+        color: #E65100; /* ✅ Chữ đậm hơn */
+        border: 1px solid #FF9800;
+    }
+
+    /* ✅ No history - GRAY */
+    .badge-no-history,
+    .no-history {
+        background: linear-gradient(135deg, #EEEEEE 0%, #E0E0E0 100%);
+        color: #616161;
+        border: 1px solid #BDBDBD;
+    }
+    
+    /* ✅ Company Badge - SOFTER COLORS */
+    .company-badge {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 10px;
+        font-weight: 700;
+        flex: 1;
+        min-width: 0;
+        min-height: 40px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.12); /* ✅ Giảm shadow */
+        text-align: center;
+    }
+
+    .company-badge i {
+        font-size: 13px;
+        flex-shrink: 0;
+    }
+
+    .company-badge .company-text {
+        line-height: 1.2; /* ✅ Tăng từ 1 lên 1.2 */
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+    }
+
+
+    .company-name {
+        font-size: 11px;
+    }
+    
+    .company-vi {
+        font-size: 8px;
+        opacity: 0.9;
+    }
+    
+    /* ✅ YSD - SOFTER BLUE */
+    .ysd-company {
+        background: linear-gradient(135deg, #90CAF9 0%, #64B5F6 100%); /* ✅ Nhạt hơn */
+        color: #0D47A1; /* ✅ Chữ đậm hơn */
+        border: 2px solid #42A5F5;
+    }
+    
+    /* ✅ External Company - SOFTER ORANGE with ANIMATION */
+    .external-company {
+        background: linear-gradient(135deg, #FFCC80 0%, #FFB74D 100%); /* ✅ Nhạt hơn */
+        color: #E65100; /* ✅ Chữ đậm hơn */
+        border: 2px solid #FF9800;
+        animation: pulse-soft 2s infinite; /* ✅ Pulse nhẹ hơn */
+    }
+    
+    /* NHÓM DƯỚI: YSD Location */
+    .ysd-location-group {
+        padding: 10px;
+        background: white;
+    }
+    
+    .ysd-location-header {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 10px;
+        font-weight: 700;
+        color: #1565C0;
+        padding: 6px 0 8px 0;
+        border-bottom: 2px solid #E3F2FD;
+        margin-bottom: 10px;
+    }
+    
+    /* Row: Badges + Location (2 columns) */
+    .location-badges-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 10px;
+        padding: 8px;
+        background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 50%);
+        border-radius: 6px;
+    }
+    
+    .badges-col, .location-col {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .label-text {
+        font-size: 9px;
+        font-weight: 600;
+        color: #0D47A1;
+    }
+    
+    /* Badge Group (Circle - Separator - Rectangle) */
+    .badge-group {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    /* Circle Badge (Giá) - BLUE */
+    .badge-circle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        background: linear-gradient(135deg, #42A5F5 0%, #1976D2 100%);
+        color: white;
+        border-radius: 50%;
+        font-size: 16px;
+        font-weight: 700;
+        border: 2px solid #1565C0;
+        box-shadow: 0 2px 5px rgba(13, 71, 161, 0.5);
+    }
+    
+    .badge-separator {
+        font-size: 16px;
+        font-weight: 700;
+        color: #1565C0;
+    }
+    
+    /* Rectangle Badge (Tầng) - ORANGE */
+    .badge-rectangle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 40px;
+        height: 36px;
+        padding: 0 12px;
         background: linear-gradient(135deg, #FFA726 0%, #FB8C00 100%);
         color: white;
+        border-radius: 6px;
+        font-size: 16px;
+        font-weight: 700;
+        border: 2px solid #F57C00;
+        box-shadow: 0 2px 5px rgba(245, 124, 0, 0.5);
     }
     
-    .badge-inactive {
-        background: linear-gradient(135deg, #BDBDBD 0%, #9E9E9E 100%);
-        color: white;
+    /* Location Value */
+    .location-value {
+        font-size: 11px;
+        font-weight: 600;
+        color: #1565C0;
+        padding: 6px 8px;
+        background: white;
+        border-radius: 5px;
+        border: 1px solid #90CAF9;
+    }
+    
+    /* Notes Grid */
+    .notes-grid {
+        margin-top: 8px;
+    }
+
+    /* THM: Style cho ghi chú giá/tầng */
+    .notes-grid .info-value {
+        font-style: italic; /* ✅ Chữ nghiêng */
+        color: #616161; /* ✅ Màu xám nhẹ */
+        font-size: 10px;
+    }
+
+    /* ✅ Nếu không có ghi chú, hiển thị '-' bình thường */
+    .notes-grid .info-value:not(:empty):not([data-empty]) {
+        font-style: italic;
+    }
+  }
+  
+  
+  /* ✅ THÊM: Pulse animation nhẹ hơn */
+@keyframes pulse-soft {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 0 6px rgba(255, 152, 0, 0);
     }
 }
+
 
 /* ========================================
    7. BASIC INFO SECTION - GREEN THEME
@@ -463,7 +800,7 @@
     }
     
     .info-label {
-        flex: 0 0 140px;
+        flex: 0 0 175px;
         font-size: 10px;
         color: #424242;
         font-weight: 600;
@@ -505,7 +842,7 @@
 /* Responsive adjustments */
 @media (max-width: 374px) {
     .info-label {
-        flex: 0 0 110px;
+        flex: 0 0 135px;
         font-size: 9px;
         padding: 6px 8px;
     }
@@ -518,7 +855,7 @@
 
 @media (min-width: 415px) and (max-width: 767px) {
     .info-label {
-        flex: 0 0 150px;
+        flex: 0 0 185px;
         font-size: 10px;
     }
     
@@ -529,7 +866,7 @@
 
 @media (min-width: 768px) and (max-width: 1024px) {
     .info-label {
-        flex: 0 0 190px;
+        flex: 0 0 230px;
         font-size: 11px;
         padding: 10px 14px;
     }

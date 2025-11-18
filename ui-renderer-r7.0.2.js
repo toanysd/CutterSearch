@@ -570,27 +570,29 @@ function shouldUseMobileDetail() {
             }
             
             const itemId = this.dataset.id;
-            const itemType = this.dataset.type;
-            const index = parseInt(this.dataset.index);
+            console.log('📱 Card clicked:', itemId);
             
-            if (!itemId || !itemType) return;
-            
-            // Lấy item từ state
-            const item = items[index];
-            if (!item) return;
-            
-            console.log('🔍 Opening mobile detail modal:', { itemId, itemType });
-            
-            // Trigger MobileDetailModal
-            if (window.MobileDetailModal) {
-              window.MobileDetailModal.show(item, itemType);
-            } else {
-              // Fallback: dispatch custom event
-              document.dispatchEvent(new CustomEvent('showMobileDetail', {
-                detail: { item, type: itemType }
-              }));
+            // ✅ R7.0.2: Fix - Detect both mold and cutter
+            if (window.innerWidth < 1025 && window.MobileDetailModal) {
+                const item = allFilteredResults.find(r => 
+                    r.MoldID == itemId || r.CutterID == itemId
+                );
+                
+                if (item) {
+                    // Detect item type
+                    const itemType = item.MoldID ? 'mold' : 'cutter';
+                    window.MobileDetailModal.show(item, itemType);
+                    
+                    console.log('✅ Opening mobile modal:', {
+                        itemId,
+                        itemType,
+                        hasMoldID: !!item.MoldID,
+                        hasCutterID: !!item.CutterID
+                    });
+                }
             }
-          });
+        });
+
         });
         
         console.log('[UIRenderer] ✅ Mobile detail modal events bound for', cards.length, 'cards');
