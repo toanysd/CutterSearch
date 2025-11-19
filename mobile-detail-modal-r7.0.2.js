@@ -470,54 +470,54 @@ class MobileDetailModal {
                     </div>
                 </div>
                 
-                <!-- NHÓM DƯỚI: YSD Location Details -->
-                ${!companyInfo.isExternal ? `
+                <!-- NHÓM DƯỚI: YSD Location - LUÔN HIỂN THỊ -->
                 <div class="ysd-location-group">
                     <div class="ysd-location-header">
                         <i class="fas fa-warehouse"></i>
-                        <span>YSD保管位置 / Vị trí lưu trữ mặc định tại YSD</span>
+                        <span>YSD / Vị trí lưu trữ mặc định tại YSD ${companyInfo.isExternal ? '(Tham khảo)' : ''}</span>
                     </div>
                     
                     <!-- Row: Rack-Layer Badges + RackLocation (2 columns) -->
                     <div class="location-badges-row">
                         <!-- Column 1: Rack-Layer Badges -->
                         <div class="badges-col">
-                            <span class="label-text">棚-段 / Giá-Tầng:</span>
+                            <span class="label-text">棚 - Tầng</span>
                             <div class="badge-group">
                                 <div class="badge-circle">${rackId}</div>
                                 <span class="badge-separator">-</span>
                                 <div class="badge-rectangle">${layerNum}</div>
                             </div>
                         </div>
-                        
+
                         <!-- Column 2: RackLocation -->
                         <div class="location-col">
-                            <span class="label-text">棚の位置 / Vị trí:</span>
+                            <span class="label-text">場所 / Vị trí</span>
                             <div class="location-value">${rackLocation}</div>
                         </div>
                     </div>
-                    
+
                     <!-- Notes Grid -->
                     <div class="info-grid-2col notes-grid">
                         <div class="info-item">
-                            <div class="info-label">棚メモ / Ghi chú giá</div>
+                            <div class="info-label">棚注 / Ghi chú giá</div>
                             <div class="info-value">${rackNotes}</div>
                         </div>
-                        
                         <div class="info-item">
-                            <div class="info-label">段メモ / Ghi chú tầng</div>
+                            <div class="info-label">層注 / Ghi chú tầng</div>
                             <div class="info-value">${layerNotes}</div>
                         </div>
                     </div>
+                    <!-- External storage message - COMPACT 1 LINE -->
+                    ${companyInfo.isExternal ? `
+                        <div class="external-storage-message">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <div class="message-text">
+                                <span class="msg-ja">この金型は外部に保管されています</span>
+                                <span class="msg-vi">Khuôn đang lưu trữ bên ngoài</span>
+                            </div>
+                        </div>
+                    ` : ''}
                 </div>
-                ` : `
-                <!-- External storage message -->
-                <div class="external-storage-message">
-                    <i class="fas fa-info-circle"></i>
-                    <span>この金型は外部に保管されています / Khuôn đang lưu trữ bên ngoài</span>
-                </div>
-                `}
-            </div>
         `;
     }
 
@@ -1802,7 +1802,7 @@ class MobileDetailModal {
         
         let companyName = '-';
         if (companyData) {
-            companyName = companyData.CompanyShortName || companyData.CompanyName || '-';
+            companyName = companyData.CompanyName || companyData.CompanyShortName || '-';
         } else {
             // Fallback: Map theo ID
             const defaultMap = {

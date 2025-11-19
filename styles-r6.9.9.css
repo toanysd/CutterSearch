@@ -3392,3 +3392,28 @@ button {
     border: 1px solid #e0e0e0;
 }
 
+/* ✅ R7.0.3: Simulated Fullscreen Mode */
+body.simulated-fullscreen {
+    /* Fix iOS viewport height */
+    height: 100vh;
+    height: calc(var(--vh, 1vh) * 100);
+    overflow: hidden;
+}
+
+/* Hide address bar on iOS Safari */
+@supports (-webkit-touch-callout: none) {
+    body {
+        min-height: -webkit-fill-available;
+    }
+    
+    body.simulated-fullscreen {
+        height: -webkit-fill-available;
+    }
+}
+
+/* Ensure main container fills screen */
+body.simulated-fullscreen #app-container,
+body.simulated-fullscreen .main-container {
+    height: 100vh;
+    height: calc(var(--vh, 1vh) * 100);
+}
