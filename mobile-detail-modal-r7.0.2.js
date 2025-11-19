@@ -198,6 +198,12 @@ class MobileDetailModal {
      * Show/hide modal
      */
     show(item, type = 'mold') {
+        // ✅ R7.0.3 FIX: Allow re-opening modal for related equipment
+        if (!this.shouldShowModal || !item) {
+            console.warn('[Modal] Cannot show modal:', { shouldShow: this.shouldShowModal, hasItem: !!item });
+            return;
+        }
+
         if (!this.isMobile || !item) return;
         
         console.log('[Modal] Opening detail modal', item, type);
@@ -214,7 +220,7 @@ class MobileDetailModal {
                 idCode.textContent = `${item.MoldID || '-'} ${item.MoldCode || item.MoldName || '-'}`;
             } else {
                 typeLabel.textContent = '抜型:';
-                idCode.textContent = `${item.CutterID || item.CutterNo || '-'} ${item.CutterName || item.Name || '-'}`;
+                idCode.textContent = `${'ID.'} ${item.CutterID || '-'} ${'No.'} ${item.CutterNo || '-'} ${item.CutterName || item.CutterCode || '-'}`;
             }
         }
         
@@ -838,145 +844,167 @@ class MobileDetailModal {
         `;
     }
 
-        /**
-     * Product Information (for cutters or additional mold info)
+    /**
+     * Product Information for cutters or additional mold info
+     * ✅ R7.0.3 FIX: Handle null design for cutters
      */
     renderProductInfo(item, type) {
         const isMold = type === 'mold';
-        
+
         // ✅ FIX: Dùng helper functions
-        const jobData = this.getJobInfo(item) || {};
+        const jobData = this.getJobInfo(item);
         const design = isMold ? this.getMoldDesignInfo(item) : null;
-        
+
         // Format cutline size (V4.31 logic)
         let cutlineSize = 'N/A';
         if (isMold) {
             if (design?.CutlineX && design?.CutlineY) {
                 cutlineSize = `${design.CutlineX}×${design.CutlineY}`;
+            } else if (item.CutlineLength && item.CutlineWidth) {
+                cutlineSize = `${item.CutlineLength}×${item.CutlineWidth}`;
+            }
+            
+            // Add corner and chamfer
+            if (item.CutterCorner) {
+                cutlineSize += `-R${item.CutterCorner}`;
+            }
+            if (item.CutterChamfer) {
+                cutlineSize += `-C${item.CutterChamfer}`;
             }
         } else {
-            if (item.CutlineLength && item.CutlineWidth) {
-                cutlineSize = `${item.CutlineLength}×${item.CutlineWidth}`;
-                if (item.CutterCorner) cutlineSize += `-R${item.CutterCorner}`;
-                if (item.CutterChamfer) cutlineSize += `-C${item.CutterChamfer}`;
-            }
+            // Cutter: use CutterNo or CutterSize
+            cutlineSize = item.CutterNo || item.CutterSize || 'N/A';
         }
-        
+
         console.log('📦 renderProductInfo:', {
             type,
             hasJob: !!jobData,
             hasDesign: !!design,
             cutlineSize: cutlineSize,
-            trayWeight: jobData.TrayWeight || design?.TrayWeight
+            trayWeight: jobData?.TrayWeight || design?.TrayWeight
         });
 
-        
         return `
             <div class="modal-section">
                 <div class="section-header">
                     <i class="fas fa-box-open"></i>
                     <span>製品情報 / Thông tin sản phẩm</span>
                 </div>
-                
                 <div class="info-grid-2col">
+                    <!-- Cutline Size -->
                     <div class="info-item">
-                        <div class="info-label">カットサイズ / Kích thước cắt</div>
+                        <div class="info-label">切断寸法 / Kích thước cắt</div>
                         <div class="info-value">${cutlineSize}</div>
                     </div>
-                    
+
+                    <!-- Production Date -->
                     <div class="info-item">
                         <div class="info-label">製造日 / Ngày SX</div>
-                        <div class="info-value">${jobData.DeliveryDeadline || 'N/A'}</div>
-                    </div>
-                    
-                    <div class="info-item">
-                        <div class="info-label">トレイ情報（お客先より） / Thông tin khay</div>
-                        <div class="info-value">${design.CustomerTrayName || 'N/A'}</div>
+                        <div class="info-value">${jobData?.DeliveryDeadline || 'N/A'}</div>
                     </div>
 
+                    <!-- ✅ FIX: Optional chaining for design fields -->
+                    <!-- Tray Name -->
+                    <div class="info-item">
+                        <div class="info-label">トレイ情報(お客先より) / Thông tin khay</div>
+                        <div class="info-value">${design?.CustomerTrayName || 'N/A'}</div>
+                    </div>
+
+                    <!-- Tray Info -->
                     <div class="info-item">
                         <div class="info-label">トレイ情報（指示書より） / Thông tin khay</div>
                         <div class="info-value">${design?.TrayInfoForMoldDesign || 'N/A'}</div>
                     </div>
-                    
+
+                    <!-- Tray Weight -->
                     <div class="info-item">
                         <div class="info-label">トレイ重量 / KL khay</div>
-                        <div class="info-value">${jobData.TrayWeight || design?.TrayWeight ? (jobData.TrayWeight || design?.TrayWeight) + ' g' : 'N/A'}</div>
+                        <div class="info-value">${jobData?.TrayWeight || design?.TrayWeight ? (jobData?.TrayWeight || design?.TrayWeight) + ' g' : 'N/A'}</div>
                     </div>
-                    
+
+                    <!-- Material -->
                     <div class="info-item">
-                        <div class="info-label">設計時の材質 / Chất liệu</div>
-                        <div class="info-value">${jobData.Material || design?.DesignForPlasticType || 'N/A'}</div>
+                        <div class="info-label">材質 / Chất liệu</div>
+                        <div class="info-value">${jobData?.Material || design?.DesignForPlasticType || 'N/A'}</div>
                     </div>
-                    
+
+                    <!-- First Shipment Date -->
                     <div class="info-item">
-                        <div class="info-label">初回出荷日 / Ngày xuất đầu</div>
-                        <div class="info-value">${jobData.FirstShipmentDate || jobData.DeliveryDeadline || 'N/A'}</div>
+                        <div class="info-label">初回納品日 / Ngày xuất đầu</div>
+                        <div class="info-value">${jobData?.FirstShipmentDate || jobData?.DeliveryDeadline || 'N/A'}</div>
                     </div>
-                    
+
+                    <!-- Separate Cut -->
                     <div class="info-item">
-                        <div class="info-label">別抜き / Dao cắt riêng</div>
-                        <div class="info-value">${jobData.SeparateCut || jobData.SeparateCutter || 'N/A'}</div>
+                        <div class="info-label">単独抜き / Dao cắt riêng</div>
+                        <div class="info-value">${jobData?.SeparateCut || jobData?.SeparateCutter || 'N/A'}</div>
                     </div>
-                    
+
+                    <!-- Quote -->
                     <div class="info-item">
-                        <div class="info-label">見積 / Báo giá</div>
-                        <div class="info-value">${jobData.PriceQuote || jobData.QuoteNumber || 'N/A'}</div>
+                        <div class="info-label">見積番号 / Báo giá</div>
+                        <div class="info-value">${jobData?.PriceQuote || jobData?.QuoteNumber || 'N/A'}</div>
                     </div>
-                    
+
+                    <!-- Unit Price -->
                     <div class="info-item">
                         <div class="info-label">単価 / Đơn giá</div>
-                        <div class="info-value">${jobData.UnitPrice ? (typeof jobData.UnitPrice === 'number' ? jobData.UnitPrice.toLocaleString('ja-JP') + ' 円' : jobData.UnitPrice) : 'N/A'}</div>
+                        <div class="info-value">${jobData?.UnitPrice ? (typeof jobData.UnitPrice === 'number' ? jobData.UnitPrice.toLocaleString('ja-JP') : jobData.UnitPrice) : 'N/A'}</div>
                     </div>
-                    
+
+                    <!-- Box Type -->
                     <div class="info-item">
-                        <div class="info-label">箱の種類 / Loại thùng</div>
-                        <div class="info-value">${jobData.BoxType || jobData.LoaiThungDong || 'N/A'}</div>
+                        <div class="info-label">箱タイプ / Loại thùng</div>
+                        <div class="info-value">${jobData?.BoxType || jobData?.LoaiThungDong || 'N/A'}</div>
                     </div>
-                    
+
+                    <!-- Bagging -->
                     <div class="info-item">
                         <div class="info-label">袋詰め / Bọc túi</div>
-                        <div class="info-value">${jobData.Bagging || jobData.BaoNilon || 'N/A'}</div>
+                        <div class="info-value">${jobData?.Bagging || jobData?.BaoNilon || 'N/A'}</div>
                     </div>
-                    
-                    
+
+                    <!-- Delivery Deadline -->
                     <div class="info-item">
                         <div class="info-label">納期 / Hạn giao</div>
-                        <div class="info-value">${jobData.DeliveryDeadline || jobData.DueDate || 'N/A'}</div>
+                        <div class="info-value">${jobData?.DeliveryDeadline || jobData?.DueDate || 'N/A'}</div>
                     </div>
-                    
+
+                    <!-- Order Number -->
                     <div class="info-item">
                         <div class="info-label">注文番号 / Số đơn hàng</div>
-                        <div class="info-value">${jobData.OrderNumber || jobData.JobNumber || 'N/A'}</div>
+                        <div class="info-value">${jobData?.OrderNumber || jobData?.JobNumber || 'N/A'}</div>
                     </div>
-                    
+
+                    <!-- Product Notes -->
                     <div class="info-item full-width">
                         <div class="info-label">製品備考 / Ghi chú sản phẩm</div>
-                        <div class="info-value note-text">${jobData.ProductNotes || jobData.JobNote || '-'}</div>
+                        <div class="info-value note-text">${jobData?.ProductNotes || jobData?.JobNote || '-'}</div>
                     </div>
                 </div>
             </div>
         `;
-
     }
+
 
 
 
     /**
      * Section 4: Related Equipment
      */
+    // R7.0.2: Section 4 - Related Equipment
     renderRelatedEquipment(item, type) {
-        let relatedItems = [];
+        let relatedItems;
 
         if (type === 'mold') {
-            // Find related cutters from moldcutter table
+            // Mold → tìm cutter liên quan
             relatedItems = this.getRelatedCutters(item.MoldID);
         } else {
-            // Find related molds from moldcutter table
+            // Cutter → tìm mold liên quan
             relatedItems = this.getRelatedMolds(item.CutterID);
         }
 
-        if (relatedItems.length === 0) {
+        if (!relatedItems || relatedItems.length === 0) {
             return `
                 <div class="modal-section related-equipment-section">
                     <div class="section-title">
@@ -993,20 +1021,25 @@ class MobileDetailModal {
             <div class="modal-section related-equipment-section">
                 <div class="section-title">
                     <i class="fas fa-link"></i>
-                    <span class="title-ja">関連機器 (${relatedItems.length})</span>
+                    <span class="title-ja">関連機器（${relatedItems.length}）</span>
                     <span class="title-vi">Thiết bị liên quan (${relatedItems.length})</span>
                 </div>
                 <div class="related-equipment-list">
         `;
 
         relatedItems.forEach(relItem => {
-            const relType = type === 'mold' ? 'cutter' : 'mold';
-            const relCode = relType === 'mold' ? relItem.MoldCode : relItem.CutterNo;
-            const relName = relItem.displayName || '-';
-            const relLocation = relItem.displayLocation || '-';
+            const relType = (type === 'mold') ? 'cutter' : 'mold';
+            const relCode = (relType === 'mold')
+                ? (relItem.MoldCode || relItem.MoldID)
+                : (relItem.CutterNo || relItem.CutterID);
+            const relName = relItem.displayName || relItem.MoldName || relItem.CutterName || '-';
+            const relLocation = relItem.displayLocation || relItem.rackInfo?.RackLocation || '-';
+            const relId = relItem.MoldID || relItem.CutterID;
 
             html += `
-                <div class="related-item" data-item-id="${relItem.MoldID || relItem.CutterID}" data-item-type="${relType}">
+                <div class="related-item"
+                    data-item-id="${relId}"
+                    data-item-type="${relType}">
                     <div class="related-item-icon">
                         <i class="fas ${relType === 'mold' ? 'fa-cube' : 'fa-cut'}"></i>
                     </div>
@@ -1014,7 +1047,8 @@ class MobileDetailModal {
                         <div class="related-item-code">${relCode}</div>
                         <div class="related-item-name">${relName}</div>
                         <div class="related-item-location">
-                            <i class="fas fa-map-marker-alt"></i> ${relLocation}
+                            <i class="fas fa-map-marker-alt"></i>
+                            ${relLocation}
                         </div>
                     </div>
                     <div class="related-item-arrow">
@@ -1031,6 +1065,7 @@ class MobileDetailModal {
 
         return html;
     }
+
 
     /**
      * Section 5: Status & Notes
@@ -2021,32 +2056,70 @@ class MobileDetailModal {
 
 
     /**
-     * ========================================
-     * BIND RELATED EQUIPMENT LINKS
-     * ========================================
+     * ✅ R7.0.3: Bind related equipment click events - Re-render entire modal
      */
     bindRelatedEquipmentLinks() {
+        if (!this.modalContent) {
+            console.warn('[Modal] modalContent not found');
+            return;
+        }
+
         const relatedItems = this.modalContent.querySelectorAll('.related-item');
         
-        relatedItems.forEach(item => {
-            item.addEventListener('click', () => {
-                const itemId = item.dataset.itemId;
-                const itemType = item.dataset.itemType;
-                
-                // Find the related item in data
-                const relatedItem = itemType === 'mold' 
-                    ? this.data.molds.find(m => m.MoldID === itemId)
-                    : this.data.cutters.find(c => c.CutterID === itemId);
-                
-                if (relatedItem) {
-                    // Open detail for related item (replace current modal content)
-                    this.show(relatedItem, itemType);
+        if (!relatedItems || relatedItems.length === 0) {
+            console.log('[Modal] No related equipment items to bind');
+            return;
+        }
+
+        relatedItems.forEach(itemEl => {
+            itemEl.addEventListener('click', () => {
+                const itemId = itemEl.dataset.itemId;
+                const itemType = (itemEl.dataset.itemType || '').toLowerCase();
+
+                console.log('[Modal] Related item clicked:', { itemId, itemType });
+
+                let relatedItem = null;
+
+                // ✅ FIX: Find item in correct array
+                if (itemType === 'mold') {
+                    relatedItem = this.data.molds.find(m =>
+                        String(m.MoldID) === String(itemId)
+                    );
+                } else if (itemType === 'cutter') {
+                    relatedItem = this.data.cutters.find(c =>
+                        String(c.CutterID) === String(itemId)
+                    );
                 }
+
+                if (!relatedItem) {
+                    console.warn('[Modal] ⚠️ Related item not found:', { itemType, itemId });
+                    
+                    // ✅ DEBUG: Log available data
+                    console.log('[Modal] Available molds:', this.data.molds.length);
+                    console.log('[Modal] Available cutters:', this.data.cutters.length);
+                    
+                    return;
+                }
+
+                console.log('[Modal] ✅ Found related item:', relatedItem);
+
+                // ✅ FIX: Reload data references before showing
+                this.loadDataReferences();
+
+                // ✅ FIX: Call show() to fully re-render modal
+                this.show(relatedItem, itemType);
+
+                console.log('[Modal] ✅ Modal re-opened for related item:', itemType, itemId);
             });
         });
 
-        console.log(`✅ Bound ${relatedItems.length} related equipment links`);
+        console.log(`[Modal] ✅ Bound ${relatedItems.length} related equipment links`);
     }
+
+
+
+
+
 }
 
 // ========================================

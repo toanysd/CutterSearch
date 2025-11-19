@@ -559,45 +559,71 @@ function shouldUseMobileDetail() {
 
       wrap.appendChild(fragment);
 
-      // ✅ R7.0.2: Bind click events for mobile detail modal
-      if (shouldUseMobileDetail()) { // iPhone & iPad
-        const cards = wrap.querySelectorAll('.result-card');
-        cards.forEach(card => {
-          card.addEventListener('click', function(e) {
-            // Bỏ qua nếu click vào checkbox (bulk mode)
-            if (e.target.type === 'checkbox' || e.target.closest('.inv-bulk-checkbox')) {
-              return;
-            }
-            
-            const itemId = this.dataset.id;
-            console.log('📱 Card clicked:', itemId);
-            
-            // ✅ R7.0.2: Fix - Detect both mold and cutter
-            if (window.innerWidth < 1025 && window.MobileDetailModal) {
-                const item = allFilteredResults.find(r => 
-                    r.MoldID == itemId || r.CutterID == itemId
-                );
-                
-                if (item) {
-                    // Detect item type
-                    const itemType = item.MoldID ? 'mold' : 'cutter';
-                    window.MobileDetailModal.show(item, itemType);
-                    
-                    console.log('✅ Opening mobile modal:', {
-                        itemId,
-                        itemType,
-                        hasMoldID: !!item.MoldID,
-                        hasCutterID: !!item.CutterID
-                    });
-                }
-            }
-        });
+      // ✅ R7.0.3: Bind click events for mobile detail modal (FIX: Support both mold & cutter)
+      if (shouldUseMobileDetail()) {
+          // ✅ Remove old delegation flag
+          if (wrap.dataset.clickBound === 'true') {
+              return; // Already bound
+          }
 
-        });
-        
-        console.log('[UIRenderer] ✅ Mobile detail modal events bound for', cards.length, 'cards');
+          wrap.addEventListener('click', (e) => {
+              // Find clicked card
+              const card = e.target.closest('.result-card');
+              if (!card) return;
+
+              // Ignore checkbox clicks
+              if (e.target.type === 'checkbox' || e.target.closest('.inv-bulk-checkbox')) {
+                  return;
+              }
+
+              const itemId = card.dataset.id;
+              const itemType = (card.dataset.type || '').toLowerCase();
+              const index = Number(card.dataset.index);
+
+              console.log('[UIRenderer] Card clicked:', { itemId, itemType, index });
+
+              if (!window.MobileDetailModal) {
+                  console.warn('[UIRenderer] MobileDetailModal not initialized');
+                  return;
+              }
+
+              // ✅ FIX: Get item from UIRenderer.state.allResults
+              const list = UIRenderer.state.allResults || [];
+              let item = null;
+
+              // Priority 1: Find by index
+              if (!isNaN(index) && list[index]) {
+                  item = list[index];
+              }
+
+              // Priority 2: Find by ID
+              if (!item && itemId) {
+                  item = list.find(r => {
+                      const rId = String(r.MoldID || r.CutterID || '');
+                      return rId === String(itemId);
+                  });
+              }
+
+              if (!item) {
+                  console.warn('[UIRenderer] ⚠️ Item not found:', { itemId, itemType, index });
+                  return;
+              }
+
+              // ✅ FIX: Determine itemType correctly
+              const finalType = itemType || (item.MoldID ? 'mold' : 'cutter');
+
+              console.log('[UIRenderer] ✅ Opening MobileDetailModal:', {
+                  itemId: item.MoldID || item.CutterID,
+                  type: finalType
+              });
+
+              // Open mobile detail modal
+              window.MobileDetailModal.show(item, finalType);
+          });
+
+          wrap.dataset.clickBound = 'true';
+          console.log('[UIRenderer] ✅ Mobile detail modal click event bound (EVENT DELEGATION)');
       }
-
 
 
       // ✅ EVENT DELEGATION - Chỉ setup 1 lần duy nhất
