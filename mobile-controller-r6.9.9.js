@@ -99,18 +99,18 @@ class MobilePanelController {
     this.bindFloatingActionBar();
 
     // Bước 7: Bind exit fullscreen button (NEW - R7.0)
-    this.bindExitFullscreenButton();
+    //this.bindExitFullscreenButton();
 
 
     // Bước 8: Auto-enter fullscreen on load (NEW - R7.0)
     this.autoEnterFullscreen();
 
-    // ✅ R6.9.10: Show prompt if user hasn't interacted yet
-    setTimeout(() => {
-        if (!document.body.classList.contains('simulated-fullscreen')) {
-            this.showFullscreenPrompt();
-        }
-    }, 1000); // Wait 1s after page load
+    // ❌ DISABLED R7.0.3: Xóa fullscreen prompt
+    // setTimeout(() => {
+    //     if (!document.body.classList.contains('simulated-fullscreen')) {
+    //         this.showFullscreenPrompt();
+    //     }
+    // }, 1000);
 
 
     console.log('✅ MobilePanelController: Fully initialized (with fullscreen support)');
@@ -1245,134 +1245,99 @@ class MobilePanelController {
   }
 
   /**
-   * Auto-enter fullscreen on page load (mobile only)
+   * ✅ R7.0.3: Auto-hide address bar without prompt
    */
   autoEnterFullscreen() {
-    if (!this.isMobile) return;
-    
-    // ✅ R6.9.10: Trigger fullscreen on FIRST user interaction (touch or click)
-    const triggerFullscreen = () => {
-        console.log('🚀 Triggering auto-fullscreen...');
-        this.enterFullscreen();
-    };
-    
-    // Listen to BOTH touch and click (iOS prioritizes touch)
-    document.addEventListener('touchstart', triggerFullscreen, { once: true, passive: true });
-    document.addEventListener('click', triggerFullscreen, { once: true });
-    
-    // ✅ AUTO-SCROLL TO HIDE ADDRESS BAR (iOS Safari fallback)
-    setTimeout(() => {
-        window.scrollTo(0, 1); // Scroll 1px to hide address bar
-    }, 100);
-    
-    console.log('✅ Auto-fullscreen enabled (on first touch/click + auto-hide address bar)');
+      if (!this.isMobile) return;
+
+      // ✅ CHIẾN THUẬT 1: Auto-scroll để ẩn address bar (iOS Safari)
+      const hideAddressBar = () => {
+          // Scroll xuống 1px để ẩn thanh địa chỉ
+          window.scrollTo(0, 1);
+          
+          // Sau đó scroll về top để giữ giao diện gọn
+          setTimeout(() => {
+              window.scrollTo(0, 0);
+          }, 100);
+          
+          console.log('✅ Address bar hidden (auto-scroll)');
+      };
+
+      // Gọi ngay khi load
+      setTimeout(hideAddressBar, 100);
+
+      // ✅ CHIẾN THUẬT 2: Ẩn lại khi orientation change (xoay màn hình)
+      window.addEventListener('orientationchange', () => {
+          setTimeout(hideAddressBar, 200);
+      });
+
+      // ✅ CHIẾN THUẬT 3: Trigger simulated fullscreen on first touch
+      const triggerFullscreen = () => {
+          this.enterSimulatedFullscreen();
+          hideAddressBar();
+      };
+
+      document.addEventListener('touchstart', triggerFullscreen, { 
+          once: true, 
+          passive: true 
+      });
+
+      console.log('✅ Auto-fullscreen enabled (without prompt)');
   }
 
+
+  
+
   /**
-   * ✅ R6.9.10: Show fullscreen prompt on page load
+   * ✅ R7.0.3: Enter simulated fullscreen (works on all devices)
    */
-  showFullscreenPrompt() {
-    if (!this.isMobile) return;
-    
-    // Create overlay prompt
-    const prompt = document.createElement('div');
-    prompt.id = 'fullscreen-prompt';
-    prompt.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.85);
-        z-index: 10000;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        animation: fadeIn 0.3s ease-out;
-    `;
-    
-    prompt.innerHTML = `
-        <div style="
-            background: white;
-            padding: 24px;
-            border-radius: 12px;
-            text-align: center;
-            max-width: 300px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-        ">
-            <div style="font-size: 48px; margin-bottom: 16px;">📱</div>
-            <h3 style="margin: 0 0 12px 0; font-size: 18px; color: #333;">
-                全画面表示<br>
-                <small style="font-size: 14px; color: #666;">Chế độ toàn màn hình</small>
-            </h3>
-            <p style="margin: 0 0 20px 0; font-size: 14px; color: #666;">
-                タップして開始<br>
-                Chạm để bắt đầu
-            </p>
-            <button id="fullscreen-prompt-btn" style="
-                background: #1976D2;
-                color: white;
-                border: none;
-                padding: 12px 32px;
-                border-radius: 8px;
-                font-size: 16px;
-                font-weight: 600;
-                cursor: pointer;
-                width: 100%;
-            ">
-                開始 | Bắt đầu
-            </button>
-        </div>
-    `;
-    
-    document.body.appendChild(prompt);
-    
-    // Handle click
-    const btn = prompt.querySelector('#fullscreen-prompt-btn');
-    btn.addEventListener('click', () => {
-        this.enterFullscreen();
-        prompt.remove();
-    });
-    
-    console.log('✅ Fullscreen prompt shown');
+  enterSimulatedFullscreen() {
+      // Thêm class để CSS xử lý
+      document.body.classList.add('simulated-fullscreen');
+      
+      // Ẩn exit button (không cần nữa)
+      const exitBtn = document.getElementById('exit-fullscreen-btn');
+      if (exitBtn) {
+          exitBtn.style.display = 'none';
+      }
+      
+      // Fix viewport height for iOS
+      const setViewportHeight = () => {
+          document.documentElement.style.setProperty(
+              '--vh', 
+              `${window.innerHeight * 0.01}px`
+          );
+      };
+      
+      setViewportHeight();
+      window.addEventListener('resize', setViewportHeight);
+      window.addEventListener('orientationchange', setViewportHeight);
+      
+      console.log('✅ Simulated fullscreen mode active');
   }
 
-
   /**
-   * Enter fullscreen mode
+   * Enter fullscreen mode (legacy - keep for compatibility)
    */
   enterFullscreen() {
-    // Check if running in actual mobile device
-    const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    
-    if (isMobileDevice) {
-      // Real mobile: Use fullscreen API
+      // Try native fullscreen API (chỉ hoạt động khi user bấm nút)
       const elem = document.documentElement;
       
       if (elem.requestFullscreen) {
-        elem.requestFullscreen().catch(err => {
-          console.warn('Fullscreen request failed:', err);
-        });
-      } else if (elem.webkitRequestFullscreen) { /* Safari */
-        elem.webkitRequestFullscreen();
-      } else if (elem.msRequestFullscreen) { /* IE11 */
-        elem.msRequestFullscreen();
+          elem.requestFullscreen().catch(() => {
+              // Fallback to simulated fullscreen
+              this.enterSimulatedFullscreen();
+          });
+      } else if (elem.webkitRequestFullscreen) {
+          elem.webkitRequestFullscreen();
+      } else {
+          // Fallback to simulated fullscreen
+          this.enterSimulatedFullscreen();
       }
       
-      console.log('✅ Fullscreen mode entered (real device)');
-    } else {
-      // Web testing: Simulate fullscreen by hiding browser chrome
-      document.body.classList.add('simulated-fullscreen');
-      
-      // Hide exit fullscreen button (not needed in simulation)
-      const exitBtn = document.getElementById('exit-fullscreen-btn');
-      if (exitBtn) {
-        exitBtn.style.display = 'none';
-      }
-      
-      console.log('✅ Simulated fullscreen mode (web testing)');
-    }
+      console.log('✅ Fullscreen requested');
   }
+
 
 
   /**
