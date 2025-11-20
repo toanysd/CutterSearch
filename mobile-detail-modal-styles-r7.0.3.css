@@ -342,33 +342,7 @@
         font-size: 12px;
     }
     
-    /* Alternative section-title (for compatibility) */
-    .section-title {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 12px;
-        font-weight: 700;
-        color: white;
-        padding: 10px 14px;
-        margin-bottom: 0;
-        background: linear-gradient(135deg, #424242 0%, #212121 100%);
-    }
     
-    .section-title i {
-        font-size: 14px;
-    }
-    
-    .title-ja {
-        font-size: 12px;
-        margin-right: 6px;
-    }
-    
-    .title-vi {
-        font-size: 10px;
-        opacity: 0.9;
-    }
-
     /* ✅ R7.0.3: Equipment Header - Blue gradient */
     .equipment-header {
         display: flex;
@@ -407,322 +381,362 @@
 
 }
 
-/* ========================================
-   6. LOCATION SECTION - FIXED LAYOUT
-   ======================================== */
-
-/* ✅ CURRENT STORAGE HEADER - NEW */
-@media (max-width: 1024px) {
-    .current-storage-header {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        padding: 8px 12px;
-        background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
-        border-bottom: 2px solid #90CAF9;
-        font-size: 10px;
-        font-weight: 700;
-        color: #0D47A1;
-    }
-    
-    .current-storage-header i {
-        font-size: 12px;
-        color: #1565C0;
-    }
-}
-
+/* ========================================================================
+   ✅ R7.0.3: LOCATION SECTION - SIMPLE TEXT-BASED LAYOUT
+   ======================================================================== */
 
 @media (max-width: 1024px) {
+
+    /* Main Container */
     .location-section {
+        background: white;
+        border-radius: 10px;
+        padding: 0;
+        margin-bottom: 10px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        border: 1px solid #E0E0E0;
         border-left: 4px solid #1565C0;
     }
-    
-    /* NHÓM TRÊN: Status + Company - COMPACT với chiều cao cố định */
-    .storage-status-row {
-        display: flex;
-        gap: 6px;
-        padding: 8px 10px;
-        background: linear-gradient(to bottom, #FAFAFA 0%, #F5F5F5 100%);
-        border-bottom: 1px solid #E0E0E0;
-        align-items: stretch; /* ✅ THÊM: Đảm bảo cả 2 badge cùng chiều cao */
-    }
-    
-    /* ✅ Status Badge - SOFTER COLORS */
-    .status-badge {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
+
+    .location-section .section-header {
+        background: linear-gradient(135deg, #42A5F5 0%, #1565C0 100%);
+        color: white;
         padding: 8px 12px;
-        border-radius: 6px;
-        font-size: 13px; /* ✅ Tăng size icon cho cân đối */
-        flex-shrink: 0;
-        font-weight: 700;
-        flex: 1;
-        min-width: 0;
-        min-height: 40px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.12); /* ✅ Giảm shadow */
-        text-align: center;
-    }
-    
-
-    /* ✅ Check-in - SOFTER GREEN */
-    .badge-checkin {
-        background: linear-gradient(135deg, #A5D6A7 0%, #81c78485 100%); /* ✅ Nhạt hơn */
-        color: #1B5E20; /* ✅ Chữ đậm hơn */
-        border: 1px solid #66BB6A;
-    }
-    
-    /* ✅ Check-out - SOFTER RED */
-    .badge-checkout {
-        background: linear-gradient(135deg, #ef9a9a38 0%, #e5737379 100%); /* ✅ Nhạt hơn */
-        color: #B71C1C; /* ✅ Chữ đậm hơn */
-        border: 1px solid #EF5350;
-    }
-    
-    /* ✅ Audit - SOFTER ORANGE */
-    .badge-audit {
-        background: linear-gradient(135deg, #FFCC80 0%, #FFB74D 100%); /* ✅ Nhạt hơn */
-        color: #E65100; /* ✅ Chữ đậm hơn */
-        border: 1px solid #FF9800;
-    }
-
-    /* ✅ No history - GRAY */
-    /* No history - CLEAR GRAY with Dark Text */
-    .badge-no-history,
-    .no-history {
-        background: linear-gradient(135deg, #5f5e5e 0%, #E0E0E0 100%);
-        color: #424242; /* ĐỔI từ #616161 → #424242 (tối hơn, rõ hơn) */
-        border: 2px solid #9E9E9E; /* ĐỔI từ 1px → 2px và màu đậm hơn */
-        font-weight: 700; /* THÊM: Bold hơn */
-    }
-    
-    /* ✅ Company Badge - SOFTER COLORS */
-    .company-badge {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-        padding: 8px 12px;
-        border-radius: 6px;
-        font-size: 10px;
-        font-weight: 700;
-        flex: 1;
-        min-width: 0;
-        min-height: 40px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.12); /* ✅ Giảm shadow */
-        text-align: center;
-    }
-
-    .company-badge i {
-        font-size: 13px;
-        flex-shrink: 0;
-    }
-
-    .company-badge .company-text {
-        line-height: 1.2; /* ✅ Tăng từ 1 lên 1.2 */
-        display: flex;
-        flex-direction: column;
-        gap: 1px;
-    }
-
-
-    .company-name {
         font-size: 11px;
-    }
-    
-    .company-vi {
-        font-size: 8px;
-        opacity: 0.9;
-    }
-    
-    /* ✅ YSD - SOFTER BLUE */
-    .ysd-company {
-        background: linear-gradient(135deg, #90CAF9 0%, #64b4f656 100%); /* ✅ Nhạt hơn */
-        color: #0D47A1; /* ✅ Chữ đậm hơn */
-        border: 2px solid #42A5F5;
-    }
-    
-    /* ✅ External Company - SOFTER ORANGE with ANIMATION */
-    .external-company {
-        background: linear-gradient(135deg, #FFCC80 0%, #ffb84d59 100%); /* ✅ Nhạt hơn */
-        color: #E65100; /* ✅ Chữ đậm hơn */
-        border: 2px solid #FF9800;
-        animation: pulse-soft 2s infinite; /* ✅ Pulse nhẹ hơn */
-    }
-    
-    /* NHÓM DƯỚI: YSD Location */
-    .ysd-location-group {
-        padding: 10px;
-        background: white;
-    }
-    
-    .ysd-location-header {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 10px;
         font-weight: 700;
-        color: #1565C0;
-        padding: 6px 0 8px 0;
-        border-bottom: 2px solid #E3F2FD;
-        margin-bottom: 10px;
-    }
-
-    .external-storage-message {
         display: flex;
         align-items: center;
         gap: 6px;
-        padding: 6px 10px; /* Giảm từ 10px 12px */
-        background: linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%);
-        border: 2px solid #FFB74D;
-        border-left: 4px solid #F57C00; /* Giảm từ 5px */
-        border-radius: 6px; /* Giảm từ 8px */
-        margin: 8px 10px; /* Giảm margin */
-        box-shadow: 0 1px 3px rgba(245, 124, 0, 0.12);
     }
 
-    .external-storage-message i {
-        font-size: 14px; /* Giảm từ 18px */
-        color: #E65100;
+    .location-section .section-header i {
+        font-size: 13px;
+    }
+
+    /* Content Container */
+    .location-content {
+        padding: 0;
+        margin: 0;
+    }
+
+    /* --------------------------------------------------
+    INFO LINES - Simple Text Layout
+    -------------------------------------------------- */
+    .info-line {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-bottom: 1px solid #F5F5F5;
+        font-size: 11px;
+        line-height: 1.3;
+    }
+
+    .info-line:last-child {
+        border-bottom: none;
+    }
+
+    .info-line i {
+        font-size: 10px;
+        color: #1565C0;
         flex-shrink: 0;
     }
 
-    .external-storage-message .message-text {
+    .info-line .label {
+        font-weight: 700;
+        color: #616161;
+        flex-shrink: 0;
+    }
+
+    .info-line .value {
         flex: 1;
-        font-size: 10px; /* Thu nhỏ chữ */
-        line-height: 1.3;
-        color: #E65100;
-        font-weight: 600;
-        white-space: nowrap; /* Giữ 1 dòng */
-        overflow: hidden;
-        text-overflow: ellipsis;
+        color: #212121;
+        font-weight: 500;
+        word-break: break-word;
     }
 
-    /* XÓA .msg-ja và .msg-vi vì sẽ hiển thị inline */
-    .external-storage-message .msg-ja,
-    .external-storage-message .msg-vi {
-        display: inline; /* Hiển thị trên cùng 1 dòng */
-        font-size: 10px;
+    /* Company Line */
+    .company-line {
+        background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
+        border-bottom: 1px solid #90CAF9;
+        padding: 5px 10px;
     }
 
-    .external-storage-message .msg-ja::after {
-        content: ' / '; /* Thêm dấu / giữa 2 ngôn ngữ */
-        margin: 0 3px;
-    }
-
-
-    
-    /* Row: Badges + Location (2 columns) */
-    .location-badges-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-        margin-bottom: 10px;
-        padding: 8px;
-        background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 50%);
-        border-radius: 6px;
-    }
-    
-    .badges-col, .location-col {
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-    }
-    
-    .label-text {
-        font-size: 9px;
-        font-weight: 600;
-        color: #0D47A1;
-    }
-    
-    /* Badge Group (Circle - Separator - Rectangle) */
-    .badge-group {
-        display: flex;
+    .company-value {
+        display: inline-flex;
         align-items: center;
         gap: 4px;
-    }
-    
-    /* Circle Badge (Giá) - BLUE */
-    .badge-circle {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 36px;
-        height: 36px;
-        background: linear-gradient(135deg, #42A5F5 0%, #1976D2 100%);
-        color: white;
-        border-radius: 50%;
-        font-size: 16px;
+        padding: 3px 7px;
+        border-radius: 4px;
         font-weight: 700;
-        border: 2px solid #1565C0;
-        box-shadow: 0 2px 5px rgba(13, 71, 161, 0.5);
-    }
-    
-    .badge-separator {
-        font-size: 16px;
-        font-weight: 700;
-        color: #1565C0;
-    }
-    
-    /* Rectangle Badge (Tầng) - ORANGE */
-    .badge-rectangle {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 40px;
-        height: 36px;
-        padding: 0 12px;
-        background: linear-gradient(135deg, #FFA726 0%, #FB8C00 100%);
-        color: white;
-        border-radius: 6px;
-        font-size: 16px;
-        font-weight: 700;
-        border: 2px solid #F57C00;
-        box-shadow: 0 2px 5px rgba(245, 124, 0, 0.5);
-    }
-    
-    /* Location Value */
-    .location-value {
-        font-size: 11px;
-        font-weight: 600;
-        color: #1565C0;
-        padding: 6px 8px;
-        background: white;
-        border-radius: 5px;
-        border: 1px solid #90CAF9;
-    }
-    
-    /* Notes Grid */
-    .notes-grid {
-        margin-top: 8px;
+        font-size: 10px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
     }
 
-    /* THM: Style cho ghi chú giá/tầng */
-    .notes-grid .info-value {
-        font-style: italic; /* ✅ Chữ nghiêng */
-        color: #616161; /* ✅ Màu xám nhẹ */
+    .company-value i {
+        font-size: 9px;
+    }
+
+    .company-value.ysd {
+        background: linear-gradient(135deg, #90CAF9 0%, #64B5F6 100%);
+        color: #0D47A1;
+        border: 1px solid #42A5F5;
+    }
+
+    .company-value.external {
+        background: linear-gradient(135deg, #FFCC80 0%, #FFB74D 100%);
+        color: #E65100;
+        border: 1px solid #FF9800;
+        animation: pulse-soft 2s infinite;
+    }
+
+    @keyframes pulse-soft {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.85; }
+    }
+
+    /* YSD Header Line */
+    .ysd-header {
+        background: linear-gradient(135deg, #F5F5F5 0%, #FAFAFA 100%);
+        border-bottom: 1px solid #E0E0E0;
+        font-weight: 700;
+        color: #616161;
+        font-size: 9px;
+        padding: 4px 10px;
+    }
+
+    /* Location Value Highlight */
+    .location-value {
+        padding: 3px 8px;
+        background: linear-gradient(135deg, #E8EAF6 0%, #C5CAE9 100%);
+        border: 1px solid #7986CB;
+        border-radius: 4px;
+        color: #1A237E;
+        font-weight: 700;
         font-size: 10px;
     }
 
-    /* ✅ Nếu không có ghi chú, hiển thị '-' bình thường */
-    .notes-grid .info-value:not(:empty):not([data-empty]) {
-        font-style: italic;
+    /* Warning Line */
+    .warning-line {
+        background: linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%);
+        border: 1px solid #FFB74D;
+        border-left: 3px solid #F57C00;
+        font-weight: 600;
+        color: #E65100;
+        font-size: 10px;
+        padding: 5px 10px;
+        margin: 4px 6px;
+        border-radius: 4px;
     }
-  }
-  
-  
-  /* ✅ THÊM: Pulse animation nhẹ hơn */
-@keyframes pulse-soft {
-    0%, 100% {
-        box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.4);
+
+    .warning-line i {
+        color: #E65100;
     }
-    50% {
-        box-shadow: 0 0 0 6px rgba(255, 152, 0, 0);
+
+    /* --------------------------------------------------
+    BADGES ROW - Rack-Layer + Status (Same Row)
+    ✅ R7.0.3: ALIGNED LAYOUT - Labels + Badges on same baseline
+    -------------------------------------------------- */
+    .badges-row {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-around;
+        gap: 15px;
+        padding: 6px 10px 8px 10px;
+        background: #FAFAFA;
+        border-bottom: 1px solid #E0E0E0;
     }
+
+    .badge-group,
+    .status-group {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex: 1;
+    }
+
+    /* ✅ Labels - Căn cùng hàng */
+    .badge-label {
+        font-size: 9px;
+        font-weight: 700;
+        color: #616161;
+        text-align: center;
+        line-height: 1.1;
+        margin-bottom: 5px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* ✅ Badge Container - Cùng chiều cao */
+    .badge-inline,
+    .status-badge-compact {
+        height: 36px;
+        display: flex;
+        align-items: center;
+    }
+
+    /* Rack-Layer Badges */
+    .badge-inline {
+        gap: 3px;
+    }
+
+    .badge-circle {
+        min-width: 32px;
+        height: 32px;
+        padding: 0 8px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #42A5F5 0%, #1E88E5 100%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        font-weight: 700;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    }
+
+    .badge-sep {
+        font-size: 16px;
+        font-weight: 700;
+        color: #616161;
+        margin: 0 2px;
+    }
+
+    .badge-rectangle {
+        min-width: 32px;
+        height: 32px;
+        padding: 0 8px;
+        border-radius: 6px;
+        background: linear-gradient(135deg, #FFA726 0%, #FB8C00 100%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        font-weight: 700;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    }
+
+    /* ✅ Status Badge - HORIZONTAL layout + Fixed Height */
+    .status-badge-compact {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        padding: 0 10px;
+        border-radius: 6px;
+        font-size: 10px;
+        font-weight: 700;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+        min-width: 90px;
+        height: 32px;
+        white-space: nowrap;
+    }
+
+    .status-badge-compact i {
+        font-size: 14px;
+    }
+
+    /* ========================================
+    ✅ MÀUSẮC THEO TRẠNG THÁI
+    Class names từ JavaScript:
+    - badge-checkin
+    - badge-checkout
+    - badge-audit
+    - no-history
+    ======================================== */
+
+    /* Check-in (チェックイン) - Xanh lá */
+    .status-badge-compact.badge-checkin {
+        background: linear-gradient(135deg, #66BB6A 0%, #4CAF50 100%);
+        color: white;
+        border: 2px solid #43A047;
+    }
+
+    /* Check-out (チェックアウト) - Đỏ */
+    .status-badge-compact.badge-checkout {
+        background: linear-gradient(135deg, #EF5350 0%, #E53935 100%);
+        color: white;
+        border: 2px solid #D32F2F;
+    }
+
+    /* Audit (棚卸) - Xanh nhạt */
+    .status-badge-compact.badge-audit {
+        background: linear-gradient(135deg, #4FC3F7 0%, #29B6F6 100%);
+        color: white;
+        border: 2px solid #0288D1;
+    }
+
+    /* No History (未確認) - Xám nhẹ */
+    .status-badge-compact.no-history {
+        background: linear-gradient(135deg, #BDBDBD 0%, #fffdfd 100%);
+        color: #3d3939;
+        border: 2px solid #dbd7d7;
+    }
+
+
+
+} /* End @media (max-width: 1024px) */
+
+
+/* ========================================
+   RESPONSIVE ADJUSTMENTS FOR iPAD
+   ======================================== */
+@media (min-width: 768px) and (max-width: 1024px) {
+    
+.info-line {
+    padding: 7px 12px;
+    font-size: 10px;
 }
+
+.company-line,
+.ysd-header {
+    padding: 8px 12px;
+}
+
+.company-value {
+    font-size: 11px;
+    padding: 4px 8px;
+}
+
+.badges-row {
+    padding: 12px;
+    gap: 12px;
+}
+
+.badge-label {
+    font-size: 8px;
+}
+
+.badge-circle,
+.badge-rectangle {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+}
+
+.status-badge-compact {
+    padding: 8px 12px;
+    font-size: 10px;
+    min-width: 80px;
+}
+
+.status-badge-compact i {
+    font-size: 18px;
+}
+
+.location-value {
+    font-size: 11px;
+    padding: 4px 10px;
+}
+
+} /* End iPad adjustments */
+
+
 
 
 /* ========================================
@@ -1117,43 +1131,53 @@
         gap: 6px;
     }
     
+    /* ✅ R7.0.3: Normal Mode - 2-line layout (Icon + JA / VI) */
     .action-btn {
-        display: flex;
-        flex-direction: column;
+        display: grid;
+        grid-template-columns: auto 1fr;
+        grid-template-rows: auto auto;
+        gap: 0 6px;
         align-items: center;
-        justify-content: center;
-        padding: 6px 4px; /* Giảm từ 8px → 6px */
+        padding: 8px 6px;
         background: white;
         border: 2px solid #90CAF9;
         border-radius: 8px;
         cursor: pointer;
         transition: all 0.2s ease;
-        min-height: 54px; /* Giảm từ 64px → 54px */
-        gap: 3px; /* Thêm gap giữa icon và label */
+        min-height: 56px;
     }
-    
+
     .action-btn i {
-        font-size: 18px;
+        grid-row: 1 / 3;
+        grid-column: 1;
+        font-size: 20px;
         color: #0D47A1;
-        margin-bottom: 0; /* Bỏ margin, dùng gap thay thế */
+        margin: 0;
         line-height: 1;
     }
-    
+
     .action-btn .btn-label-ja {
-        font-size: 9px;
+        grid-row: 1;
+        grid-column: 2;
+        font-size: 10px;
         font-weight: 700;
         color: #0D47A1;
         text-align: center;
-        line-height: 1.2; /* Tăng từ 1.1 → 1.2 */
+        line-height: 1.2;
+        margin: 0;
     }
-    
+
     .action-btn .btn-label-vi {
-        font-size: 7px;
+        grid-row: 2;
+        grid-column: 2;
+        font-size: 10px;
+        font-weight: 500;
         color: #666;
-        margin-top: 1px;
         text-align: center;
         line-height: 1.1;
+        margin: 0;
     }
+
     
     .action-btn:active {
         transform: scale(0.93);
@@ -1259,22 +1283,44 @@
         gap: 12px;
     }
     
+    /* ✅ R7.0.3: Inventory Mode - 2-line layout (Icon + JA / VI) */
     .action-buttons-grid.inventory-mode .action-btn {
-        min-height: 68px;
-        padding: 14px 12px;
+        display: grid;
+        grid-template-columns: auto 1fr;
+        grid-template-rows: auto auto;
+        gap: 0 8px;
+        align-items: center;
+        min-height: 60px;
+        padding: 10px 12px;
     }
-    
+
     .action-buttons-grid.inventory-mode .action-btn i {
-        font-size: 24px;
+        grid-row: 1 / 3;
+        grid-column: 1;
+        font-size: 28px;
+        margin: 0;
     }
-    
+
     .action-buttons-grid.inventory-mode .btn-label-ja {
-        font-size: 13px;
+        grid-row: 1;
+        grid-column: 2;
+        font-size: 12px;
+        font-weight: 700;
+        text-align: center;
+        line-height: 1.2;
+        margin: 0;
     }
-    
+
     .action-buttons-grid.inventory-mode .btn-label-vi {
-        font-size: 11px;
+        grid-row: 2;
+        grid-column: 2;
+        font-size: 12px;
+        font-weight: 500;
+        text-align: center;
+        line-height: 1.1;
+        margin: 0;
     }
+
     
     .btn-inv-audit {
         border-color: #FFA726;
