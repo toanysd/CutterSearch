@@ -1,0 +1,581 @@
+/* ========================================================================
+   CHECK-IN / CHECK-OUT MOBILE - R7.0.4 (iPhone Only)
+   ========================================================================
+   - Full-screen iPhone layout (portrait)
+   - Two-section layout: History (top 50%) + Input Form (bottom 50%)
+   - Only applies when body has class "modal-open"
+   - Does NOT affect iPad layout
+   ======================================================================== */
+
+/* ========================================================================
+   PANEL CONTAINER - Full Screen
+   ======================================================================== */
+
+body.modal-open #cio-panel {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    border-radius: 0 !important;
+    border: none !important;
+    z-index: 10000 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    background: var(--color-surface, #fcfcf9);
+    overflow: hidden;
+    padding-bottom: env(safe-area-inset-bottom, 20px);
+}
+
+/* ========================================================================
+   HEADER - Mode Switch (Check-in / Check-out)
+   ======================================================================== */
+
+body.modal-open .checkio-header {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    padding: 12px 16px;
+    padding-top: calc(12px + env(safe-area-inset-top, 0px));
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+body.modal-open .checkio-mode {
+    display: flex;
+    gap: 10px;
+    flex: 1;
+}
+
+body.modal-open .mode-btn {
+    flex: 1;
+    padding: 10px 16px;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+body.modal-open .mode-btn:active {
+    transform: scale(0.97);
+}
+
+body.modal-open .mode-btn.active {
+    background: white;
+    color: #16a34a;
+    border-color: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+body.modal-open .btn-close-compact {
+    width: 36px;
+    height: 36px;
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    color: white;
+    font-size: 20px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+body.modal-open .btn-close-compact:active {
+    transform: scale(0.95);
+    background: rgba(255, 255, 255, 0.35);
+}
+
+/* ========================================================================
+   BODY - Two Sections Layout (50% / 50%)
+   ======================================================================== */
+
+body.modal-open .checkio-body {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    gap: 0;
+    overflow: hidden;
+    flex: 1;
+    min-height: 0;
+}
+
+/* ========================================================================
+   SECTION 1: HISTORY TABLE (Top 50%)
+   ======================================================================== */
+
+body.modal-open .cio-history {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--color-bg-1, rgba(59, 130, 246, 0.05));
+    border: none;
+    border-bottom: 2px solid rgba(94, 82, 64, 0.15);
+    border-radius: 0;
+    padding: 12px 16px;
+    overflow: hidden;
+}
+
+body.modal-open .cio-history h4 {
+    margin: 0 0 8px 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--color-text, #134252);
+    border-bottom: 2px solid rgba(94, 82, 64, 0.2);
+    padding-bottom: 6px;
+}
+
+/* Filter Row */
+body.modal-open .filter-row {
+    margin-bottom: 8px;
+    flex-shrink: 0;
+}
+
+body.modal-open .filter-row input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid rgba(94, 82, 64, 0.2);
+    border-radius: 8px;
+    font-size: 15px;
+    background: white;
+}
+
+/* History Table Wrapper */
+body.modal-open .history-wrap {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: auto;
+    min-height: 0;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* History Table */
+body.modal-open .history-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    background: white;
+    table-layout: auto;
+}
+
+body.modal-open .history-table thead {
+    position: sticky;
+    top: 0;
+    background: rgba(255, 255, 255, 0.98);
+    z-index: 10;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+body.modal-open .history-table th {
+    padding: 8px 6px;
+    text-align: left;
+    font-weight: 700;
+    font-size: 12px;
+    color: #134252;
+    border-bottom: 2px solid rgba(94, 82, 64, 0.2);
+    white-space: nowrap;
+}
+
+body.modal-open .history-table td {
+    padding: 8px 6px;
+    border-bottom: 1px solid rgba(94, 82, 64, 0.1);
+    vertical-align: middle;
+}
+
+body.modal-open .history-table tbody tr:active {
+    background: rgba(34, 197, 94, 0.1);
+}
+
+/* Badge IN/OUT */
+body.modal-open .status-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    text-align: center;
+    min-width: 50px;
+    border: 1px solid;
+    letter-spacing: 0.5px;
+}
+
+body.modal-open .status-badge.badge-in {
+    background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+    color: #15803d;
+    border-color: #43A047;
+    box-shadow: 0 1px 3px rgba(67, 160, 71, 0.2);
+}
+
+body.modal-open .status-badge.badge-out {
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    color: #991b1b;
+    border-color: #ef4444;
+    box-shadow: 0 1px 3px rgba(239, 68, 68, 0.2);
+}
+
+/* Sync Dot */
+body.modal-open .sync-dot {
+    display: inline-block;
+    font-size: 18px;
+    transition: all 0.3s ease;
+}
+
+body.modal-open .sync-dot.pending {
+    animation: rotate-sync 1.5s linear infinite;
+    color: #EF4444;
+}
+
+body.modal-open .sync-dot.synced {
+    color: #43A047;
+}
+
+/* Delete Button */
+body.modal-open .btn-delete-history {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 1px solid #dc2626;
+    background: #fee2e2;
+    color: #dc2626;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.2s ease;
+    padding: 0;
+}
+
+body.modal-open .btn-delete-history:active {
+    transform: scale(0.95);
+    background: #dc2626;
+    color: white;
+}
+
+/* No History Message */
+body.modal-open .no-history {
+    padding: 24px;
+    text-align: center;
+    color: #626c7c;
+    font-size: 14px;
+}
+
+/* ========================================================================
+   SECTION 2: INPUT FORM (Bottom 50%)
+   ======================================================================== */
+
+body.modal-open .cio-inputs {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--color-bg-2, rgba(245, 158, 11, 0.05));
+    border: none;
+    border-radius: 0;
+    padding: 16px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+body.modal-open .cio-inputs h4 {
+    margin: 0 0 12px 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--color-text, #134252);
+    border-bottom: 2px solid rgba(94, 82, 64, 0.2);
+    padding-bottom: 6px;
+}
+
+/* Form Group */
+body.modal-open .form-group {
+    margin-bottom: 14px;
+}
+
+body.modal-open .form-group.hidden {
+    display: none;
+}
+
+body.modal-open .form-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #134252;
+    margin-bottom: 6px;
+}
+
+body.modal-open .form-control {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid rgba(94, 82, 64, 0.3);
+    border-radius: 8px;
+    font-size: 16px;
+    background: white;
+    font-family: inherit;
+    transition: border-color 0.2s ease;
+}
+
+body.modal-open .form-control:focus {
+    outline: none;
+    border-color: #22c55e;
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15);
+}
+
+body.modal-open textarea.form-control {
+    resize: vertical;
+    min-height: 80px;
+    max-height: 120px;
+}
+
+/* Employee Row with FaceID Button */
+body.modal-open .employee-row {
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
+}
+
+body.modal-open .employee-row .form-control {
+    flex: 1;
+}
+
+body.modal-open .btn-face {
+    padding: 12px 16px;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    min-width: 100px;
+}
+
+body.modal-open .btn-face:active {
+    transform: scale(0.97);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+}
+
+body.modal-open .face-status {
+    display: block;
+    margin-top: 6px;
+    font-size: 13px;
+    color: #626c7c;
+}
+
+/* Checkbox for Default Employee */
+body.modal-open .checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+body.modal-open .checkbox-group input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+body.modal-open .checkbox-group label {
+    font-size: 14px;
+    color: #134252;
+    cursor: pointer;
+}
+
+/* ========================================================================
+   FOOTER - Confirm & Cancel Buttons
+   ======================================================================== */
+
+body.modal-open .btn-row {
+    display: flex;
+    gap: 12px;
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 2px solid rgba(94, 82, 64, 0.15);
+    flex-shrink: 0;
+}
+
+body.modal-open .btn-confirm,
+body.modal-open .btn-cancel {
+    flex: 1;
+    padding: 14px 20px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+body.modal-open .btn-confirm {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
+}
+
+body.modal-open .btn-confirm:active {
+    transform: scale(0.97);
+    box-shadow: 0 1px 4px rgba(34, 197, 94, 0.4);
+}
+
+body.modal-open .btn-cancel {
+    background: rgba(148, 163, 184, 0.2);
+    color: #475569;
+    border: 1px solid rgba(148, 163, 184, 0.4);
+}
+
+body.modal-open .btn-cancel:active {
+    background: rgba(148, 163, 184, 0.35);
+    transform: scale(0.97);
+}
+
+/* ========================================================================
+   HIDE STATUS SECTION (Not needed on iPhone)
+   ======================================================================== */
+
+body.modal-open .cio-status {
+    display: none !important;
+}
+
+/* ========================================================================
+   ANIMATIONS
+   ======================================================================== */
+
+@keyframes rotate-sync {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes slideOutRight {
+    from { opacity: 1; transform: translateX(0); }
+    to { opacity: 0; transform: translateX(100%); }
+}
+
+body.modal-open .history-table tr.deleting {
+    animation: slideOutRight 0.3s ease-out forwards;
+}
+
+/* ========================================================================
+   TOAST NOTIFICATIONS
+   ======================================================================== */
+
+body.modal-open .cio-toast {
+    position: fixed;
+    bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    padding: 14px 24px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    color: white;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    z-index: 10001;
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    max-width: 90%;
+}
+
+body.modal-open .cio-toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+body.modal-open .cio-toast-success {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+}
+
+body.modal-open .cio-toast-error {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+body.modal-open .cio-toast-info {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+}
+
+/* ========================================================================
+   SCROLLBAR STYLING
+   ======================================================================== */
+
+body.modal-open .history-wrap::-webkit-scrollbar,
+body.modal-open .cio-inputs::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+body.modal-open .history-wrap::-webkit-scrollbar-track,
+body.modal-open .cio-inputs::-webkit-scrollbar-track {
+    background: rgba(94, 82, 64, 0.08);
+    border-radius: 3px;
+}
+
+body.modal-open .history-wrap::-webkit-scrollbar-thumb,
+body.modal-open .cio-inputs::-webkit-scrollbar-thumb {
+    background: rgba(94, 82, 64, 0.3);
+    border-radius: 3px;
+}
+
+body.modal-open .history-wrap::-webkit-scrollbar-thumb:active,
+body.modal-open .cio-inputs::-webkit-scrollbar-thumb:active {
+    background: rgba(94, 82, 64, 0.5);
+}
+
+/* ========================================================================
+   DARK MODE SUPPORT
+   ======================================================================== */
+
+@media (prefers-color-scheme: dark) {
+    body.modal-open #cio-panel {
+        background: var(--color-surface, #262828);
+    }
+
+    body.modal-open .cio-history,
+    body.modal-open .cio-inputs {
+        background: rgba(119, 124, 124, 0.1);
+    }
+
+    body.modal-open .cio-history h4,
+    body.modal-open .cio-inputs h4 {
+        color: var(--color-text, #f5f5f5);
+        border-bottom-color: rgba(119, 124, 124, 0.3);
+    }
+
+    body.modal-open .form-control,
+    body.modal-open .filter-row input {
+        background: rgba(119, 124, 124, 0.15);
+        border-color: rgba(119, 124, 124, 0.3);
+        color: #f5f5f5;
+    }
+
+    body.modal-open .history-table thead {
+        background: rgba(38, 40, 40, 0.98);
+    }
+
+    body.modal-open .history-table th,
+    body.modal-open .history-table td {
+        color: #f5f5f5;
+        border-color: rgba(119, 124, 124, 0.2);
+    }
+
+    body.modal-open .history-table {
+        background: rgba(38, 40, 40, 0.8);
+    }
+
+    body.modal-open .btn-cancel {
+        background: rgba(148, 163, 184, 0.25);
+        color: #cbd5e1;
+    }
+}

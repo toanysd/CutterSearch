@@ -1211,34 +1211,44 @@ class MobileDetailModal {
     }
 
     /**
-     * R7.0.2: RENDER ACTION BUTTONS
+     * R7.0.4: RENDER ACTION BUTTONS (Fixed for iPhone)
      * - Normal mode: 8 buttons (4x2 grid)
      * - Inventory mode: 2 buttons
+     * - ✅ Bind events immediately after rendering
      */
     renderActionButtons() {
-        if (!this.currentItem) return;
-        
-        // R7.0.2: Kiểm tra chế độ từ toggle (ưu tiên) hoặc InventoryState
+        if (!this.currentItem) {
+            console.warn('[MobileModal] renderActionButtons: No current item');
+            return;
+        }
+
+        // R7.0.2: Kiểm tra chế độ từ toggle đầu tiên hoặc InventoryState
         const isInventoryMode = this.inventoryMode || !!window.InventoryState?.active;
-        
+
+        console.log('[MobileModal] renderActionButtons:', {
+            isInventoryMode,
+            currentItem: this.currentItem,
+            hasModalActions: !!this.modalActions
+        });
+
         if (isInventoryMode) {
-            // ===== INVENTORY MODE: 2 nút =====
+            // INVENTORY MODE: 2 nút
             this.modalActions.innerHTML = `
                 <div class="action-buttons-grid inventory-mode">
                     <button class="action-btn btn-inv-audit" data-action="inventory-audit">
                         <i class="fas fa-clipboard-check"></i>
-                        <span class="btn-label-ja">在庫確認</span>
+                        <span class="btn-label-ja">棚卸確認</span>
                         <span class="btn-label-vi">Kiểm kê</span>
                     </button>
                     <button class="action-btn btn-inv-relocate" data-action="inventory-relocate">
                         <i class="fas fa-map-marked-alt"></i>
-                        <span class="btn-label-ja">位置変更・棚卸</span>
-                        <span class="btn-label-vi">Đổi vị trí và Kiểm kê</span>
+                        <span class="btn-label-ja">棚卸移動</span>
+                        <span class="btn-label-vi">Dời vị trí & Kiểm kê</span>
                     </button>
                 </div>
             `;
         } else {
-            // ===== NORMAL MODE: 8 nút (4x2) =====
+            // NORMAL MODE: 8 nút (4x2)
             this.modalActions.innerHTML = `
                 <div class="action-buttons-grid normal-mode">
                     <!-- Row 1 -->
@@ -1254,15 +1264,15 @@ class MobileDetailModal {
                     </button>
                     <button class="action-btn btn-location" data-action="location">
                         <i class="fas fa-map-marker-alt"></i>
-                        <span class="btn-label-ja">位置更新</span>
+                        <span class="btn-label-ja">位置変更</span>
                         <span class="btn-label-vi">Vị trí giá</span>
                     </button>
                     <button class="action-btn btn-transport" data-action="transport">
                         <i class="fas fa-truck"></i>
-                        <span class="btn-label-ja">輸送</span>
+                        <span class="btn-label-ja">出荷</span>
                         <span class="btn-label-vi">Vận chuyển</span>
                     </button>
-                    
+
                     <!-- Row 2 -->
                     <button class="action-btn btn-teflon" data-action="teflon">
                         <i class="fas fa-shield-alt"></i>
@@ -1287,31 +1297,61 @@ class MobileDetailModal {
                 </div>
             `;
         }
-        
-        // Bind events
+
+        // ✅ R7.0.4: Bind events immediately after rendering
         this.bindActionButtons();
+        
+        console.log('[MobileModal] ✅ Action buttons rendered and bound');
     }
+
 
 
 
 
 
     /**
-     * Bind action button events
+     * R7.0.4: Bind action button events (Fixed for iPhone)
+     * - ✅ Remove existing listeners before binding
+     * - ✅ Add proper error handling
+     * - ✅ Log each button binding
      */
     bindActionButtons() {
+        if (!this.modalActions) {
+            console.error('[MobileModal] bindActionButtons: modalActions not found');
+            return;
+        }
+
         const actionBtns = this.modalActions.querySelectorAll('.action-btn');
         
-        actionBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const action = btn.dataset.action;
-                this.handleActionClick(action);
-                
-            });
-        });
+        if (!actionBtns || actionBtns.length === 0) {
+            console.warn('[MobileModal] bindActionButtons: No action buttons found');
+            return;
+        }
 
+        console.log(`[MobileModal] Binding ${actionBtns.length} action buttons...`);
         
+        actionBtns.forEach((btn, index) => {
+            const action = btn.dataset.action;
+            
+            // ✅ Remove existing listener (if any) by cloning
+            const newBtn = btn.cloneNode(true);
+            btn.parentNode.replaceChild(newBtn, btn);
+            
+            // ✅ Add new listener
+            newBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                console.log(`[MobileModal] Button clicked: ${action}`);
+                this.handleActionClick(action);
+            });
+            
+            console.log(`[MobileModal] ✅ Button ${index + 1} bound: ${action}`);
+        });
+        
+        console.log('[MobileModal] ✅ All action buttons bound successfully');
     }
+
 
         /**
      * R7.0.2: Bind toggle mode buttons
@@ -1349,38 +1389,57 @@ class MobileDetailModal {
 
 
     /**
-     * Handle action button click
+     * R7.0.4: Handle action button click (Fixed for iPhone)
+     * - ✅ Close mobile modal BEFORE opening module modal
+     * - ✅ Add proper error handling
+     * - ✅ Support both Check-in and Check-out actions
      */
     handleActionClick(action) {
-        console.log(`🎬 Action clicked: ${action}`);
-
+        console.log('[MobileModal] handleActionClick:', action);
+        
         const item = this.currentItem;
         const type = this.currentItemType;
 
+        if (!item) {
+            console.error('[MobileModal] No current item for action:', action);
+            return;
+        }
+
+        console.log('[MobileModal] Action:', action, 'Item:', item, 'Type:', type);
+
         switch (action) {
             case 'location':
-                // Trigger location update module
-                this.triggerLocationUpdate(item, type);
+                // ✅ Close mobile modal first, then trigger location update
+                this.hide();
+                setTimeout(() => {
+                    this.triggerLocationUpdate(item, type);
+                }, 300);
                 break;
-            
+                
             case 'checkin':
-                // Trigger check-in/out module
-                this.triggerCheckin(item, type);
+                // ✅ Close mobile modal first, then trigger check-in
+                this.hide();
+                setTimeout(() => {
+                    this.triggerCheckInOut(item, type, 'check-in');
+                }, 300);
                 break;
-            
+                
+            case 'checkout':
+                // ✅ Close mobile modal first, then trigger check-out
+                this.hide();
+                setTimeout(() => {
+                    this.triggerCheckInOut(item, type, 'check-out');
+                }, 300);
+                break;
+                
             case 'status':
                 // Trigger status update module
                 this.triggerStatusUpdate(item, type);
                 break;
-            
+                
             case 'comments':
                 // Trigger comments module
                 this.triggerCommentsUpdate(item, type);
-                break;
-            
-            case 'checkout':
-                // R7.0.2: Check-out
-                this.triggerCheckout(item, type);
                 break;
                 
             case 'transport':
@@ -1402,66 +1461,113 @@ class MobileDetailModal {
                 // R7.0.2: QR Code
                 this.triggerQRCode(item, type);
                 break;
-
+                
             case 'inventory-audit':
-                // ✅ R6.9.5: Kiểm kê đơn thuần
+                // R6.9.5: Kiểm kê đơn thuần
                 this.handleInventoryAudit();
                 break;
-        
+                
             case 'inventory-relocate':
-                // ✅ R6.9.5: Đổi vị trí + Kiểm kê
+                // R6.9.5: Dời vị trí + Kiểm kê
                 this.handleInventoryRelocate();
                 break;
-
-            }
+                
+            default:
+                console.warn('[MobileModal] Unknown action:', action);
         }
+    }
+
 
     /**
-     * Trigger location update (compatible with existing module)
+     * R7.0.4: Trigger location update (Fixed for iPhone)
+     * - ✅ Try multiple API names: LocationManager → LocationUpdate
+     * - ✅ Add modal-open class to body for mobile CSS
+     * - ✅ Proper error handling
      */
     triggerLocationUpdate(item, type) {
-        console.log('✅ triggerLocationUpdate called:', item, type);
+        console.log('[MobileModal] triggerLocationUpdate:', item, type);
         
-        // ✅ R7.0.4: Fixed - Use correct global name
-        const locationAPI = window.LocationUpdate;
+        // ✅ Try LocationManager first (priority), then LocationUpdate
+        const locationAPI = window.LocationManager || window.LocationUpdate;
         
-        if (!locationAPI || !locationAPI.showLocationPanel) {
-            console.warn('❌ LocationUpdate module not found or showLocationPanel unavailable');
+        if (!locationAPI) {
+            console.error('[MobileModal] Location module not found');
+            alert('Location Manager module chưa được load');
             return;
         }
-        
-        // Đóng modal chi tiết trước
-        this.close();
-        
-        // Gọi hàm showLocationPanel
-        locationAPI.showLocationPanel(item, type);
-    }
 
-
-
-        /**
-     * Trigger check-in/out modal
-     * ✅ R7.0.3: Direct call to CheckInOutManager (no custom events)
-     */
-    triggerCheckin(item, type) {
-        console.log('📱 Mobile Modal → CheckInOut:', { item, type });
+        // ✅ Try different method names
+        const openMethod = locationAPI.openModal || 
+                          locationAPI.openLocationModal || 
+                          locationAPI.showLocationPanel;
         
-        // Check if module is loaded
-        if (!window.CheckInOutManager) {
-            console.error('❌ CheckInOutManager not loaded!');
-            this.showToast('チェックインモジュールが見つかりません', 'error');
+        if (!openMethod) {
+            console.error('[MobileModal] Location module has no open method');
+            alert('Location Manager không hỗ trợ openModal');
             return;
         }
-        
-        // Direct call to module
+
+        console.log('[MobileModal] ✅ Opening Location Manager...');
+
+        // ✅ Call the module's open method
         try {
-            window.CheckInOutManager.openCheckInModal(item, type);
-            console.log('✅ CheckInOut modal opened');
+            openMethod.call(locationAPI, item, type);
+            console.log('[MobileModal] ✅ Location Manager opened');
         } catch (error) {
-            console.error('❌ Error opening CheckInOut modal:', error);
-            this.showToast('エラーが発生しました', 'error');
+            console.error('[MobileModal] Error opening Location Manager:', error);
+            alert('Lỗi khi mở Location Manager: ' + error.message);
         }
     }
+
+
+
+
+    /**
+     * R7.0.4: Trigger Check-in/Check-out module (Fixed for iPhone)
+     * - ✅ Unified method for both check-in and check-out
+     * - ✅ Add modal-open class to body for mobile CSS
+     * - ✅ Try multiple API names
+     * @param {Object} item - Mold or Cutter item
+     * @param {String} type - 'mold' or 'cutter'
+     * @param {String} mode - 'check-in' or 'check-out'
+     */
+    triggerCheckInOut(item, type, mode = 'check-in') {
+        console.log('[MobileModal] triggerCheckInOut:', { item, type, mode });
+        
+        // ✅ Try multiple API names
+        const checkInAPI = window.CheckInOut || 
+                          window.CheckInOutManager || 
+                          window.CheckInOutModule;
+        
+        if (!checkInAPI) {
+            console.error('[MobileModal] CheckInOut module not found');
+            alert('Check-in/Check-out module chưa được load');
+            return;
+        }
+
+        // ✅ Try different method names
+        const openMethod = checkInAPI.openModal || 
+                          checkInAPI.openCheckInModal || 
+                          checkInAPI.showCheckInPanel;
+        
+        if (!openMethod) {
+            console.error('[MobileModal] CheckInOut module has no open method');
+            alert('Check-in module không hỗ trợ openModal');
+            return;
+        }
+
+        console.log('[MobileModal] ✅ Opening Check-in/Check-out module...');
+
+        // ✅ Call the module's open method with mode parameter
+        try {
+            openMethod.call(checkInAPI, item, type, mode);
+            console.log('[MobileModal] ✅ Check-in/Check-out module opened');
+        } catch (error) {
+            console.error('[MobileModal] Error opening Check-in/Check-out:', error);
+            alert('Lỗi khi mở Check-in/Check-out: ' + error.message);
+        }
+    }
+
 
 
 
@@ -1500,27 +1606,7 @@ class MobileDetailModal {
         console.log('💬 Comments update triggered');
     }
 
-    /**
-     * R7.0.2: Trigger Check-out
-     */
-    triggerCheckout(item, type) {
-        console.log('✅ triggerCheckout called:', item, type);
-        
-        // ✅ R7.0.4: Fixed - Use correct global name
-        const checkInAPI = window.CheckInOut;
-        
-        if (!checkInAPI || !checkInAPI.showCheckInPanel) {
-            console.warn('❌ CheckInOut module not found or showCheckInPanel unavailable');
-            return;
-        }
-        
-        // Đóng modal chi tiết trước
-        this.close();
-        
-        // Gọi hàm showCheckInPanel với mode 'check-out'
-        checkInAPI.showCheckInPanel(item, type, 'check-out');
-    }
-
+    
 
     
     /**
