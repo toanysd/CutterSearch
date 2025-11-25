@@ -1339,60 +1339,73 @@ class MobileDetailModal {
 
 
 
-    /**
-     * R7.0.4: Bind action button events (Fixed for iPhone)
-     * - ✅ Remove existing listeners before binding
-     * - ✅ Add proper error handling
-     * - ✅ Log each button binding
-     */
-    // BIND ACTION BUTTONS
+    // R7.0.4: Bind action button events - Fixed for iPhone
+    // - Remove existing listeners before binding
+    // - Add proper error handling
+    // - Log each button binding
+    // - SUPPORT BOTH NORMAL AND INVENTORY MODES
     bindActionButtons(item, itemType) {
         console.log('[MobileModal] Binding action buttons for:', itemType, item);
-        
-        // === VALIDATE ITEM ===
+
+        // VALIDATE ITEM
         if (!item) {
-            console.error('[MobileModal] ❌ Cannot bind buttons: no item');
+            console.error('[MobileModal] Cannot bind buttons - no item');
             return;
         }
+
+        // R7.0.4: Check current mode to determine which buttons to bind
+        const isInventoryMode = this.inventoryMode || !!window.InventoryState?.active;
+
+        let buttons;
         
-        const buttons = [
-            { id: 'mobile-action-checkin', action: 'checkin' },
-            { id: 'mobile-action-checkout', action: 'checkout' },
-            { id: 'mobile-action-location', action: 'location' },
-            { id: 'mobile-action-transport', action: 'transport' },
-            { id: 'mobile-action-teflon', action: 'teflon' },
-            { id: 'mobile-action-print', action: 'print' },
-            { id: 'mobile-action-qrcode', action: 'qrcode' },
-            { id: 'mobile-action-comments', action: 'comments' }
-        ];
-        
-        console.log('[MobileModal] Binding', buttons.length, 'action buttons...');
-        
+        if (isInventoryMode) {
+            // INVENTORY MODE: 2 buttons
+            buttons = [
+                { id: 'mobile-action-inventory-audit', action: 'inventory-audit' },
+                { id: 'mobile-action-inventory-relocate', action: 'inventory-relocate' }
+            ];
+        } else {
+            // NORMAL MODE: 8 buttons
+            buttons = [
+                { id: 'mobile-action-checkin', action: 'checkin' },
+                { id: 'mobile-action-checkout', action: 'checkout' },
+                { id: 'mobile-action-location', action: 'location' },
+                { id: 'mobile-action-transport', action: 'transport' },
+                { id: 'mobile-action-teflon', action: 'teflon' },
+                { id: 'mobile-action-print', action: 'print' },
+                { id: 'mobile-action-qrcode', action: 'qrcode' },
+                { id: 'mobile-action-comments', action: 'comments' }
+            ];
+        }
+
+        console.log(`[MobileModal] Binding ${buttons.length} action buttons (${isInventoryMode ? 'INVENTORY' : 'NORMAL'} mode)...`);
+
         buttons.forEach(({ id, action }) => {
             const btn = document.getElementById(id);
             if (btn) {
                 // Remove old listeners
                 const newBtn = btn.cloneNode(true);
                 btn.parentNode.replaceChild(newBtn, btn);
-                
+
                 // Add new listener with correct parameters
                 newBtn.addEventListener('click', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    
-                    // === FIX: Pass item object, not string ===
+
+                    // FIX: Pass item object, not string
                     console.log('[MobileModal] Button clicked:', action, 'item:', item);
                     this.handleActionClick(action, item, itemType);
                 });
-                
+
                 console.log('[MobileModal] ✅ Button bound:', action);
             } else {
-                console.warn('[MobileModal] ⚠️ Button not found:', id);
+                console.warn(' [MobileModal] ⚠️ Button not found:', id);
             }
         });
-        
+
         console.log('[MobileModal] ✅ All action buttons bound successfully');
     }
+
 
 
 
@@ -1493,6 +1506,15 @@ class MobileDetailModal {
             case 'comments':
                 this.triggerComments(item, itemType);
                 break;
+
+            // R7.0.4: NEW - Inventory mode actions
+            case 'inventory-audit':
+                this.handleInventoryAudit();
+                break;
+
+            case 'inventory-relocate':
+                this.handleInventoryRelocate();
+                break;
                 
             default:
                 console.warn('[MobileModal] Unknown action:', action);
@@ -1557,7 +1579,12 @@ class MobileDetailModal {
     // TRIGGER CHECK-IN/CHECK-OUT
     triggerCheckInOut(item, itemType, mode = 'check-in') {
         console.log('[MobileModal] triggerCheckInOut:', item, itemType, 'mode:', mode);
-        
+        // CRITICAL FIX: Convert action to correct mode format
+        // action from button: 'checkin' / 'checkout'
+        // module expects: 'check-in' / 'check-out'
+        const realMode = (mode === 'checkin') ? 'check-in' : 
+                        (mode === 'checkout') ? 'check-out' : 
+                        mode;
         // === CRITICAL FIX: VALIDATE ITEM DATA ===
         if (!item || typeof item === 'string') {
             console.error('[MobileModal] ❌ Invalid item parameter:', item);
@@ -1583,22 +1610,13 @@ class MobileDetailModal {
         console.log('[MobileModal] ✅ Opening Check-in/Check-out module with mode:', mode);
         
         // === FIX: Kiểm tra signature của CheckInOut.openModal ===
-        if (typeof window.CheckInOut !== 'undefined' && 
-            typeof window.CheckInOut.openModal === 'function') {
-            
-            // === CRITICAL: Log để xác nhận mode được truyền ===
-            console.log('[MobileModal] 🔍 Calling CheckInOut.openModal with:', {
-                mode: mode,
-                item: {
-                    MoldID: item.MoldID,
-                    CutterID: item.CutterID,
-                    MoldCode: item.MoldCode
-                }
-            });
-            
-            // Call with correct parameter order: (mode, item)
-            // Mode PHẢI là parameter đầu tiên!
-            window.CheckInOut.openModal(mode, item);
+        if (typeof window.CheckInOut !== 'undefined' && typeof window.CheckInOut.openModal === 'function') {
+        console.log('[MobileModal] Calling CheckInOut.openModal with:', 
+            'mode:', realMode, 
+            'item:', { MoldID: item.MoldID, CutterID: item.CutterID, MoldCode: item.MoldCode }
+        );
+        
+        window.CheckInOut.openModal(realMode, item);
             
             console.log('[MobileModal] ✅ Check-in/Check-out module opened with mode:', mode);
         } else {

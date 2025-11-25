@@ -140,26 +140,29 @@
       
       // ✅ RENDER GIỐNG renderHistory (7 CỘT, CÓ SYNC STATUS)
       const tableRows = historyLogs.map(l => {
-          // ✅ R6.9.8: Enhanced badge logic with AUDIT support
-          let badgeClass = '';
-          let badgeText = '';
-          
+          // R7.0.4: CRITICAL FIX - Enhanced badge logic supporting both old and new formats
+          let badgeClass;
+          let badgeText;
+
+          const statusUpper = (l.Status || '').toUpperCase();
+
           if (l.Status === 'AUDIT' || l.AuditType) {
               badgeClass = 'badge-audit';
-              const auditLabel = l.AuditType === 'AUDIT_WITH_RELOCATION' 
-                  ? '棚卸+移動' 
-                  : '棚卸';
+              const auditLabel = l.AuditType === 'AUDIT-WITH-RELOCATION' ? '検数移' : '検数';
               badgeText = auditLabel;
-          } else if (l.Status === 'check-in' || l.Status === 'CHECK_IN') {
+          } else if (statusUpper === 'IN' || statusUpper === 'CHECKIN' || l.Status === 'check-in') {
+              // Support: 'IN', 'CHECKIN', 'check-in'
               badgeClass = 'badge-in';
               badgeText = 'IN';
-          } else if (l.Status === 'check-out' || l.Status === 'CHECK_OUT') {
+          } else if (statusUpper === 'OUT' || statusUpper === 'CHECKOUT' || l.Status === 'check-out') {
+              // Support: 'OUT', 'CHECKOUT', 'check-out'
               badgeClass = 'badge-out';
               badgeText = 'OUT';
           } else {
               badgeClass = 'badge-unknown';
-              badgeText = l.Status || '-';
+              badgeText = l.Status || '?';
           }
+
 
           
           // ✅ Sync status (HỖ TRỢ _synced)
@@ -282,26 +285,29 @@
         
         // ✅ CHỈ UPDATE tbody, KHÔNG render lại toàn bộ table
         const tableRows = historyLogs.map(l => {
-            // ✅ R6.9.8: Enhanced badge logic with AUDIT support
-            let badgeClass = '';
-            let badgeText = '';
-            
+            // R7.0.4: CRITICAL FIX - Enhanced badge logic supporting both old and new formats
+            let badgeClass;
+            let badgeText;
+
+            const statusUpper = (l.Status || '').toUpperCase();
+
             if (l.Status === 'AUDIT' || l.AuditType) {
                 badgeClass = 'badge-audit';
-                const auditLabel = l.AuditType === 'AUDIT_WITH_RELOCATION' 
-                    ? '棚卸+移動' 
-                    : '棚卸';
+                const auditLabel = (l.AuditType === 'AUDIT-WITH-RELOCATION') ? '検数移' : '検数';
                 badgeText = auditLabel;
-            } else if (l.Status === 'check-in' || l.Status === 'CHECK_IN') {
+            } else if (statusUpper === 'IN' || statusUpper === 'CHECKIN' || l.Status === 'check-in') {
+                // Support: 'IN', 'CHECKIN', 'check-in'
                 badgeClass = 'badge-in';
                 badgeText = 'IN';
-            } else if (l.Status === 'check-out' || l.Status === 'CHECK_OUT') {
+            } else if (statusUpper === 'OUT' || statusUpper === 'CHECKOUT' || l.Status === 'check-out') {
+                // Support: 'OUT', 'CHECKOUT', 'check-out'
                 badgeClass = 'badge-out';
                 badgeText = 'OUT';
             } else {
                 badgeClass = 'badge-unknown';
-                badgeText = l.Status || '-';
+                badgeText = l.Status || '?';
             }
+
 
             
             // ✅ Sync status (HỖ TRỢ _synced)
@@ -761,25 +767,27 @@
           </thead>
           <tbody>
             ${logs.map(l => {
-                // ✅ R6.9.8: Enhanced badge logic with AUDIT support
-                let badgeClass = '';
-                let badgeText = '';
-                
+                // R7.0.4: CRITICAL FIX - Enhanced badge logic supporting both old and new formats
+                let badgeClass;
+                let badgeText;
+
+                const statusUpper = (l.Status || '').toUpperCase();
+
                 if (l.Status === 'AUDIT' || l.AuditType) {
                     badgeClass = 'badge-audit';
-                    const auditLabel = l.AuditType === 'AUDIT_WITH_RELOCATION' 
-                        ? '棚卸+移動' 
-                        : '棚卸';
+                    const auditLabel = (l.AuditType === 'AUDIT-WITH-RELOCATION') ? '検数移' : '検数';
                     badgeText = auditLabel;
-                } else if (l.Status === 'check-in' || l.Status === 'CHECK_IN') {
+                } else if (statusUpper === 'IN' || statusUpper === 'CHECKIN' || l.Status === 'check-in') {
+                    // Support: 'IN', 'CHECKIN', 'check-in'
                     badgeClass = 'badge-in';
                     badgeText = 'IN';
-                } else if (l.Status === 'check-out' || l.Status === 'CHECK_OUT') {
+                } else if (statusUpper === 'OUT' || statusUpper === 'CHECKOUT' || l.Status === 'check-out') {
+                    // Support: 'OUT', 'CHECKOUT', 'check-out'
                     badgeClass = 'badge-out';
                     badgeText = 'OUT';
                 } else {
                     badgeClass = 'badge-unknown';
-                    badgeText = l.Status || '-';
+                    badgeText = l.Status || '?';
                 }
 
                 
@@ -1001,31 +1009,47 @@
             MoldCode: item.MoldCode
         });
         
-        // ✅ R6.9.8: Determine status based on current state
-        let status = currentMode;
-        let auditType = '';
-        let auditDate = '';
-        
+        // R7.0.4: CRITICAL FIX - Convert mode to correct status format
+        // Mode from mobile: 'check-in' / 'check-out'
+        // Status to save: 'IN' / 'OUT' (same as iPad logic)
+        let status;
+        let auditType;
+        let auditDate;
+
         // Check if this is actually an audit (check-in when already checked-in)
         if (currentMode === 'check-in') {
             const currentStatus = this.getCurrentStatus(
-                item.MoldID || item.CutterID,
+                item.MoldID || item.CutterID, 
                 item.MoldID ? 'mold' : 'cutter'
             );
             
-            if (currentStatus === 'check-in' || currentStatus === 'CHECK_IN') {
-                console.log('[CheckInOut] 🔄 Converting to AUDIT (already checked-in)');
+            // Check if already IN (using multiple format checks)
+            if (currentStatus === 'check-in' || currentStatus === 'CHECKIN' || 
+                currentStatus === 'IN' || currentStatus?.toLowerCase().includes('in')) {
+                console.log('[CheckInOut] Converting to AUDIT (already checked-in)');
                 status = 'AUDIT';
-                auditType = 'AUDIT_ONLY';
+                auditType = 'AUDIT-ONLY';
                 auditDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
                 
                 // Update notes if empty
                 if (!noteValue.trim()) {
-                    noteInput.value = '棚卸 | Kiểm kê (自動)';
+                    noteInput.value = '検数 / Kiểm kê';
                 }
+            } else {
+                // Normal check-in -> Status = 'IN'
+                status = 'IN';
             }
+        } else if (currentMode === 'check-out') {
+            // Check-out -> Status = 'OUT'
+            status = 'OUT';
+        } else {
+            // Fallback (should not happen)
+            console.warn('[CheckInOut] Unknown mode:', currentMode);
+            status = currentMode;
         }
-        
+
+        console.log('[CheckInOut] Final status to save:', status, 'from mode:', currentMode);
+
         const data = {
             MoldID: item.MoldID,
             CutterID: item.CutterID || '',
