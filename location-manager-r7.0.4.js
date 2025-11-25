@@ -35,6 +35,7 @@ let currentItem = null;
 let currentOldRackLayerID = null; // RackLayerID hiện tại
 let sortColumn = 'DateEntry';
 let sortOrder = 'desc';
+let isClosingAfterSave = false; // NEW: Flag để tránh dispatch duplicate
 
 // =====================================================
 // LOCATION CACHE - Tương tự PendingCache
@@ -903,14 +904,32 @@ const LocationManager = {
       }
     }));
 
-    // ✅ Close modal after 300ms - Đóng CẢ detail modal
+    // === FIX: Close modal và dispatch event để đóng detail modal ===
     setTimeout(() => {
-        LocationManager.close(true); // ✅ true = đóng cả detail modal
+        isClosingAfterSave = true; // Set flag trước khi close
+        LocationManager.close(false); // false = chỉ đóng popup location
+        
+        // Dispatch success event để mobile detail modal biết và tự đóng
+        document.dispatchEvent(new CustomEvent('location-updated', {
+            detail: {
+                item: item,
+                success: true,
+                oldRackLayer: currentOldRackLayerID,
+                newRackLayer: data.NewRackLayer,
+                timestamp: new Date().toISOString()
+            }
+        }));
+        
+        console.log('[LocationManager] ✅ Dispatched location-updated event');
+        
+        // Reset flag sau khi xong
+        setTimeout(() => { isClosingAfterSave = false; }, 100);
     }, 300);
 
 
 
-        // BC 4: Background sync to GitHub
+
+    // BC 4: Background sync to GitHub
     this.syncToGitHub(data, pendingLog.localId, item.MoldID);
   },
 
@@ -1319,54 +1338,67 @@ const LocationManager = {
   },
 
 
-  // ===================================================
   // CLOSE MODAL
-  // ===================================================
   close: function(closeDetail = false) {
-    const panel = document.getElementById('loc-panel');
-    if (!panel) {
-        console.log('[LocationManager] Panel not found, nothing to close');
-        return; // Không làm gì nếu popup không tồn tại
-    }
+      const panel = document.getElementById('loc-panel');
+      if (!panel) {
+          console.log('[LocationManager] Panel not found, nothing to close');
+          return; // Không làm gì nếu popup không tồn tại
+      }
 
-    panel.remove();
-    console.log('[LocationManager] Closed panel');
+      panel.remove();
+      console.log('[LocationManager] Closed panel');
 
-    // ✅ R7.0.4: Chỉ xoá modal-open NẾU KHÔNG có detail modal đang hiển thị
-    // HOẶC nếu closeDetail = true (đóng cả detail modal)
-    const detailModal = document.querySelector('.mobile-detail-modal.active');
-    
-    if (closeDetail && detailModal) {
-        // Trường hợp: Confirm thành công, đóng cả detail modal
-        console.log('[LocationManager] ✅ Closing Detail Modal after confirm');
-        document.body.classList.remove('modal-open');
-        detailModal.classList.remove('active');
-        
-        // Gọi hàm close của detail modal nếu có
-        if (window.MobileDetailModal && typeof window.MobileDetailModal.close === 'function') {
-            window.MobileDetailModal.close();
-        }
-    } else if (!detailModal) {
-        // Trường hợp: Không có detail modal, xoá modal-open an toàn
-        document.body.classList.remove('modal-open');
-        console.log('[LocationManager] Removed modal-open (no detail modal)');
-    } else {
-        // Trường hợp: Có detail modal, GIỮ NGUYÊN modal-open
-        console.log('[LocationManager] ✅ Keeping modal-open for Detail Modal');
-    }
+      // === NEW: Dispatch cancel event nếu KHÔNG phải từ saveRecord ===
+      if (!isClosingAfterSave) {
+          document.dispatchEvent(new CustomEvent('module-cancelled', {
+              detail: {
+                  module: 'location',
+                  item: currentItem,
+                  timestamp: new Date().toISOString()
+              }
+          }));
+          console.log('[LocationManager] ✅ Dispatched module-cancelled event');
+      } else {
+          console.log('[LocationManager] ℹ️ Skipped module-cancelled (closing after save)');
+      }
 
-    // Reattach keyboard to searchbox
-    const searchBox = document.querySelector('input.search-input');
-    if (searchBox) {
-        searchBox.focus();
-        document.dispatchEvent(new CustomEvent('keyboard:attach', {
-            detail: { element: searchBox }
-        }));
-    }
+      // R7.0.4: Chỉ xóa modal-open NẾU KHÔNG có detail modal đang hiển thị
+      // HOẶC nếu closeDetail = true (đóng cả detail modal)
+      const detailModal = document.querySelector('.mobile-detail-modal.active');
+      
+      if (closeDetail && detailModal) {
+          // Trường hợp: Confirm thành công, đóng cả detail modal
+          console.log('[LocationManager] Closing Detail Modal after confirm');
+          document.body.classList.remove('modal-open');
+          detailModal.classList.remove('active');
+          
+          // Gọi hàm close của detail modal nếu có
+          if (window.MobileDetailModal && typeof window.MobileDetailModal.close === 'function') {
+              window.MobileDetailModal.close();
+          }
+      } else if (!detailModal) {
+          // Trường hợp: Không có detail modal, xóa modal-open an toàn
+          document.body.classList.remove('modal-open');
+          console.log('[LocationManager] Removed modal-open (no detail modal)');
+      } else {
+          // Trường hợp: Có detail modal, GIỮ NGUYÊN modal-open
+          console.log('[LocationManager] Keeping modal-open for Detail Modal');
+      }
 
-    // Cleanup old pending logs
-    LocationCache.cleanup();
-  },
+      // Reattach keyboard to searchbox
+      const searchBox = document.querySelector('input.search-input');
+      if (searchBox) {
+          searchBox.focus();
+          document.dispatchEvent(new CustomEvent('keyboard:attach', {
+              detail: { element: searchBox }
+          }));
+      }
+
+      // Cleanup old pending logs
+      LocationCache.cleanup();
+  }
+
 };
 
 // =====================================================

@@ -2,10 +2,14 @@
    CHECK-IN / CHECK-OUT MOBILE - R7.0.4 (iPhone Only)
    ========================================================================
    - Full-screen iPhone layout (portrait)
-   - Two-section layout: History (top 50%) + Input Form (bottom 50%)
+   - History (top, scrollable) + Input Form (bottom, fixed height)
+   - Fixed Confirm/Cancel buttons at bottom
+   - Ultra-compact header with 10px font
+   - Color-coded mode buttons (green for check-in, red for check-out)
    - Only applies when body has class "modal-open"
    - Does NOT affect iPad layout
    ======================================================================== */
+
 
 /* ========================================================================
    PANEL CONTAINER - Full Screen
@@ -27,64 +31,81 @@ body.modal-open #cio-panel {
     flex-direction: column !important;
     background: var(--color-surface, #fcfcf9);
     overflow: hidden;
-    padding-bottom: env(safe-area-inset-bottom, 20px);
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
+
 /* ========================================================================
-   HEADER - Mode Switch (Check-in / Check-out)
+   HEADER - Mode Switch (Check-in / Check-out) - ULTRA COMPACT
    ======================================================================== */
 
 body.modal-open .checkio-header {
-    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-    padding: 12px 16px;
-    padding-top: calc(12px + env(safe-area-inset-top, 0px));
+    background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+    padding: 4px 10px;
+    padding-top: calc(4px + env(safe-area-inset-top, 0px));
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+    border-bottom: 1px solid rgba(94, 82, 64, 0.15);
     flex-shrink: 0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    min-height: 32px;
+    gap: 8px;
 }
 
 body.modal-open .checkio-mode {
     display: flex;
-    gap: 10px;
+    gap: 6px;
     flex: 1;
 }
 
 body.modal-open .mode-btn {
     flex: 1;
-    padding: 10px 16px;
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 10px;
-    font-size: 16px;
+    padding: 5px 8px;
+    background: #f9fafb;
+    color: #6b7280;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 10px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
     text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
 }
 
 body.modal-open .mode-btn:active {
-    transform: scale(0.97);
+    transform: scale(0.98);
 }
 
-body.modal-open .mode-btn.active {
-    background: white;
-    color: #16a34a;
-    border-color: white;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+/* Check-in button - GREEN when active */
+body.modal-open .mode-btn[data-mode="checkin"].active,
+body.modal-open .mode-btn:first-child.active {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    color: white;
+    border-color: #16a34a;
+    box-shadow: 0 2px 6px rgba(34, 197, 94, 0.3);
+}
+
+/* Check-out button - RED when active */
+body.modal-open .mode-btn[data-mode="checkout"].active,
+body.modal-open .mode-btn:last-child.active {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    border-color: #dc2626;
+    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.3);
 }
 
 body.modal-open .btn-close-compact {
-    width: 36px;
-    height: 36px;
-    background: rgba(255, 255, 255, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    width: 28px;
+    height: 28px;
+    background: rgba(107, 114, 128, 0.1);
+    border: 1px solid rgba(107, 114, 128, 0.2);
     border-radius: 50%;
-    color: white;
-    font-size: 20px;
+    color: #6b7280;
+    font-size: 16px;
     font-weight: 700;
     cursor: pointer;
     display: flex;
@@ -96,11 +117,12 @@ body.modal-open .btn-close-compact {
 
 body.modal-open .btn-close-compact:active {
     transform: scale(0.95);
-    background: rgba(255, 255, 255, 0.35);
+    background: rgba(107, 114, 128, 0.2);
 }
 
+
 /* ========================================================================
-   BODY - Two Sections Layout (50% / 50%)
+   BODY - Two Sections Layout
    ======================================================================== */
 
 body.modal-open .checkio-body {
@@ -111,45 +133,50 @@ body.modal-open .checkio-body {
     overflow: hidden;
     flex: 1;
     min-height: 0;
+    background: #f5f5f5;
 }
 
+
 /* ========================================================================
-   SECTION 1: HISTORY TABLE (Top 50%)
+   SECTION 1: HISTORY TABLE (Top, scrollable)
    ======================================================================== */
 
 body.modal-open .cio-history {
-    flex: 1;
+    order: 1;
+    flex: 1 1 0;
     display: flex;
     flex-direction: column;
-    background: var(--color-bg-1, rgba(59, 130, 246, 0.05));
+    background: var(--color-bg-1, rgba(59, 130, 246, 0.04));
     border: none;
-    border-bottom: 2px solid rgba(94, 82, 64, 0.15);
+    border-bottom: 1px solid rgba(94, 82, 64, 0.12);
     border-radius: 0;
-    padding: 12px 16px;
+    padding: 8px 12px 8px 10px;
     overflow: hidden;
+    min-height: 150px;
 }
 
 body.modal-open .cio-history h4 {
-    margin: 0 0 8px 0;
-    font-size: 15px;
+    margin: 0 0 5px 0;
+    font-size: 11px;
     font-weight: 700;
     color: var(--color-text, #134252);
-    border-bottom: 2px solid rgba(94, 82, 64, 0.2);
-    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(94, 82, 64, 0.18);
+    padding-bottom: 3px;
+    flex-shrink: 0;
 }
 
 /* Filter Row */
 body.modal-open .filter-row {
-    margin-bottom: 8px;
+    margin-bottom: 5px;
     flex-shrink: 0;
 }
 
 body.modal-open .filter-row input {
     width: 100%;
-    padding: 8px 12px;
+    padding: 6px 9px;
     border: 1px solid rgba(94, 82, 64, 0.2);
-    border-radius: 8px;
-    font-size: 15px;
+    border-radius: 5px;
+    font-size: 11px;
     background: white;
 }
 
@@ -166,7 +193,7 @@ body.modal-open .history-wrap {
 body.modal-open .history-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 13px;
+    font-size: 10px;
     background: white;
     table-layout: auto;
 }
@@ -176,60 +203,61 @@ body.modal-open .history-table thead {
     top: 0;
     background: rgba(255, 255, 255, 0.98);
     z-index: 10;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 
 body.modal-open .history-table th {
-    padding: 8px 6px;
+    padding: 6px 4px;
     text-align: left;
     font-weight: 700;
-    font-size: 12px;
+    font-size: 10px;
     color: #134252;
-    border-bottom: 2px solid rgba(94, 82, 64, 0.2);
+    border-bottom: 1px solid rgba(94, 82, 64, 0.2);
     white-space: nowrap;
 }
 
 body.modal-open .history-table td {
-    padding: 8px 6px;
-    border-bottom: 1px solid rgba(94, 82, 64, 0.1);
+    padding: 6px 4px;
+    border-bottom: 1px solid rgba(94, 82, 64, 0.08);
     vertical-align: middle;
+    font-size: 10px;
 }
 
 body.modal-open .history-table tbody tr:active {
-    background: rgba(34, 197, 94, 0.1);
+    background: rgba(34, 197, 94, 0.08);
 }
 
 /* Badge IN/OUT */
 body.modal-open .status-badge {
     display: inline-block;
-    padding: 4px 10px;
-    border-radius: 6px;
-    font-size: 11px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 9px;
     font-weight: 700;
     text-align: center;
-    min-width: 50px;
+    min-width: 40px;
     border: 1px solid;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
 }
 
 body.modal-open .status-badge.badge-in {
     background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
     color: #15803d;
     border-color: #43A047;
-    box-shadow: 0 1px 3px rgba(67, 160, 71, 0.2);
+    box-shadow: 0 1px 2px rgba(67, 160, 71, 0.15);
 }
 
 body.modal-open .status-badge.badge-out {
     background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
     color: #991b1b;
     border-color: #ef4444;
-    box-shadow: 0 1px 3px rgba(239, 68, 68, 0.2);
+    box-shadow: 0 1px 2px rgba(239, 68, 68, 0.15);
 }
 
 /* Sync Dot */
 body.modal-open .sync-dot {
     display: inline-block;
-    font-size: 18px;
+    font-size: 14px;
     transition: all 0.3s ease;
 }
 
@@ -247,14 +275,14 @@ body.modal-open .btn-delete-history {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
+    width: 26px;
+    height: 26px;
     border: 1px solid #dc2626;
     background: #fee2e2;
     color: #dc2626;
-    border-radius: 6px;
+    border-radius: 5px;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 12px;
     transition: all 0.2s ease;
     padding: 0;
 }
@@ -267,40 +295,43 @@ body.modal-open .btn-delete-history:active {
 
 /* No History Message */
 body.modal-open .no-history {
-    padding: 24px;
+    padding: 16px;
     text-align: center;
     color: #626c7c;
-    font-size: 14px;
+    font-size: 11px;
 }
 
+
 /* ========================================================================
-   SECTION 2: INPUT FORM (Bottom 50%)
+   SECTION 2: INPUT FORM (Bottom, fixed height, no scroll)
    ======================================================================== */
 
 body.modal-open .cio-inputs {
-    flex: 1;
+    order: 2;
+    flex: 0 0 auto;
     display: flex;
     flex-direction: column;
-    background: var(--color-bg-2, rgba(245, 158, 11, 0.05));
+    background: var(--color-bg-2, rgba(245, 158, 11, 0.04));
     border: none;
     border-radius: 0;
-    padding: 16px;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    padding: 8px 12px 8px 10px;
+    padding-bottom: calc(8px + 56px); /* Space for fixed buttons */
+    overflow: visible;
 }
 
 body.modal-open .cio-inputs h4 {
-    margin: 0 0 12px 0;
-    font-size: 15px;
+    margin: 0 0 6px 0;
+    font-size: 11px;
     font-weight: 700;
     color: var(--color-text, #134252);
-    border-bottom: 2px solid rgba(94, 82, 64, 0.2);
-    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(94, 82, 64, 0.18);
+    padding-bottom: 3px;
+    flex-shrink: 0;
 }
 
 /* Form Group */
 body.modal-open .form-group {
-    margin-bottom: 14px;
+    margin-bottom: 8px;
 }
 
 body.modal-open .form-group.hidden {
@@ -309,39 +340,40 @@ body.modal-open .form-group.hidden {
 
 body.modal-open .form-label {
     display: block;
-    font-size: 14px;
+    font-size: 10px;
     font-weight: 600;
     color: #134252;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
 }
 
 body.modal-open .form-control {
     width: 100%;
-    padding: 12px 14px;
+    padding: 7px 9px;
     border: 1px solid rgba(94, 82, 64, 0.3);
-    border-radius: 8px;
-    font-size: 16px;
+    border-radius: 5px;
+    font-size: 11px;
     background: white;
     font-family: inherit;
     transition: border-color 0.2s ease;
+    min-height: 30px;
 }
 
 body.modal-open .form-control:focus {
     outline: none;
     border-color: #22c55e;
-    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15);
+    box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.1);
 }
 
 body.modal-open textarea.form-control {
     resize: vertical;
-    min-height: 80px;
-    max-height: 120px;
+    min-height: 60px;
+    max-height: 100px;
 }
 
 /* Employee Row with FaceID Button */
 body.modal-open .employee-row {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     align-items: stretch;
 }
 
@@ -350,28 +382,28 @@ body.modal-open .employee-row .form-control {
 }
 
 body.modal-open .btn-face {
-    padding: 12px 16px;
+    padding: 7px 10px;
     background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
     color: white;
     border: none;
-    border-radius: 8px;
-    font-size: 14px;
+    border-radius: 5px;
+    font-size: 10px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
     white-space: nowrap;
-    min-width: 100px;
+    min-width: 70px;
 }
 
 body.modal-open .btn-face:active {
     transform: scale(0.97);
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.35);
 }
 
 body.modal-open .face-status {
     display: block;
-    margin-top: 6px;
-    font-size: 13px;
+    margin-top: 3px;
+    font-size: 10px;
     color: #626c7c;
 }
 
@@ -379,68 +411,79 @@ body.modal-open .face-status {
 body.modal-open .checkbox-group {
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-top: 8px;
+    gap: 5px;
+    margin-top: 4px;
 }
 
 body.modal-open .checkbox-group input[type="checkbox"] {
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
     cursor: pointer;
 }
 
 body.modal-open .checkbox-group label {
-    font-size: 14px;
+    font-size: 10px;
     color: #134252;
     cursor: pointer;
 }
 
+
 /* ========================================================================
-   FOOTER - Confirm & Cancel Buttons
+   FOOTER - Fixed Confirm & Cancel Buttons
    ======================================================================== */
 
 body.modal-open .btn-row {
-    display: flex;
-    gap: 12px;
-    margin-top: auto;
-    padding-top: 16px;
-    border-top: 2px solid rgba(94, 82, 64, 0.15);
-    flex-shrink: 0;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    order: 3;
+    width: 100vw;
+    background: white;
+    z-index: 10001;
+    display: flex !important;
+    gap: 8px;
+    padding: 6px 10px;
+    padding-bottom: max(6px, env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid rgba(94, 82, 64, 0.12);
+    box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.06);
 }
 
 body.modal-open .btn-confirm,
 body.modal-open .btn-cancel {
     flex: 1;
-    padding: 14px 20px;
+    padding: 10px 14px;
     border: none;
-    border-radius: 10px;
-    font-size: 16px;
+    border-radius: 6px;
+    font-size: 12px;
     font-weight: 700;
     cursor: pointer;
     transition: all 0.2s ease;
+    min-height: 38px;
 }
 
 body.modal-open .btn-confirm {
     background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
     color: white;
-    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
+    box-shadow: 0 2px 5px rgba(34, 197, 94, 0.25);
 }
 
 body.modal-open .btn-confirm:active {
-    transform: scale(0.97);
-    box-shadow: 0 1px 4px rgba(34, 197, 94, 0.4);
+    transform: scale(0.98);
+    box-shadow: 0 1px 3px rgba(34, 197, 94, 0.35);
 }
 
 body.modal-open .btn-cancel {
-    background: rgba(148, 163, 184, 0.2);
+    background: rgba(148, 163, 184, 0.15);
     color: #475569;
-    border: 1px solid rgba(148, 163, 184, 0.4);
+    border: 1px solid rgba(148, 163, 184, 0.3);
 }
 
 body.modal-open .btn-cancel:active {
-    background: rgba(148, 163, 184, 0.35);
-    transform: scale(0.97);
+    background: rgba(148, 163, 184, 0.28);
+    transform: scale(0.98);
 }
+
 
 /* ========================================================================
    HIDE STATUS SECTION (Not needed on iPhone)
@@ -449,6 +492,7 @@ body.modal-open .btn-cancel:active {
 body.modal-open .cio-status {
     display: none !important;
 }
+
 
 /* ========================================================================
    ANIMATIONS
@@ -468,25 +512,26 @@ body.modal-open .history-table tr.deleting {
     animation: slideOutRight 0.3s ease-out forwards;
 }
 
+
 /* ========================================================================
    TOAST NOTIFICATIONS
    ======================================================================== */
 
 body.modal-open .cio-toast {
     position: fixed;
-    bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+    bottom: calc(60px + env(safe-area-inset-bottom, 0px));
     left: 50%;
     transform: translateX(-50%) translateY(20px);
-    padding: 14px 24px;
-    border-radius: 10px;
-    font-size: 15px;
+    padding: 10px 18px;
+    border-radius: 6px;
+    font-size: 11px;
     font-weight: 600;
     color: white;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-    z-index: 10001;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+    z-index: 10002;
     opacity: 0;
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    max-width: 90%;
+    max-width: 88%;
 }
 
 body.modal-open .cio-toast.show {
@@ -506,32 +551,30 @@ body.modal-open .cio-toast-info {
     background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
 }
 
+
 /* ========================================================================
    SCROLLBAR STYLING
    ======================================================================== */
 
-body.modal-open .history-wrap::-webkit-scrollbar,
-body.modal-open .cio-inputs::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+body.modal-open .history-wrap::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
 }
 
-body.modal-open .history-wrap::-webkit-scrollbar-track,
-body.modal-open .cio-inputs::-webkit-scrollbar-track {
-    background: rgba(94, 82, 64, 0.08);
-    border-radius: 3px;
+body.modal-open .history-wrap::-webkit-scrollbar-track {
+    background: rgba(94, 82, 64, 0.05);
+    border-radius: 2px;
 }
 
-body.modal-open .history-wrap::-webkit-scrollbar-thumb,
-body.modal-open .cio-inputs::-webkit-scrollbar-thumb {
-    background: rgba(94, 82, 64, 0.3);
-    border-radius: 3px;
+body.modal-open .history-wrap::-webkit-scrollbar-thumb {
+    background: rgba(94, 82, 64, 0.25);
+    border-radius: 2px;
 }
 
-body.modal-open .history-wrap::-webkit-scrollbar-thumb:active,
-body.modal-open .cio-inputs::-webkit-scrollbar-thumb:active {
-    background: rgba(94, 82, 64, 0.5);
+body.modal-open .history-wrap::-webkit-scrollbar-thumb:active {
+    background: rgba(94, 82, 64, 0.45);
 }
+
 
 /* ========================================================================
    DARK MODE SUPPORT
@@ -542,9 +585,30 @@ body.modal-open .cio-inputs::-webkit-scrollbar-thumb:active {
         background: var(--color-surface, #262828);
     }
 
+    body.modal-open .checkio-header {
+        background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+        border-bottom-color: rgba(119, 124, 124, 0.3);
+    }
+
+    body.modal-open .mode-btn {
+        background: #374151;
+        color: #9ca3af;
+        border-color: #4b5563;
+    }
+
+    body.modal-open .btn-close-compact {
+        background: rgba(156, 163, 175, 0.15);
+        border-color: rgba(156, 163, 175, 0.3);
+        color: #9ca3af;
+    }
+
+    body.modal-open .checkio-body {
+        background: #1f2020;
+    }
+
     body.modal-open .cio-history,
     body.modal-open .cio-inputs {
-        background: rgba(119, 124, 124, 0.1);
+        background: rgba(119, 124, 124, 0.08);
     }
 
     body.modal-open .cio-history h4,
@@ -555,7 +619,7 @@ body.modal-open .cio-inputs::-webkit-scrollbar-thumb:active {
 
     body.modal-open .form-control,
     body.modal-open .filter-row input {
-        background: rgba(119, 124, 124, 0.15);
+        background: rgba(119, 124, 124, 0.12);
         border-color: rgba(119, 124, 124, 0.3);
         color: #f5f5f5;
     }
@@ -571,11 +635,27 @@ body.modal-open .cio-inputs::-webkit-scrollbar-thumb:active {
     }
 
     body.modal-open .history-table {
-        background: rgba(38, 40, 40, 0.8);
+        background: rgba(38, 40, 40, 0.85);
+    }
+
+    body.modal-open .btn-row {
+        background: #262828;
+        border-top-color: rgba(119, 124, 124, 0.2);
     }
 
     body.modal-open .btn-cancel {
-        background: rgba(148, 163, 184, 0.25);
+        background: rgba(148, 163, 184, 0.2);
         color: #cbd5e1;
+    }
+}
+
+
+/* ========================================================================
+   RESPONSIVE MOBILE ADJUSTMENTS
+   ======================================================================== */
+
+@media (max-width: 600px) {
+    body.modal-open .btn-row {
+        position: fixed !important;
     }
 }

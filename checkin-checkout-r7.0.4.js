@@ -12,6 +12,7 @@
   
   let currentItem = null;
   let currentMode = 'check-in';
+  let isClosingAfterSave = false; // NEW: Flag để tránh dispatch duplicate
 
   // ✅ NEW: SESSION STORAGE TRACKER (THÊM ĐOẠN NÀY)
   const SESSION_KEY_LAST_ACTION = 'checkin_last_action_timestamp';
@@ -473,58 +474,51 @@
     },
 
 
-    // ✅ NEW METHOD: Auto-fill employee and notes logic
+    // AUTO-FILL BASED ON STATUS  
     applyAutoFillLogic(item, mode, historyLogs, empList) {
-        const empSelect = document.getElementById('cio-emp');
-        const noteInput = document.getElementById('cio-note');
+        const currentStatus = this.getCurrentStatus(item.MoldID || item.CutterID, item.MoldID ? 'mold' : 'cutter');
+        console.log('[AutoFill] Current status:', currentStatus, 'Requested Mode:', mode);
         
-        if (!empSelect || !noteInput) return;
+        // === CRITICAL: KHÔNG thay đổi UI mode, chỉ auto-fill data ===
         
-        const latestLog = historyLogs[0];
-        const currentStatus = latestLog ? latestLog.Status : null;
+        const lastLog = historyLogs[0];
         
-        console.log('[AutoFill] Current status:', currentStatus, 'Mode:', mode);
+        // Auto-fill employee
+        const empInput = document.getElementById('cio-emp');
+        if (empInput && lastLog) {
+            empInput.value = lastLog.EmployeeID || '';
+        }
         
-        if (mode === 'check-in') {
-            // Logic 1: Khuôn đang OUT → auto-select người đã checkout
-            if (currentStatus === 'check-out' && latestLog?.EmployeeID) {
-                const employee = empList.find(e => e.EmployeeID === latestLog.EmployeeID);
-                if (employee) {
-                    empSelect.value = latestLog.EmployeeID;
-                    console.log('[AutoFill] ✅ Selected last checkout employee:', employee.EmployeeName);
-                    
-                    // Visual feedback
-                    empSelect.style.background = '#FEF3C7';
-                    setTimeout(() => { empSelect.style.background = ''; }, 2000);
-                }
-            }
-            
-            // Logic 2: Không có lịch sử HOẶC đang IN → default note "棚卸し"
-            if (!currentStatus || currentStatus === 'check-in') {
-                if (!noteInput.value.trim()) {
-                    noteInput.value = '棚卸し';
-                    noteInput.placeholder = 'Kiểm kê kho / 棚卸し';
-                    console.log('[AutoFill] ✅ Applied inventory note');
-                }
+        // Auto-fill destination (only if mode is check-out)
+        const destInput = document.getElementById('cio-dest');
+        if (destInput && lastLog && mode === 'check-out') {
+            destInput.value = lastLog.DestinationID || '';
+        }
+        
+        // === CRITICAL FIX: Show/hide destination group BASED ON mode PARAMETER ===
+        const destGroup = document.querySelector('.dest-group');
+        if (destGroup) {
+            // ✅ ĐÚNG: Check biến mode (parameter), KHÔNG check currentStatus
+            if (mode === 'check-out') {
+                destGroup.classList.remove('hidden');
+                console.log('[AutoFill] ✅ Destination group SHOWN for check-out mode');
+            } else {  // mode === 'check-in'
+                destGroup.classList.add('hidden');
+                console.log('[AutoFill] ✅ Destination group HIDDEN for check-in mode');
             }
         }
         
-        // Focus vào trường đầu tiên chưa điền
-        setTimeout(() => {
-            if (!empSelect.value) {
-                empSelect.focus();
-            } else if (mode === 'check-out') {
-                const destSelect = document.getElementById('cio-dest');
-                if (destSelect && !destSelect.value) {
-                    destSelect.focus();
-                }
-            } else {
-                noteInput.focus();
+        // Auto-fill note based on current status
+        const noteInput = document.getElementById('cio-note');
+        if (noteInput && currentStatus) {
+            if (mode === 'check-in') {
+                noteInput.value = '在庫確認 / Kiểm kê';
+            } else if (currentStatus === 'check-out') {
+                noteInput.value = '返却 / Trả về';
             }
-        }, 100);
-    },
-
-    
+            console.log('[AutoFill] ✅ Applied note for status:', currentStatus);
+        }
+    },    
 
     // ========================================
     // OPEN MODAL
@@ -535,8 +529,25 @@
         return;
       }
 
+        
+      if (!item.MoldID && !item.CutterID) {
+          console.error('[CheckInOut] ❌ Item missing ID:', item);
+          alert('Lỗi: Không tìm thấy MoldID hoặc CutterID');
+          return;
+      }
+
+      // Store item globally
       currentMode = mode;
       currentItem = item;
+
+      console.log('[CheckInOut] ✅ Opening modal with item:', {
+        MoldID: item.MoldID,
+        CutterID: item.CutterID,
+        MoldCode: item.MoldCode,
+        mode: mode,  // ← Thêm dòng này để log mode
+        currentMode: currentMode  // Confirm currentMode is set correctly
+    });
+
       this.close(); // Đóng modal cũ
 
       // ✅ R7.0.4: Add modal-open class to body for iPhone mobile CSS
@@ -712,11 +723,8 @@
       // Chèn vào DOM
       upper.insertAdjacentHTML('beforeend', html);
 
-      // ✅ NEW: Auto-fill logic sau khi render modal
-      this.applyAutoFillLogic(item, mode, historyLogs, empList);
-      
-      // Căn kích thước
-      //this.alignGrid();  // ← ❌ BỎ DÒNG NÀY DO LÀM SAI KÍCH THƯỚC POPUP
+      // NEW Auto-fill logic sau khi render modal
+      this.applyAutoFillLogic(item, mode, historyLogs, empList);     
 
       // Bind events
       this.bindModalEvents(item, destList, empList);
@@ -863,46 +871,67 @@
         saveBtn.addEventListener('click', () => this.saveRecord(item));
       }
 
-      // ========================================
-      // FIX: Chuyển đổi mode (Đã sửa lỗi event listener)
-      // ========================================
+      // FIX: Chuyển đổi mode (sửa lại event listener)
       const inBtn = document.getElementById('btn-in');
       const outBtn = document.getElementById('btn-out');
-      
+
       if (inBtn) {
-        inBtn.addEventListener('click', () => this.switchMode('check-in'));
+          inBtn.addEventListener('click', () => {
+              if (currentMode !== 'check-in') {  // Only switch if different
+                  this.switchMode('check-in');
+              }
+          });
       }
+
       if (outBtn) {
-        outBtn.addEventListener('click', () => this.switchMode('check-out'));
+          outBtn.addEventListener('click', () => {
+              if (currentMode !== 'check-out') {  // Only switch if different
+                  this.switchMode('check-out');
+              }
+          });
       }
+
     },
 
-    // ========================================
     // SWITCH MODE
-    // ========================================
     switchMode(newMode) {
-      currentMode = newMode;
-      
-      const inBtn = document.getElementById('btn-in');
-      const outBtn = document.getElementById('btn-out');
-      
-      if (inBtn && outBtn) {
-        inBtn.classList.toggle('active', newMode === 'check-in');
-        outBtn.classList.toggle('active', newMode === 'check-out');
-      }
-
-      // Hiển thị/ẩn dropdown địa điểm
-      const destGroup = document.querySelector('.dest-group');
-      if (destGroup) {
-        if (newMode === 'check-out') {
-          destGroup.classList.remove('hidden');
-        } else {
-          destGroup.classList.add('hidden');
+        // Prevent redundant switching
+        if (currentMode === newMode) {
+            console.log('[CheckInOut] Mode already set to:', newMode);
+            return;
         }
-      }
-
-      console.log('[CheckInOut V6] Mode switched to:', newMode);
+        
+        currentMode = newMode;
+        
+        const inBtn = document.getElementById('btn-in');
+        const outBtn = document.getElementById('btn-out');
+        const destGroup = document.querySelector('.dest-group');
+        
+        // Update button active states
+        if (inBtn && outBtn) {
+            inBtn.classList.remove('active');
+            outBtn.classList.remove('active');
+            
+            if (newMode === 'check-in') {
+                inBtn.classList.add('active');
+            } else {
+                outBtn.classList.add('active');
+            }
+        }
+        
+        // Show/hide destination dropdown
+        if (destGroup) {
+            if (newMode === 'check-out') {
+                destGroup.classList.remove('hidden');
+            } else {
+                destGroup.classList.add('hidden');
+            }
+        }
+        
+        console.log('[CheckInOut] V6 Mode switched to:', newMode);
     },
+
+
 
 
     // ========================================
@@ -955,6 +984,22 @@
             destInput?.focus();
             return;
         }
+
+        
+        // === CRITICAL FIX: VALIDATE ITEM DATA ===
+        if (!item || (!item.MoldID && !item.CutterID)) {
+            console.error('[CheckInOut] ❌ Missing item data:', item);
+            alert('Lỗi: Không tìm thấy MoldID hoặc CutterID');
+            this.showBilingualToast('error');
+            return;
+        }
+
+        // Log validated item
+        console.log('[CheckInOut] ✅ Item validated:', {
+            MoldID: item.MoldID,
+            CutterID: item.CutterID,
+            MoldCode: item.MoldCode
+        });
         
         // ✅ R6.9.8: Determine status based on current state
         let status = currentMode;
@@ -1029,8 +1074,26 @@
             }
         }));
         
-        // Đóng modal ngay (không chờ GitHub)
-        setTimeout(() => { CheckInOut.close(); }, 300);
+        // === FIX: Đóng modal ngay và dispatch event để đóng modal chi tiết ===
+        setTimeout(() => {
+            isClosingAfterSave = true; // Set flag trước khi close
+            CheckInOut.close();
+            
+            // Dispatch success event để mobile detail modal biết và tự đóng
+            document.dispatchEvent(new CustomEvent('checkin-completed', {
+                detail: {
+                    item: item,
+                    success: true,
+                    mode: currentMode,
+                    timestamp: new Date().toISOString()
+                }
+            }));
+            
+            console.log('[CheckInOut] ✅ Dispatched checkin-completed event');
+            // Reset flag sau khi xong
+            setTimeout(() => { isClosingAfterSave = false; }, 100);
+        }, 300);
+
         
         // ✅ BƯỚC 3: Background GitHub sync (Wrap trong setTimeout để không chặn UI)
         setTimeout(async () => {
@@ -1047,9 +1110,16 @@
      * ✅ R6.5: Background sync to GitHub - HỌC THEO LOCATION MODULE
      */
     async syncToGitHub(data, localId, moldId) {
-        console.log('[CheckInOut] 🔄 Starting background sync...', { localId, moldId });
-        
-        try {
+      console.log('[CheckInOut] 🔄 Starting background sync...', { localId, moldId, data });
+
+      try {
+          // === CRITICAL VALIDATION ===
+          if (!data.MoldID && !data.CutterID) {
+              throw new Error('MoldID or CutterID required');
+          }
+
+          console.log('[CheckInOut] ✅ Data validated, sending to API...');
+
             // ===================================================
             // BƯỚC 1: POST TO GITHUB VIA SERVER
             // ===================================================
@@ -1323,37 +1393,49 @@
       return dest ? dest.DestinationName : destId;
     },
 
-    // ========================================
-    // CLOSE MODAL
-    // ========================================
     // CLOSE MODAL
     close() {
         const panel = document.getElementById('cio-panel');
         if (panel) {
             panel.remove();
-            console.log('[CheckInOut V6] Closed panel');
+            console.log('[CheckInOut] V6 Closed panel');
         }
 
-        // ✅ R7.0.4: Remove modal-open class from body for iPhone mobile CSS
-        if (document.body.classList.contains('modal-open')) {
-            // ✅ THAY BẰNG: Chỉ xoá panel cũ nếu có
-            const existingPanel = document.getElementById('checkio-panel');
-            if (existingPanel) {
-                existingPanel.remove();
-            }
-            console.log('[CheckInOut] ✅ Removed modal-open class from body');
+        // === NEW: Chỉ dispatch cancel event nếu KHÔNG phải từ saveRecord ===
+        if (!isClosingAfterSave) {
+            document.dispatchEvent(new CustomEvent('module-cancelled', {
+                detail: {
+                    module: 'checkin',
+                    item: currentItem,
+                    timestamp: new Date().toISOString()
+                }
+            }));
+            console.log('[CheckInOut] ✅ Dispatched module-cancelled event');
+        } else {
+            console.log('[CheckInOut] ℹ️ Skipped module-cancelled (closing after save)');
         }
+
+        // R7.0.4: Remove modal-open class from body (for iPhone mobile CSS)
+        if (document.body.classList.contains('modal-open')) {
+            // THAY BẰNG: Chỉ xóa panel cũ nếu có
+            const existingPanel = document.getElementById('checkio-panel');
+            if (existingPanel) existingPanel.remove();
+        }
+        
+        document.body.classList.remove('modal-open');
+        console.log('[CheckInOut] ✅ Removed modal-open class from body');
 
         // TRẢ BÀN PHÍM VỀ SEARCHBOX KHI ĐÓNG POPUP
-        const searchBox = document.querySelector('#search-input');
+        const searchBox = document.querySelector('search-input');
         if (searchBox) {
             searchBox.focus();
             document.dispatchEvent(new CustomEvent('keyboard:attach', {
                 detail: { element: searchBox }
             }));
-            console.log('[CheckInOut V6] Keyboard reattached to searchbox');
+            console.log('[CheckInOut] V6 Keyboard reattached to searchbox');
         }
     },
+
 
 
     // ========================================

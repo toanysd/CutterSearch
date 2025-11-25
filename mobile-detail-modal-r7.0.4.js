@@ -152,9 +152,7 @@ class MobileDetailModal {
     }
 
 
-    /**
-     * Bind events
-     */
+    // Bind events
     bindEvents() {
         // Close button
         const closeBtn = this.modal.querySelector('.modal-close-btn');
@@ -168,7 +166,6 @@ class MobileDetailModal {
                 this.hide();
             }
         });
-        
 
         // Listen for custom events to show modal
         document.addEventListener('showMobileDetail', (e) => {
@@ -176,9 +173,29 @@ class MobileDetailModal {
             this.show(item, type);
         });
 
-        console.log('✅ Modal events bound');
+        // === NEW: Listen for module completion events ===
         
+        // Check-in/Check-out completed successfully -> ĐÓNG MODAL
+        document.addEventListener('checkin-completed', (e) => {
+            console.log('[MobileModal] ✅ Check-in/check-out completed, closing detail modal');
+            this.hide(); // Đóng modal chi tiết
+        });
+
+        // Location update completed successfully -> ĐÓNG MODAL
+        document.addEventListener('location-updated', (e) => {
+            console.log('[MobileModal] ✅ Location updated, closing detail modal');
+            this.hide(); // Đóng modal chi tiết
+        });
+
+        // Module cancelled (user clicked Cancel or X) -> GIỮ MODAL
+        document.addEventListener('module-cancelled', (e) => {
+            console.log('[MobileModal] ⚠️ Module cancelled, keeping detail modal open');
+            // Không làm gì, giữ nguyên modal chi tiết để user tiếp tục thao tác
+        });
+
+        console.log('✅ Modal events bound (with checkin-completed listener)');
     }
+
     /**
      * Load data references from DataManager
      */
@@ -219,61 +236,76 @@ class MobileDetailModal {
     /**
      * Show/hide modal
      */
+    // Show/hide modal
     show(item, type = 'mold') {
-        // ✅ R7.0.3 FIX: Allow re-opening modal for related equipment
+        // R7.0.3: FIX - Allow re-opening modal for related equipment
         if (!this.shouldShowModal || !item) {
-            console.warn('[Modal] Cannot show modal:', { shouldShow: this.shouldShowModal, hasItem: !!item });
+            console.warn('[Modal] Cannot show modal', {
+                shouldShow: this.shouldShowModal,
+                hasItem: !!item
+            });
             return;
         }
 
-        if (!this.isMobile || !item) return;
-        
+        if (!this.isMobile && !item) return;
+
         console.log('[Modal] Opening detail modal', item, type);
+
+        // === FIX: Store item FIRST before any rendering ===
         this.currentItem = item;
         this.currentItemType = type;
-        
-        // ✅ FIX: Update header title with CORRECT format
+
+        console.log('[Modal] Item stored:', {
+            MoldID: item.MoldID,
+            CutterID: item.CutterID,
+            MoldCode: item.MoldCode,
+            itemType: type
+        });
+
+        // FIX: Update header title with CORRECT format
         const typeLabel = this.modal.querySelector('.item-type-label');
         const idCode = this.modal.querySelector('.item-id-code');
-        
+
         if (typeLabel && idCode) {
             if (type === 'mold') {
-                typeLabel.textContent = '金型:';
-                idCode.textContent = `${item.MoldID || '-'} ${item.MoldCode || item.MoldName || '-'}`;
+                typeLabel.textContent = '金型';
+                idCode.textContent = `${item.MoldID} - ${item.MoldCode} ${item.MoldName || ''}`;
             } else {
-                typeLabel.textContent = '抜型:';
-                idCode.textContent = `${'ID.'} ${item.CutterID || '-'} ${'No.'} ${item.CutterNo || '-'} ${item.CutterName || item.CutterCode || '-'}`;
+                typeLabel.textContent = '刃型';
+                idCode.textContent = `ID: ${item.CutterID} - No. ${item.CutterNo} - ${item.CutterName || item.CutterCode || ''}`;
             }
         }
-        
+
         // Reload data if needed
         if (this.data.molds.length === 0) {
             this.loadDataReferences();
         }
-        
+
         // Render content
         this.renderContent();
-        
-        // Render action buttons
+
+        // Render action buttons (will use this.currentItem internally)
         this.renderActionButtons();
-        
+
         // Show modal
         this.modal.classList.remove('hidden');
         this.modal.classList.add('show');
         document.body.style.overflow = 'hidden';
-        
-        // ✅ R7.0.3: Reset scroll position to top
-            if (this.modalContent) {
-                this.modalContent.scrollTop = 0;
-            }
-            // Backup: Also reset modal body if exists
-            const modalBody = this.modal?.querySelector('.mobile-modal-body');
-            if (modalBody) {
-                modalBody.scrollTop = 0;
-            }
-            
-            console.log('✅ Modal shown with scroll reset');
+
+        // R7.0.3: Reset scroll position to top
+        if (this.modalContent) {
+            this.modalContent.scrollTop = 0;
         }
+
+        // Backup: Also reset modal body if exists
+        const modalBody = this.modal?.querySelector('.mobile-modal-body');
+        if (modalBody) {
+            modalBody.scrollTop = 0;
+        }
+
+        console.log('✅ Modal shown with scroll reset');
+    }
+
 
 
     /**
@@ -1210,86 +1242,82 @@ class MobileDetailModal {
         return html;
     }
 
-    /**
-     * R7.0.4: RENDER ACTION BUTTONS (Fixed for iPhone)
-     * - Normal mode: 8 buttons (4x2 grid)
-     * - Inventory mode: 2 buttons
-     * - ✅ Bind events immediately after rendering
-     */
+    // R7.0.4 RENDER ACTION BUTTONS - Fixed for iPhone
     renderActionButtons() {
+        // === FIX: Use this.currentItem and this.currentItemType ===
         if (!this.currentItem) {
             console.warn('[MobileModal] renderActionButtons: No current item');
             return;
         }
 
-        // R7.0.2: Kiểm tra chế độ từ toggle đầu tiên hoặc InventoryState
+        // R7.0.2: Check toggle state first or InventoryState
         const isInventoryMode = this.inventoryMode || !!window.InventoryState?.active;
 
         console.log('[MobileModal] renderActionButtons:', {
             isInventoryMode,
-            currentItem: this.currentItem,
+            currentItem: this.currentItem?.MoldCode || this.currentItem?.CutterNo,
+            itemType: this.currentItemType,
             hasModalActions: !!this.modalActions
         });
 
         if (isInventoryMode) {
-            // INVENTORY MODE: 2 nút
+            // INVENTORY MODE: 2 buttons
             this.modalActions.innerHTML = `
                 <div class="action-buttons-grid inventory-mode">
-                    <button class="action-btn btn-inv-audit" data-action="inventory-audit">
+                    <button id="mobile-action-inventory-audit" class="action-btn btn-inv-audit" data-action="inventory-audit">
                         <i class="fas fa-clipboard-check"></i>
-                        <span class="btn-label-ja">棚卸確認</span>
+                        <span class="btn-label-ja">監査</span>
                         <span class="btn-label-vi">Kiểm kê</span>
                     </button>
-                    <button class="action-btn btn-inv-relocate" data-action="inventory-relocate">
+                    <button id="mobile-action-inventory-relocate" class="action-btn btn-inv-relocate" data-action="inventory-relocate">
                         <i class="fas fa-map-marked-alt"></i>
-                        <span class="btn-label-ja">棚卸移動</span>
-                        <span class="btn-label-vi">Dời vị trí & Kiểm kê</span>
+                        <span class="btn-label-ja">移動監査</span>
+                        <span class="btn-label-vi">Đổi vị trí + Kiểm kê</span>
                     </button>
                 </div>
             `;
         } else {
-            // NORMAL MODE: 8 nút (4x2)
+            // NORMAL MODE: 8 buttons in 4x2 grid - === FIX: ADD ID TO EACH BUTTON ===
             this.modalActions.innerHTML = `
                 <div class="action-buttons-grid normal-mode">
                     <!-- Row 1 -->
-                    <button class="action-btn btn-checkin" data-action="checkin">
+                    <button id="mobile-action-checkin" class="action-btn btn-checkin" data-action="checkin">
                         <i class="fas fa-sign-in-alt"></i>
-                        <span class="btn-label-ja">チェックイン</span>
+                        <span class="btn-label-ja">入庫</span>
                         <span class="btn-label-vi">Check-in</span>
                     </button>
-                    <button class="action-btn btn-checkout" data-action="checkout">
+                    <button id="mobile-action-checkout" class="action-btn btn-checkout" data-action="checkout">
                         <i class="fas fa-sign-out-alt"></i>
-                        <span class="btn-label-ja">チェックアウト</span>
+                        <span class="btn-label-ja">出庫</span>
                         <span class="btn-label-vi">Check-out</span>
                     </button>
-                    <button class="action-btn btn-location" data-action="location">
+                    <button id="mobile-action-location" class="action-btn btn-location" data-action="location">
                         <i class="fas fa-map-marker-alt"></i>
-                        <span class="btn-label-ja">位置変更</span>
-                        <span class="btn-label-vi">Vị trí giá</span>
+                        <span class="btn-label-ja">位置</span>
+                        <span class="btn-label-vi">Vị trí / Giá</span>
                     </button>
-                    <button class="action-btn btn-transport" data-action="transport">
+                    <button id="mobile-action-transport" class="action-btn btn-transport" data-action="transport">
                         <i class="fas fa-truck"></i>
-                        <span class="btn-label-ja">出荷</span>
+                        <span class="btn-label-ja">配送</span>
                         <span class="btn-label-vi">Vận chuyển</span>
                     </button>
-
                     <!-- Row 2 -->
-                    <button class="action-btn btn-teflon" data-action="teflon">
+                    <button id="mobile-action-teflon" class="action-btn btn-teflon" data-action="teflon">
                         <i class="fas fa-shield-alt"></i>
                         <span class="btn-label-ja">テフロン</span>
                         <span class="btn-label-vi">Teflon</span>
                     </button>
-                    <button class="action-btn btn-print" data-action="print">
+                    <button id="mobile-action-print" class="action-btn btn-print" data-action="print">
                         <i class="fas fa-print"></i>
                         <span class="btn-label-ja">印刷</span>
-                        <span class="btn-label-vi">In ấn</span>
+                        <span class="btn-label-vi">In nhãn</span>
                     </button>
-                    <button class="action-btn btn-qrcode" data-action="qrcode">
+                    <button id="mobile-action-qrcode" class="action-btn btn-qrcode" data-action="qrcode">
                         <i class="fas fa-qrcode"></i>
-                        <span class="btn-label-ja">QRコード</span>
+                        <span class="btn-label-ja">QR</span>
                         <span class="btn-label-vi">QR Code</span>
                     </button>
-                    <button class="action-btn btn-comments" data-action="comments">
+                    <button id="mobile-action-comments" class="action-btn btn-comments" data-action="comments">
                         <i class="fas fa-comment-alt"></i>
                         <span class="btn-label-ja">コメント</span>
                         <span class="btn-label-vi">Ghi chú</span>
@@ -1298,11 +1326,13 @@ class MobileDetailModal {
             `;
         }
 
-        // ✅ R7.0.4: Bind events immediately after rendering
-        this.bindActionButtons();
-        
+        // === FIX: Pass this.currentItem and this.currentItemType ===
+        this.bindActionButtons(this.currentItem, this.currentItemType);
+
         console.log('[MobileModal] ✅ Action buttons rendered and bound');
     }
+
+
 
 
 
@@ -1315,42 +1345,55 @@ class MobileDetailModal {
      * - ✅ Add proper error handling
      * - ✅ Log each button binding
      */
-    bindActionButtons() {
-        if (!this.modalActions) {
-            console.error('[MobileModal] bindActionButtons: modalActions not found');
+    // BIND ACTION BUTTONS
+    bindActionButtons(item, itemType) {
+        console.log('[MobileModal] Binding action buttons for:', itemType, item);
+        
+        // === VALIDATE ITEM ===
+        if (!item) {
+            console.error('[MobileModal] ❌ Cannot bind buttons: no item');
             return;
         }
-
-        const actionBtns = this.modalActions.querySelectorAll('.action-btn');
         
-        if (!actionBtns || actionBtns.length === 0) {
-            console.warn('[MobileModal] bindActionButtons: No action buttons found');
-            return;
-        }
-
-        console.log(`[MobileModal] Binding ${actionBtns.length} action buttons...`);
+        const buttons = [
+            { id: 'mobile-action-checkin', action: 'checkin' },
+            { id: 'mobile-action-checkout', action: 'checkout' },
+            { id: 'mobile-action-location', action: 'location' },
+            { id: 'mobile-action-transport', action: 'transport' },
+            { id: 'mobile-action-teflon', action: 'teflon' },
+            { id: 'mobile-action-print', action: 'print' },
+            { id: 'mobile-action-qrcode', action: 'qrcode' },
+            { id: 'mobile-action-comments', action: 'comments' }
+        ];
         
-        actionBtns.forEach((btn, index) => {
-            const action = btn.dataset.action;
-            
-            // ✅ Remove existing listener (if any) by cloning
-            const newBtn = btn.cloneNode(true);
-            btn.parentNode.replaceChild(newBtn, btn);
-            
-            // ✅ Add new listener
-            newBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
+        console.log('[MobileModal] Binding', buttons.length, 'action buttons...');
+        
+        buttons.forEach(({ id, action }) => {
+            const btn = document.getElementById(id);
+            if (btn) {
+                // Remove old listeners
+                const newBtn = btn.cloneNode(true);
+                btn.parentNode.replaceChild(newBtn, btn);
                 
-                console.log(`[MobileModal] Button clicked: ${action}`);
-                this.handleActionClick(action);
-            });
-            
-            console.log(`[MobileModal] ✅ Button ${index + 1} bound: ${action}`);
+                // Add new listener with correct parameters
+                newBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // === FIX: Pass item object, not string ===
+                    console.log('[MobileModal] Button clicked:', action, 'item:', item);
+                    this.handleActionClick(action, item, itemType);
+                });
+                
+                console.log('[MobileModal] ✅ Button bound:', action);
+            } else {
+                console.warn('[MobileModal] ⚠️ Button not found:', id);
+            }
         });
         
         console.log('[MobileModal] ✅ All action buttons bound successfully');
     }
+
 
 
         /**
@@ -1394,88 +1437,68 @@ class MobileDetailModal {
      * - ✅ Add proper error handling
      * - ✅ Support both Check-in and Check-out actions
      */
-    handleActionClick(action) {
-        console.log('[MobileModal] handleActionClick:', action);
+    // HANDLE ACTION BUTTON CLICKS
+    handleActionClick(action, item, itemType) {
+        console.log('[MobileModal] Button clicked:', action);
+        console.log('MobileModal handleActionClick', action);
         
-        const item = this.currentItem;
-        const type = this.currentItemType;
-
+        // === VALIDATE ITEM ===
         if (!item) {
-            console.error('[MobileModal] No current item for action:', action);
+            console.error('[MobileModal] ❌ No item provided to handleActionClick');
+            alert('Lỗi: Không có dữ liệu vật phẩm');
             return;
         }
-
-        console.log('[MobileModal] Action:', action, 'Item:', item, 'Type:', type);
-
-        switch (action) {
-            case 'location':
-                // ✅ Close mobile modal first, then trigger location update
-                this.hide();
-                setTimeout(() => {
-                    this.triggerLocationUpdate(item, type);
-                }, 300);
-                break;
-                
+        
+        if (typeof item === 'string') {
+            console.error('[MobileModal] ❌ Item is string, expected object:', item);
+            alert('Lỗi: Dữ liệu vật phẩm không hợp lệ');
+            return;
+        }
+        
+        console.log('[MobileModal] Item data:', {
+            MoldID: item.MoldID,
+            CutterID: item.CutterID,
+            MoldCode: item.MoldCode,
+            itemType: itemType
+        });
+        
+        switch(action) {
             case 'checkin':
-                // ✅ Close mobile modal first, then trigger check-in
-                this.hide();
-                setTimeout(() => {
-                    this.triggerCheckInOut(item, type, 'check-in');
-                }, 300);
-                break;
-                
             case 'checkout':
-                // ✅ Close mobile modal first, then trigger check-out
-                this.hide();
-                setTimeout(() => {
-                    this.triggerCheckInOut(item, type, 'check-out');
-                }, 300);
+                // === FIX: Pass action (mode) as third parameter ===
+                this.triggerCheckInOut(item, itemType, action);
                 break;
+
                 
-            case 'status':
-                // Trigger status update module
-                this.triggerStatusUpdate(item, type);
-                break;
-                
-            case 'comments':
-                // Trigger comments module
-                this.triggerCommentsUpdate(item, type);
+            case 'location':
+                this.triggerLocationUpdate(item, itemType);
                 break;
                 
             case 'transport':
-                // R7.0.2: Vận chuyển
-                this.triggerTransport(item, type);
+                this.triggerTransportUpdate(item, itemType);
                 break;
                 
             case 'teflon':
-                // R7.0.2: Teflon
-                this.triggerTeflon(item, type);
+                this.triggerTeflonUpdate(item, itemType);
                 break;
                 
             case 'print':
-                // R7.0.2: In ấn
-                this.triggerPrint(item, type);
+                this.triggerPrintLabel(item, itemType);
                 break;
                 
             case 'qrcode':
-                // R7.0.2: QR Code
-                this.triggerQRCode(item, type);
+                this.triggerQRCode(item, itemType);
                 break;
                 
-            case 'inventory-audit':
-                // R6.9.5: Kiểm kê đơn thuần
-                this.handleInventoryAudit();
-                break;
-                
-            case 'inventory-relocate':
-                // R6.9.5: Dời vị trí + Kiểm kê
-                this.handleInventoryRelocate();
+            case 'comments':
+                this.triggerComments(item, itemType);
                 break;
                 
             default:
                 console.warn('[MobileModal] Unknown action:', action);
         }
     }
+
 
 
     /**
@@ -1531,44 +1554,58 @@ class MobileDetailModal {
      * @param {String} type - 'mold' or 'cutter'
      * @param {String} mode - 'check-in' or 'check-out'
      */
-    triggerCheckInOut(item, type, mode = 'check-in') {
-        console.log('[MobileModal] triggerCheckInOut:', { item, type, mode });
+    // TRIGGER CHECK-IN/CHECK-OUT
+    triggerCheckInOut(item, itemType, mode = 'check-in') {
+        console.log('[MobileModal] triggerCheckInOut:', item, itemType, 'mode:', mode);
         
-        // ✅ Try multiple API names
-        const checkInAPI = window.CheckInOut || 
-                          window.CheckInOutManager || 
-                          window.CheckInOutModule;
-        
-        if (!checkInAPI) {
-            console.error('[MobileModal] CheckInOut module not found');
-            alert('Check-in/Check-out module chưa được load');
+        // === CRITICAL FIX: VALIDATE ITEM DATA ===
+        if (!item || typeof item === 'string') {
+            console.error('[MobileModal] ❌ Invalid item parameter:', item);
+            alert('Lỗi: Dữ liệu vật phẩm không hợp lệ');
             return;
         }
-
-        // ✅ Try different method names
-        const openMethod = checkInAPI.openModal || 
-                          checkInAPI.openCheckInModal || 
-                          checkInAPI.showCheckInPanel;
         
-        if (!openMethod) {
-            console.error('[MobileModal] CheckInOut module has no open method');
-            alert('Check-in module không hỗ trợ openModal');
+        // Validate ID exists
+        if (!item.MoldID && !item.CutterID) {
+            console.error('[MobileModal] ❌ Missing ID in item:', item);
+            alert('Lỗi: Không tìm thấy MoldID hoặc CutterID');
             return;
         }
-
-        console.log('[MobileModal] ✅ Opening Check-in/Check-out module...');
-
-        // ✅ Call the module's open method with mode parameter
-        try {
-            openMethod.call(checkInAPI, item, type, mode);
-            console.log('[MobileModal] ✅ Check-in/Check-out module opened');
-        } catch (error) {
-            console.error('[MobileModal] Error opening Check-in/Check-out:', error);
-            alert('Lỗi khi mở Check-in/Check-out: ' + error.message);
+        
+        console.log('[MobileModal] ✅ Item validated:', {
+            MoldID: item.MoldID,
+            CutterID: item.CutterID,
+            MoldCode: item.MoldCode,
+            itemType: itemType,
+            requestedMode: mode
+        });
+        
+        console.log('[MobileModal] ✅ Opening Check-in/Check-out module with mode:', mode);
+        
+        // === FIX: Kiểm tra signature của CheckInOut.openModal ===
+        if (typeof window.CheckInOut !== 'undefined' && 
+            typeof window.CheckInOut.openModal === 'function') {
+            
+            // === CRITICAL: Log để xác nhận mode được truyền ===
+            console.log('[MobileModal] 🔍 Calling CheckInOut.openModal with:', {
+                mode: mode,
+                item: {
+                    MoldID: item.MoldID,
+                    CutterID: item.CutterID,
+                    MoldCode: item.MoldCode
+                }
+            });
+            
+            // Call with correct parameter order: (mode, item)
+            // Mode PHẢI là parameter đầu tiên!
+            window.CheckInOut.openModal(mode, item);
+            
+            console.log('[MobileModal] ✅ Check-in/Check-out module opened with mode:', mode);
+        } else {
+            console.error('[MobileModal] ❌ CheckInOut.openModal not found');
+            alert('Lỗi: Module Check-in/Check-out không khả dụng');
         }
     }
-
-
 
 
 
