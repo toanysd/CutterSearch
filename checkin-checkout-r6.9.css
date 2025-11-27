@@ -523,45 +523,70 @@ textarea.form-control {
   max-height: 60px;
 }
 
-/* Employee row */
+/* R7.0.5: Employee row - Fixed for iPhone layout */
 .employee-row {
-  display: flex;
-  gap: 5px;
-  align-items: stretch;
+    display: flex;
+    flex-direction: column; /* Stack vertically on mobile */
+    gap: 8px;
+    align-items: stretch;
 }
 
 .employee-row .form-control {
-  flex: 1;
+    flex: 1;
+    width: 100%; /* Full width on mobile */
+    min-width: 0; /* Prevent overflow */
 }
 
 .btn-face {
-  padding: 6px 10px;
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-  color: white;
-  border: none;
-  border-radius: 5px;
-  font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
+    padding: 8px 12px;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    width: 100%; /* Full width on mobile */
+    text-align: center;
 }
 
 .btn-face:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .btn-face:active {
-  transform: translateY(0);
+    transform: translateY(0);
 }
 
 .face-status {
-  display: block;
-  margin-top: 3px;
-  font-size: 10px;
-  color: #626c7c;
+    display: block;
+    margin-top: 3px;
+    font-size: 10px;
+    color: #626c7c;
+    text-align: center; /* Center on mobile */
 }
+
+/* iPad and larger: Horizontal layout */
+@media (min-width: 768px) {
+    .employee-row {
+        flex-direction: row; /* Side by side on iPad */
+        gap: 5px;
+    }
+    
+    .btn-face {
+        width: auto; /* Auto width on iPad */
+        padding: 6px 10px;
+        font-size: 11px;
+    }
+    
+    .face-status {
+        text-align: left; /* Left align on iPad */
+    }
+}
+
 
 /* ========================================
    NÚT XÁC NHẬN / HỦY
