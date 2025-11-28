@@ -233,56 +233,59 @@
    ✅ FIX: Cố định độ rộng cột - Ngăn nhảy UX
    =================================================== */
 
+/* FIX: Cố định rộng cột - Ngăn nhảy UX */
 /* Cột DateTime */
 .history-table thead th:nth-child(1),
 .history-table tbody td:nth-child(1) {
-  min-width: 160px;
-  width: 160px;
+    min-width: 110px; /* Giảm từ 160px → 110px */
+    width: 110px;
+    font-size: 10px; /* Thu nhỏ font */
 }
 
 /* Cột Type (Check-in/Check-out) */
 .history-table thead th:nth-child(2),
 .history-table tbody td:nth-child(2) {
-  min-width: 100px;
-  width: 100px;
-  text-align: center;
+    min-width: 55px; /* Giảm từ 100px → 55px */
+    width: 55px;
+    text-align: center;
 }
 
 /* Cột Employee */
 .history-table thead th:nth-child(3),
 .history-table tbody td:nth-child(3) {
-  min-width: 140px;
-  max-width: 140px;
-  width: 140px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+    min-width: 100px;
+    max-width: 100px;
+    width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* Cột Notes */
 .history-table thead th:nth-child(4),
 .history-table tbody td:nth-child(4) {
-  min-width: 150px;
-  width: auto;  /* Linh hoạt */
+    min-width: 80px;
+    width: auto;
 }
 
 /* Cột Sync */
 .history-table thead th:nth-child(5),
 .history-table tbody td:nth-child(5) {
-  width: 40px;
-  min-width: 40px;
-  max-width: 40px;
-  text-align: center;
+    width: 35px;
+    min-width: 35px;
+    max-width: 35px;
+    text-align: center;
 }
 
 /* Cột Delete */
 .history-table thead th:nth-child(6),
 .history-table tbody td:nth-child(6) {
-  width: 60px;
-  min-width: 60px;
-  max-width: 60px;
-  text-align: center;
+    width: 40px;
+    min-width: 40px;
+    max-width: 40px;
+    text-align: center;
 }
+
 
 
 .history-table tbody tr:hover {
