@@ -11,7 +11,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#6a5acd">
 
-    <title>📦 V7.7.7-r7.0.7 | Mold Cutter Search (iPhone-optimized)</title>
+    <title>📦 V7.7.7-r7.0.6 | Mold Cutter Search (iPhone-optimized)</title>
 
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -20,7 +20,7 @@
     <link rel="stylesheet" href="styles-r7.0.6.css">
 
     <!-- <link rel="stylesheet" href="iphone-ui-r1.css"> -->
-    <link rel="stylesheet" href="mobile-compact-styles-r7.0.7.css"> 
+    <link rel="stylesheet" href="mobile-compact-styles-r7.0.6.css"> 
     <!-- Mobile Detail Modal Styles R6.9.3 - Full-screen popup for iPhone -->
     <link rel="stylesheet" href="mobile-detail-modal-styles-r7.0.3.css">
     <link rel="stylesheet" href="inventory-manager-styles-r6.9.7.css">
@@ -240,29 +240,7 @@
                 <div class="panel-header">
                     <i class="fas fa-bolt"></i> クイック結果
                     <span class="result-count-badge" id="quick-count">0件</span>
-                    
-                    <!-- R7.0.7: Toolbar Inline (Selection + Print) -->
-                    <div class="table-toolbar-inline" id="table-toolbar-inline" style="display: none;">
-                        <span class="selection-info-inline">
-                            <span id="selected-count-inline">0</span> 件
-                        </span>
-                        <button class="btn-print-inline" id="mobile-print-btn-inline" disabled>
-                            <i class="fas fa-print"></i> 印刷
-                        </button>
-                    </div>
-                    
-                    <!-- R7.0.7: View Mode Toggle (Card/Table) -->
-                    <div class="view-mode-toggle" id="mobile-view-toggle">
-                        <button class="toggle-btn active" data-view="card" title="カード表示">
-                            カード
-                        </button>
-                        <button class="toggle-btn" data-view="table" title="表形式">
-                            一覧
-                        </button>
-                    </div>
-
                 </div>
-
 
                 <div class="panel-body">
                     <!-- Results: Single column với đầy đủ thông tin -->
@@ -270,59 +248,7 @@
                         <!-- Results will be dynamically inserted here -->
                         <div class="empty-hint">検索結果なし</div>
                     </div>
-                    
-                    <!-- R7.0.7: Table View Container (Hidden by default) -->
-                    <div class="mobile-table-container" id="mobile-table-container">
-                        <!-- Table -->
-                        <div class="table-wrapper">
-                            <table class="mobile-only-table" id="mobile-results-table">
-                                <thead>
-                                    <tr>
-                                        <th class="col-select">
-                                            <input type="checkbox" id="select-all-mobile">
-                                        </th>
-                                        <th class="col-code sortable" data-sort="code">
-                                            コード<span class="sort-indicator"></span>
-                                        </th>
-                                        <th class="col-name sortable" data-sort="name">
-                                            名称<span class="sort-indicator"></span>
-                                        </th>
-                                        <th class="col-size sortable" data-sort="size">
-                                            寸法<span class="sort-indicator"></span>
-                                        </th>
-                                        <th class="col-location sortable" data-sort="location">
-                                            棚番<span class="sort-indicator"></span>
-                                        </th>
-                                        <th class="col-company sortable" data-sort="company">
-                                            保管<span class="sort-indicator"></span>
-                                        </th>
-                                        <th class="col-date sortable" data-sort="date">
-                                            製造日<span class="sort-indicator"></span>
-                                        </th>
-                                    </tr>
-                                </thead>
-
-                                <tbody id="mobile-table-body">
-                                    <!-- Rows will be inserted here -->
-                                </tbody>
-                            </table>
-                        </div>
-                        
-                        <!-- Pagination -->
-                        <div class="table-pagination" id="mobile-pagination">
-                            <button class="page-btn" id="prev-page-btn" disabled>
-                                <i class="fas fa-chevron-left"></i>
-                            </button>
-                            <span class="page-info">
-                                <span id="current-page">1</span> / <span id="total-pages">1</span>
-                            </span>
-                            <button class="page-btn" id="next-page-btn" disabled>
-                                <i class="fas fa-chevron-right"></i>
-                            </button>
-                        </div>
-                    </div>
                 </div>
-
             </div>
 
             <!-- ========================================
@@ -684,15 +610,16 @@
                 <!-- Tab: 一覧 -->
                 <div class="tab-pane" id="results-pane">
                     <div class="table-wrap">
-                    <table class="desktop-results-table" id="desktop-results-table">
+                    <table class="results-table">
                         <thead>
                         <!--<tr>
-                            <th>選択</th>
+                            <th>種別 / Loại</th>
                             <th>コード / Mã</th>
                             <th>名称 / Tên</th>
                             <th>寸法 / Kích thước</th>
                             <th>保管場所 / Nơi lưu</th>
                             <th>状態 / Trạng thái</th>
+                            <th>操作 / Thao tác</th>
                         </tr>-->
                         </thead> 
                         <tbody id="results-tbody"></tbody>
@@ -851,7 +778,7 @@
     
     <script src="data-manager-r6.9.js"></script>
     <script src="app-controller-r7.0.3.js"></script>
-     <script src="ui-renderer-r7.0.7.js"></script>
+     <script src="ui-renderer-r7.0.6.js"></script>
     
 
     <!-- Search Modules -->
@@ -904,16 +831,8 @@
     <script src="export-qr-r6.9.js"></script>
     <script src="print-r6.9.js"></script>
 
-        <!-- R7.0.7: Mobile Table View Module -->
-    <script src="mobile-table-view-r7.0.7.js"></script>
-    
-    <!-- R7.0.7: Print Manager Module -->
-    <script src="print-manager.js"></script>
-    
     <!-- Mobile UX Controller -->
-    <script src="mobile-controller-r7.0.7.js"></script>
-
-
+    <script src="mobile-controller-r6.9.9.js"></script>
 
     <!-- R7.0.3: Clear ALL search boxes on page load -->
     <script>

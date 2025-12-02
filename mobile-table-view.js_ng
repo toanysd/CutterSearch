@@ -1,0 +1,737 @@
+/**
+ * mobile-table-view.js - R7.0.7
+ * 
+ * Quản lý hiển thị dạng bảng (table view) trên mobile
+ * - Toggle giữa card view và table view
+ * - Render table với pagination
+ * - Quản lý checkbox selection
+ * - Kết nối với UIRenderer để lấy dữ liệu
+ * 
+ * Version: r7.0.7
+ * Date: 2025.12.02
+ */
+
+(function() {
+    'use strict';
+
+    const MobileTableView = {
+        // State management
+        state: {
+            currentView: 'card', // 'card' or 'table'
+            allResults: [],
+            currentPage: 1,
+            pageSize: 50,
+            selectedItems: new Set(),
+            currentCategory: 'all', // 'all', 'mold', 'cutter'
+
+            // Sort state
+            sortColumn: null,
+            sortDirection: 'asc' // 'asc' or 'desc'
+        },
+
+        // DOM elements cache
+        elements: {
+            toggleButtons: null,
+            cardContainer: null,
+            tableContainer: null,
+            tableBody: null,
+            pagination: null,
+            selectAllCheckbox: null,
+            selectedCount: null,
+            printBtn: null,
+            currentPageSpan: null,
+            totalPagesSpan: null,
+            prevPageBtn: null,
+            nextPageBtn: null
+        },
+
+        /**
+         * Initialize module
+         */
+        init() {
+            console.log('[MobileTableView] Initializing...');
+            
+            // Cache DOM elements
+            this.cacheElements();
+            
+            // Bind events
+            this.bindToggleButtons();
+            this.bindTableEvents();
+            this.bindPagination();
+            
+            // Listen to search results updates
+            this.listenToSearchResults();
+            
+            // Listen to category changes
+            this.listenToCategoryChanges();
+            
+            console.log('[MobileTableView] ✅ Initialized');
+        },
+
+        /**
+         * Cache DOM elements for better performance
+         */
+        cacheElements() {
+            this.elements = {
+                toggleButtons: document.querySelectorAll('#mobile-view-toggle .toggle-btn'),
+                cardContainer: document.getElementById('quick-results-grid'),
+                tableContainer: document.getElementById('mobile-table-container'),
+                tableBody: document.getElementById('mobile-table-body'),
+                pagination: document.getElementById('mobile-pagination'),
+                selectAllCheckbox: document.getElementById('select-all-mobile'),
+                
+                // Toolbar in header (inline)
+                toolbarInline: document.getElementById('table-toolbar-inline'),
+                selectedCountInline: document.getElementById('selected-count-inline'),
+                printBtnInline: document.getElementById('mobile-print-btn-inline'),
+                
+                currentPageSpan: document.getElementById('current-page'),
+                totalPagesSpan: document.getElementById('total-pages'),
+                prevPageBtn: document.getElementById('prev-page-btn'),
+                nextPageBtn: document.getElementById('next-page-btn')
+            };
+
+            // Validate required elements
+            const missing = Object.entries(this.elements)
+                .filter(([key, el]) => !el && key !== 'toggleButtons')
+                .map(([key]) => key);
+
+            if (missing.length > 0) {
+                console.warn('[MobileTableView] Missing elements:', missing);
+            }
+        },
+
+        /**
+         * Bind toggle button events
+         */
+        bindToggleButtons() {
+            if (!this.elements.toggleButtons || this.elements.toggleButtons.length === 0) {
+                console.warn('[MobileTableView] Toggle buttons not found');
+                return;
+            }
+
+            this.elements.toggleButtons.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const view = btn.getAttribute('data-view');
+                    this.switchView(view);
+                });
+            });
+
+            console.log('[MobileTableView] ✅ Toggle buttons bound');
+        },
+
+        /**
+         * Bind table-related events
+         */
+        bindTableEvents() {
+            // Select all checkbox
+            if (this.elements.selectAllCheckbox) {
+                this.elements.selectAllCheckbox.addEventListener('change', (e) => {
+                    this.toggleSelectAll(e.target.checked);
+                });
+            }
+
+            // Print button
+            if (this.elements.printBtn) {
+                this.elements.printBtn.addEventListener('click', () => {
+                    this.handlePrint();
+                });
+            }
+
+            // Table body event delegation for row clicks
+            if (this.elements.tableBody) {
+                this.elements.tableBody.addEventListener('change', (e) => {
+                    if (e.target.type === 'checkbox' && e.target.classList.contains('row-checkbox')) {
+                        const itemId = e.target.getAttribute('data-id');
+                        const itemType = e.target.getAttribute('data-type');
+                        this.toggleItemSelection(itemId, itemType, e.target.checked);
+                    }
+                });
+            }
+
+            // Print button inline (in header)
+            if (this.elements.printBtnInline) {
+                this.elements.printBtnInline.addEventListener('click', () => {
+                    this.handlePrint();
+                });
+            }
+
+            // Sort headers click event
+            const sortableHeaders = document.querySelectorAll('.results-table th.sortable');
+            sortableHeaders.forEach(th => {
+                th.addEventListener('click', () => {
+                    const sortKey = th.getAttribute('data-sort');
+                    this.sortTable(sortKey);
+                });
+            });
+
+            console.log('[MobileTableView] ✅ Sort headers bound:', sortableHeaders.length);
+
+
+
+            console.log('[MobileTableView] ✅ Table events bound');
+        },
+
+        /**
+         * Bind pagination events
+         */
+        bindPagination() {
+            if (this.elements.prevPageBtn) {
+                this.elements.prevPageBtn.addEventListener('click', () => {
+                    this.goToPreviousPage();
+                });
+            }
+
+            if (this.elements.nextPageBtn) {
+                this.elements.nextPageBtn.addEventListener('click', () => {
+                    this.goToNextPage();
+                });
+            }
+
+            console.log('[MobileTableView] ✅ Pagination bound');
+        },
+
+        /**
+         * Listen to search results updates from UIRenderer
+         */
+        listenToSearchResults() {
+            document.addEventListener('search:updated', (e) => {
+                const { results } = e.detail || {};
+                if (results && Array.isArray(results)) {
+                    console.log('[MobileTableView] Search results updated:', results.length);
+                    this.updateResults(results);
+                }
+            });
+
+            console.log('[MobileTableView] ✅ Listening to search:updated');
+        },
+
+        /**
+         * Listen to category changes
+         */
+        listenToCategoryChanges() {
+            document.addEventListener('categoryChanged', (e) => {
+                const { category } = e.detail || {};
+                if (category) {
+                    this.state.currentCategory = category;
+                    console.log('[MobileTableView] Category changed:', category);
+                    
+                    // Reset to page 1 when category changes
+                    this.state.currentPage = 1;
+                    
+                    // Re-render if in table view
+                    if (this.state.currentView === 'table') {
+                        this.renderTable();
+                    }
+                }
+            });
+        },
+
+        /**
+         * Switch between card and table view
+         */
+        switchView(view) {
+            if (view === this.state.currentView) {
+                console.log('[MobileTableView] Already in', view, 'view');
+                return;
+            }
+
+            console.log('[MobileTableView] Switching to', view, 'view');
+            this.state.currentView = view;
+
+            // Update toggle button states
+            this.elements.toggleButtons.forEach(btn => {
+                if (btn.getAttribute('data-view') === view) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+
+            // Show/hide containers
+            if (view === 'table') {
+                this.elements.cardContainer.style.display = 'none';
+                this.elements.cardContainer.classList.add('hidden-by-table');
+                this.elements.tableContainer.style.display = 'flex';
+                this.elements.tableContainer.classList.add('active');
+                
+                // Show toolbar inline
+                if (this.elements.toolbarInline) {
+                    this.elements.toolbarInline.style.display = 'flex';
+                }
+                
+                this.renderTable();
+            } else {
+                this.elements.cardContainer.style.display = 'grid';
+                this.elements.cardContainer.classList.remove('hidden-by-table');
+                this.elements.tableContainer.style.display = 'none';
+                this.elements.tableContainer.classList.remove('active');
+                
+                // Hide toolbar inline
+                if (this.elements.toolbarInline) {
+                    this.elements.toolbarInline.style.display = 'none';
+                }
+            }
+
+
+            // Dispatch event for other modules
+            document.dispatchEvent(new CustomEvent('mobile:viewModeChanged', {
+                detail: { view: view }
+            }));
+
+            console.log('[MobileTableView] ✅ Switched to', view, 'view');
+        },
+
+        /**
+         * Update results data
+         */
+        updateResults(results) {
+            this.state.allResults = results || [];
+            this.state.currentPage = 1;
+            this.state.selectedItems.clear();
+
+            // Update table if currently in table view
+            if (this.state.currentView === 'table') {
+                this.renderTable();
+            }
+
+            this.updateSelectionUI();
+        },
+
+        /**
+         * Render table with pagination
+         */
+        renderTable() {
+            if (!this.elements.tableBody) {
+                console.error('[MobileTableView] Table body not found');
+                return;
+            }
+
+            const totalItems = this.state.allResults.length;
+            const totalPages = Math.ceil(totalItems / this.state.pageSize);
+            const startIdx = (this.state.currentPage - 1) * this.state.pageSize;
+            const endIdx = Math.min(startIdx + this.state.pageSize, totalItems);
+            const pageItems = this.state.allResults.slice(startIdx, endIdx);
+
+            console.log('[MobileTableView] Rendering table:', {
+                total: totalItems,
+                page: this.state.currentPage,
+                pageSize: this.state.pageSize,
+                showing: pageItems.length
+            });
+
+            // Clear table body
+            this.elements.tableBody.innerHTML = '';
+
+            // Render rows
+            if (pageItems.length === 0) {
+                this.elements.tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 40px; color: #999;">
+                            検索結果なし
+                        </td>
+                    </tr>
+                `;
+            } else {
+                pageItems.forEach(item => {
+                    const row = this.createTableRow(item);
+                    this.elements.tableBody.appendChild(row);
+                });
+            }
+
+            // Update pagination UI
+            this.updatePaginationUI(totalPages);
+
+            console.log('[MobileTableView] ✅ Table rendered');
+        },
+
+        /**
+         * Create a table row for an item
+         */
+        createTableRow(item) {
+            const tr = document.createElement('tr');
+            const isMold = item.itemType === 'mold';
+            const itemId = isMold ? (item.MoldID || item.MoldCode) : (item.CutterID || item.CutterNo);
+            const isSelected = this.state.selectedItems.has(itemId);
+
+            // Checkbox column
+            const tdCheckbox = document.createElement('td');
+            tdCheckbox.className = 'col-select';
+            tdCheckbox.innerHTML = `
+                <input type="checkbox" 
+                    class="row-checkbox" 
+                    data-id="${this.escapeHtml(itemId)}"
+                    data-type="${item.itemType}"
+                    ${isSelected ? 'checked' : ''}>
+            `;
+
+            // Code column (MoldID for mold, CutterNo for cutter)
+            const tdCode = document.createElement('td');
+            tdCode.className = 'col-code';
+            if (isMold) {
+                // Khuôn: Hiển thị MoldID (số)
+                tdCode.textContent = item.MoldID || '-';
+                tdCode.style.color = '#1976D2';
+                tdCode.style.fontWeight = '600';
+            } else {
+                // Dao cắt: Hiển thị CutterNo
+                tdCode.textContent = item.CutterNo || item.displayCode || '-';
+                tdCode.style.color = '#E65100';
+                tdCode.style.fontWeight = '600';
+            }
+
+            // Name column - với màu sắc theo itemType
+            const tdName = document.createElement('td');
+            tdName.className = 'col-name';
+            tdName.textContent = item.displayName || item.MoldName || '-';
+            tdName.style.overflow = 'hidden';
+            tdName.style.textOverflow = 'ellipsis';
+            tdName.style.whiteSpace = 'nowrap';
+
+            // Color coding for name
+            if (isMold) {
+                tdName.style.cssText += ' color: #1976D2 !important; font-weight: 500;';
+            } else {
+                tdName.style.cssText += ' color: #E65100 !important; font-weight: 500;';
+            }
+
+            // Make name clickable to open detail modal
+            tdName.style.cursor = 'pointer';
+            tdName.style.textDecoration = 'underline';
+            tdName.setAttribute('data-item-id', itemId);
+            tdName.setAttribute('data-item-type', item.itemType);
+            tdName.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.openDetailModal(item, itemId);
+            });
+
+
+            // Size column (dimensions or cutline)
+            const tdSize = document.createElement('td');
+            tdSize.className = 'col-size';
+            tdSize.textContent = item.displayDimensions || item.cutlineSize || 'N/A';
+            tdSize.style.color = '#666';
+
+            // Location column (Rack-Layer)
+            const tdLocation = document.createElement('td');
+            tdLocation.className = 'col-location';
+            const rackId = item.rackInfo?.RackID || '-';
+            const layerNum = item.rackLayerInfo?.RackLayerNumber || '-';
+            tdLocation.textContent = `${rackId}-${layerNum}`;
+            tdLocation.style.fontFamily = "'Courier New', monospace";
+            tdLocation.style.fontWeight = '600';
+            
+            // Color coding for racks
+            if (rackId !== '-') {
+                const rackNum = parseInt(rackId);
+                if (rackNum >= 70) {
+                    tdLocation.style.color = '#D32F2F'; // Red for external
+                    tdLocation.style.background = '#FFEBEE';
+                } else {
+                    tdLocation.style.color = '#1976D2'; // Blue for internal
+                    tdLocation.style.background = '#E3F2FD';
+                }
+            }
+
+            // Company column
+            const tdCompany = document.createElement('td');
+            tdCompany.className = 'col-company';
+            const companyName = item.storageCompanyInfo?.CompanyShortName || 
+                            item.storageCompanyInfo?.CompanyName || 
+                            'N/A';
+            tdCompany.textContent = companyName;
+            
+            // Color coding for company
+            if (companyName === 'YSD' || item.storage_company === '2') {
+                tdCompany.style.color = '#1976D2';
+                tdCompany.style.fontWeight = '600';
+                tdCompany.style.background = '#E3F2FD';
+            } else if (companyName !== 'N/A') {
+                tdCompany.style.color = '#E65100';
+                tdCompany.style.fontWeight = '600';
+                tdCompany.style.background = '#FFF3E0';
+            }
+
+            // Date column (DeliveryDeadline from jobs)
+            const tdDate = document.createElement('td');
+            tdDate.className = 'col-date';
+            const deliveryDate = item.jobInfo?.DeliveryDeadline || 
+                                item.MoldDate || 
+                                item.DateEntry || 
+                                '-';
+            tdDate.textContent = this.formatDate(deliveryDate);
+            tdDate.style.color = '#757575';
+
+            // Add selected class if item is selected
+            if (isSelected) {
+                tr.classList.add('selected');
+            }
+
+            // Append all columns
+            tr.appendChild(tdCheckbox);
+            tr.appendChild(tdCode);
+            tr.appendChild(tdName);
+            tr.appendChild(tdSize);
+            tr.appendChild(tdLocation);
+            tr.appendChild(tdCompany);
+            tr.appendChild(tdDate);
+
+            return tr;
+        },
+
+        /**
+         * Format date string
+         */
+        formatDate(dateStr) {
+            if (!dateStr || dateStr === '-') return '-';
+            
+            try {
+                const date = new Date(dateStr);
+                if (isNaN(date.getTime())) return dateStr;
+                
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                
+                return `${year}/${month}/${day}`;
+            } catch (e) {
+                return dateStr;
+            }
+        },
+
+        /**
+         * Escape HTML to prevent XSS
+         */
+        escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        },
+
+        /**
+         * Update pagination UI
+         */
+        updatePaginationUI(totalPages) {
+            if (this.elements.currentPageSpan) {
+                this.elements.currentPageSpan.textContent = this.state.currentPage;
+            }
+
+            if (this.elements.totalPagesSpan) {
+                this.elements.totalPagesSpan.textContent = totalPages || 1;
+            }
+
+            // Enable/disable pagination buttons
+            if (this.elements.prevPageBtn) {
+                this.elements.prevPageBtn.disabled = this.state.currentPage <= 1;
+            }
+
+            if (this.elements.nextPageBtn) {
+                this.elements.nextPageBtn.disabled = this.state.currentPage >= totalPages;
+            }
+        },
+
+        /**
+         * Go to previous page
+         */
+        goToPreviousPage() {
+            if (this.state.currentPage > 1) {
+                this.state.currentPage--;
+                this.renderTable();
+                console.log('[MobileTableView] Previous page:', this.state.currentPage);
+            }
+        },
+
+        /**
+         * Go to next page
+         */
+        goToNextPage() {
+            const totalPages = Math.ceil(this.state.allResults.length / this.state.pageSize);
+            if (this.state.currentPage < totalPages) {
+                this.state.currentPage++;
+                this.renderTable();
+                console.log('[MobileTableView] Next page:', this.state.currentPage);
+            }
+        },
+
+        /**
+         * Toggle select all items on current page
+         */
+        toggleSelectAll(checked) {
+            const startIdx = (this.state.currentPage - 1) * this.state.pageSize;
+            const endIdx = Math.min(startIdx + this.state.pageSize, this.state.allResults.length);
+            const pageItems = this.state.allResults.slice(startIdx, endIdx);
+
+            pageItems.forEach(item => {
+                const isMold = item.itemType === 'mold';
+                const itemId = isMold ? (item.MoldID || item.MoldCode) : (item.CutterID || item.CutterNo);
+                
+                if (checked) {
+                    this.state.selectedItems.add(itemId);
+                } else {
+                    this.state.selectedItems.delete(itemId);
+                }
+            });
+
+            // Update checkboxes
+            const checkboxes = this.elements.tableBody.querySelectorAll('.row-checkbox');
+            checkboxes.forEach(cb => {
+                cb.checked = checked;
+            });
+
+            // Update selected rows
+            const rows = this.elements.tableBody.querySelectorAll('tr');
+            rows.forEach(row => {
+                if (checked) {
+                    row.classList.add('selected');
+                } else {
+                    row.classList.remove('selected');
+                }
+            });
+
+            this.updateSelectionUI();
+
+            console.log('[MobileTableView] Select all:', checked, '| Total selected:', this.state.selectedItems.size);
+        },
+
+        /**
+         * Toggle individual item selection
+         */
+        toggleItemSelection(itemId, itemType, checked) {
+            if (checked) {
+                this.state.selectedItems.add(itemId);
+            } else {
+                this.state.selectedItems.delete(itemId);
+            }
+
+            // Update row class
+            const checkbox = this.elements.tableBody.querySelector(`input[data-id="${itemId}"]`);
+            if (checkbox) {
+                const row = checkbox.closest('tr');
+                if (row) {
+                    if (checked) {
+                        row.classList.add('selected');
+                    } else {
+                        row.classList.remove('selected');
+                    }
+                }
+            }
+
+            // Update select all checkbox state
+            const totalCheckboxes = this.elements.tableBody.querySelectorAll('.row-checkbox').length;
+            const checkedCheckboxes = this.elements.tableBody.querySelectorAll('.row-checkbox:checked').length;
+            
+            if (this.elements.selectAllCheckbox) {
+                this.elements.selectAllCheckbox.checked = totalCheckboxes > 0 && totalCheckboxes === checkedCheckboxes;
+                this.elements.selectAllCheckbox.indeterminate = checkedCheckboxes > 0 && checkedCheckboxes < totalCheckboxes;
+            }
+
+            this.updateSelectionUI();
+
+            console.log('[MobileTableView] Item selection:', itemId, checked, '| Total:', this.state.selectedItems.size);
+        },
+
+        /**
+         * Update selection UI (count and print button)
+         */
+        updateSelectionUI() {
+            const count = this.state.selectedItems.size;
+
+            // Update inline count
+            if (this.elements.selectedCountInline) {
+                this.elements.selectedCountInline.textContent = count;
+            }
+
+            // Update inline print button
+            if (this.elements.printBtnInline) {
+                this.elements.printBtnInline.disabled = count === 0;
+            }
+            
+            // Show/hide toolbar based on selection
+            if (this.elements.toolbarInline) {
+                if (count > 0 && this.state.currentView === 'table') {
+                    this.elements.toolbarInline.style.display = 'flex';
+                } else if (count === 0) {
+                    // Keep visible but update count
+                    // Don't hide to avoid layout shift
+                }
+            }
+        },
+
+        /**
+         * Handle print action
+         */
+        handlePrint() {
+            const selectedIds = Array.from(this.state.selectedItems);
+            
+            if (selectedIds.length === 0) {
+                alert('印刷する項目を選択してください\nVui lòng chọn mục để in');
+                return;
+            }
+
+            console.log('[MobileTableView] Print requested for:', selectedIds.length, 'items');
+
+            // Get full item data for selected IDs
+            const selectedItems = this.state.allResults.filter(item => {
+                const isMold = item.itemType === 'mold';
+                const itemId = isMold ? (item.MoldID || item.MoldCode) : (item.CutterID || item.CutterNo);
+                return selectedIds.includes(itemId);
+            });
+
+            // Dispatch event for PrintManager
+            document.dispatchEvent(new CustomEvent('mobile:printRequested', {
+                detail: {
+                    items: selectedItems,
+                    category: this.state.currentCategory
+                }
+            }));
+
+            console.log('[MobileTableView] ✅ Print event dispatched');
+        },
+
+        /**
+         * Get selected items (for external access)
+         */
+        getSelectedItems() {
+            return Array.from(this.state.selectedItems);
+        },
+
+        /**
+         * Clear selection
+         */
+        clearSelection() {
+            this.state.selectedItems.clear();
+            
+            if (this.elements.selectAllCheckbox) {
+                this.elements.selectAllCheckbox.checked = false;
+            }
+
+            const checkboxes = this.elements.tableBody.querySelectorAll('.row-checkbox');
+            checkboxes.forEach(cb => {
+                cb.checked = false;
+            });
+
+            const rows = this.elements.tableBody.querySelectorAll('tr');
+            rows.forEach(row => {
+                row.classList.remove('selected');
+            });
+
+            this.updateSelectionUI();
+
+            console.log('[MobileTableView] ✅ Selection cleared');
+        }
+    };
+
+    // Expose to global scope
+    window.MobileTableView = MobileTableView;
+
+    // Auto-initialize when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            MobileTableView.init();
+        });
+    } else {
+        MobileTableView.init();
+    }
+
+})();

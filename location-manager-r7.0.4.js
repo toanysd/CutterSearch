@@ -376,12 +376,13 @@ const LocationManager = {
 
           <!-- Nút xác nhận / hủy -->
           <div class="location-btn-row">
-            <button class="btn-confirm-location" id="btn-loc-confirm">
-              ✓ 更新 / Cập nhật
-            </button>
             <button class="btn-cancel-location" id="btn-loc-cancel">
               ✕ キャンセル / Hủy
             </button>
+            <button class="btn-confirm-location" id="btn-loc-confirm">
+              ✓ 更新 / Cập nhật
+            </button>
+            
           </div>
         </section>
       </div>
