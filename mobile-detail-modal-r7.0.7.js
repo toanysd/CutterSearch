@@ -161,17 +161,95 @@ class MobileDetailModal {
 
     // Bind events
     bindEvents() {
-        // Close button
+                // Close button (header)
         const closeBtn = this.modal.querySelector('.modal-close-btn');
         if (closeBtn) {
             closeBtn.addEventListener('click', () => this.hide());
         }
 
-                // Floating close button (bottom-left)
+        // Floating close button (bottom, draggable on X axis)
         const fabCloseBtn = this.modal.querySelector('.mobile-modal-fab-close');
         if (fabCloseBtn) {
-            fabCloseBtn.addEventListener('click', () => this.hide());
+            let dragStartX = 0;
+            let startLeft = 0;
+            let isDragging = false;
+            let hasMoved = false;
+
+            // Helper: lấy left hiện tại (số)
+            const getCurrentLeft = () => {
+                const rect = fabCloseBtn.getBoundingClientRect();
+                return rect.left;
+            };
+
+            const onPointerDown = (clientX) => {
+                dragStartX = clientX;
+                startLeft = getCurrentLeft();
+                isDragging = true;
+                hasMoved = false;
+                fabCloseBtn.classList.add('dragging');
+            };
+
+            const onPointerMove = (clientX) => {
+                if (!isDragging) return;
+                const deltaX = clientX - dragStartX;
+
+                if (Math.abs(deltaX) > 3) {
+                    hasMoved = true;
+                }
+
+                // Tính left mới, giới hạn trong màn hình
+                const btnWidth = fabCloseBtn.offsetWidth || 40;
+                const minLeft = 4;
+                const maxLeft = window.innerWidth - btnWidth - 4;
+                let newLeft = startLeft + deltaX;
+                newLeft = Math.max(minLeft, Math.min(maxLeft, newLeft));
+
+                fabCloseBtn.style.left = `${newLeft}px`;
+            };
+
+            const endDrag = () => {
+                if (!isDragging) return;
+                isDragging = false;
+                fabCloseBtn.classList.remove('dragging');
+            };
+
+            // TOUCH
+            fabCloseBtn.addEventListener('touchstart', (e) => {
+                if (!e.touches || e.touches.length !== 1) return;
+                onPointerDown(e.touches[0].clientX);
+            }, { passive: true });
+
+            fabCloseBtn.addEventListener('touchmove', (e) => {
+                if (!e.touches || e.touches.length !== 1) return;
+                onPointerMove(e.touches[0].clientX);
+            }, { passive: true });
+
+            fabCloseBtn.addEventListener('touchend', () => {
+                // Nếu không kéo (hasMoved=false) → coi như click để đóng
+                if (!hasMoved) {
+                    this.hide();
+                }
+                endDrag();
+            });
+
+            fabCloseBtn.addEventListener('touchcancel', endDrag);
+
+            // MOUSE (hữu ích khi debug trên PC)
+            fabCloseBtn.addEventListener('mousedown', (e) => {
+                onPointerDown(e.clientX);
+                e.preventDefault();
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                onPointerMove(e.clientX);
+            });
+
+            window.addEventListener('mouseup', () => {
+                endDrag();
+            });
         }
+
 
 
         // Click outside to close
