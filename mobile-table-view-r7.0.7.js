@@ -65,6 +65,8 @@
             this.bindPagination();
             this.bindSortHeaders();
             this.bindColumnFilters();
+            this.bindFilterToggle();
+
             
             // Listen to search results updates
             this.listenToSearchResults();
@@ -91,8 +93,9 @@
                 selectedCountInline: document.getElementById('selected-count-inline'),
                 printBtnInline: document.getElementById('mobile-print-btn-inline'),
                 clearSelectionBtnInline: document.getElementById('mobile-clear-selection-inline'),
+                filterToggleBtn: document.getElementById('toggle-column-filters'),
 
-                // Column filter inputs
+                // Column filter inputs & row
                 filterInputs: {
                     code: document.getElementById('filter-code'),
                     name: document.getElementById('filter-name'),
@@ -101,6 +104,7 @@
                     company: document.getElementById('filter-company'),
                     date: document.getElementById('filter-date')
                 },
+                filterRow: document.querySelector('#mobile-results-table .column-filters'),
                 
                 currentPageSpan: document.getElementById('current-page'),
                 totalPagesSpan: document.getElementById('total-pages'),
@@ -108,11 +112,11 @@
                 nextPageBtn: document.getElementById('next-page-btn')
             };
 
-
             if (!this.elements.table) {
                 console.error('[MobileTableView] ❌ mobile-results-table not found!');
             }
         },
+
 
         /**
          * Bind toggle buttons
@@ -185,6 +189,27 @@
 
             console.log('[MobileTableView] ✅ Column filters bound');
         },
+
+        /**
+         * Bind filter row toggle button
+         */
+        bindFilterToggle() {
+            if (!this.elements.filterToggleBtn || !this.elements.table) return;
+
+            this.elements.filterToggleBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const table = this.elements.table;
+                const isVisible = table.classList.toggle('filters-visible');
+
+                // Đổi trạng thái nút để user biết đang bật/tắt
+                this.elements.filterToggleBtn.classList.toggle('active', isVisible);
+
+                console.log('[MobileTableView] Filter row visible:', isVisible);
+            });
+        },
+
 
         /**
          * Bind table events
