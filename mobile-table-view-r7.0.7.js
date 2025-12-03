@@ -259,48 +259,32 @@
                 });
             }
 
-            // R7.0.8: Prevent checkbox area from opening modal
+            // R7.0.8: Strictly control which cells can open modal
             if (this.elements.tableBody) {
                 this.elements.tableBody.addEventListener('click', (e) => {
-                    // Check if click is on checkbox cell or checkbox itself
+                    // Vị trí click
                     const isCheckboxCell = e.target.closest('td.col-select');
                     const isCheckbox = e.target.type === 'checkbox';
-                    
+                    const isNameCell = e.target.closest('td.col-name');
+
+                    // 1) Nếu là vùng checkbox → chỉ xử lý chọn, KHÔNG cho modal nào khác bắt sự kiện
                     if (isCheckboxCell || isCheckbox) {
                         e.stopPropagation();
                         console.log('[MobileTableView] 🚫 Checkbox area clicked - modal prevented');
                         return;
                     }
-                }, true); // Use capture phase to catch early
+
+                    // 2) Nếu KHÔNG phải ô 名称 → chặn nổi bọt để handler toàn cục không mở modal
+                    if (!isNameCell) {
+                        e.stopPropagation();
+                        console.log('[MobileTableView] 🚫 Non-name cell clicked - modal prevented');
+                    }
+                    // 3) Trường hợp còn lại (isNameCell) → cho phép bubble tới tdName.addEventListener
+                }, true); // capture phase
             }
 
-            // R7.0.7: Click name cell to open detail modal
-            if (this.elements.tableBody) {
-                this.elements.tableBody.addEventListener('click', (e) => {
-                    const nameCell = e.target.closest('td.col-name');
-                    
-                    if (nameCell) {
-                        const row = nameCell.closest('tr');
-                        const itemId = row.getAttribute('data-id');
-                        const itemType = row.getAttribute('data-type') || 'mold';
-                        
-                        console.log(`[MobileTableView] Opening detail modal for: ${itemId}`);
-                        
-                        // Dispatch event for other components
-                        window.dispatchEvent(new CustomEvent('table:name-clicked', {
-                            detail: { 
-                                type: itemType,
-                                id: parseInt(itemId)
-                            }
-                        }));
-                        
-                        // ✅ SỬA: Đổi open → show và kiểm tra đúng method
-                        if (window.MobileDetailModal && window.MobileDetailModal.show) {
-                            window.MobileDetailModal.show(itemType, parseInt(itemId));
-                        }
-                    }
-                });
-            }
+
+
 
             console.log('[MobileTableView] ✅ Table events bound');
         },
@@ -530,23 +514,35 @@
         },
 
         /**
-         * Create table row - COMPLETE VERSION
+         * Create table row - MOBILE VERSION
+         * - Chỉ cột 名称 (tdName) là clickable để mở detail modal
+         * - data-id luôn là MoldID / CutterID (ưu tiên ID số)
          */
         createTableRow(item) {
             const tr = document.createElement('tr');
             const isMold = item.itemType === 'mold';
-            const itemId = isMold ? (item.MoldID || item.MoldCode) : (item.CutterID || item.CutterNo);
+
+            // ID dùng cho selection & modal
+            const rawId = isMold
+                ? (item.MoldID || item.MoldCode)
+                : (item.CutterID || item.CutterNo);
+
+            const itemId = rawId; // giữ dạng string cho Set; parseInt khi gọi modal
             const isSelected = this.state.selectedItems.has(itemId);
+
+            // Gán attribute để các handler khác (nếu có) vẫn dùng được
+            tr.setAttribute('data-id', itemId);
+            tr.setAttribute('data-type', isMold ? 'mold' : 'cutter');
 
             // === COL 1: Checkbox ===
             const tdCheckbox = document.createElement('td');
             tdCheckbox.className = 'col-select';
             tdCheckbox.innerHTML = `
                 <input type="checkbox" 
-                       class="row-checkbox" 
-                       data-id="${this.escapeHtml(itemId)}"
-                       data-type="${item.itemType}"
-                       ${isSelected ? 'checked' : ''}>
+                    class="row-checkbox" 
+                    data-id="${this.escapeHtml(itemId)}"
+                    data-type="${item.itemType}"
+                    ${isSelected ? 'checked' : ''}>
             `;
 
             // === COL 2: Code (MoldID / CutterNo) ===
@@ -560,21 +556,29 @@
                 tdCode.style.cssText = 'color: #E65100 !important; font-weight: 600 !important;';
             }
 
-            // === COL 3: Name (clickable) ===
+            // === COL 3: Name (clickable → mở modal) ===
             const tdName = document.createElement('td');
             tdName.className = 'col-name';
             tdName.textContent = item.displayName || item.MoldName || '-';
-            
+
             if (isMold) {
                 tdName.style.cssText = 'color: #1976D2 !important; font-weight: 500; cursor: pointer; text-decoration: underline;';
             } else {
                 tdName.style.cssText = 'color: #E65100 !important; font-weight: 500; cursor: pointer; text-decoration: underline;';
             }
-            
+
+            // CHỈ click vào Name mới mở modal
             tdName.addEventListener('click', (e) => {
                 e.stopPropagation();
-                this.openDetailModal(item, itemId);
+
+                const type = isMold ? 'mold' : 'cutter';
+
+                // TRỌNG TÂM: MobileDetailModal.show(itemObject, type)
+                if (window.MobileDetailModal && window.MobileDetailModal.show) {
+                    window.MobileDetailModal.show(item, type);
+                }
             });
+
 
             // === COL 4: Size ===
             const tdSize = document.createElement('td');
@@ -588,7 +592,6 @@
             const rackId = item.rackInfo?.RackID || '-';
             const layerNum = item.rackLayerInfo?.RackLayerNumber || '-';
             tdLocation.textContent = `${rackId}-${layerNum}`;
-            
             tdLocation.style.cssText = 'font-family: "Courier New", monospace; font-weight: 600; text-align: center;';
             if (rackId !== '-') {
                 const rackNum = parseInt(rackId);
@@ -602,11 +605,12 @@
             // === COL 6: Company ===
             const tdCompany = document.createElement('td');
             tdCompany.className = 'col-company';
-            const companyName = item.storageCompanyInfo?.CompanyShortName || 
-                               item.storageCompanyInfo?.CompanyName || 
-                               'N/A';
+            const companyName =
+                item.storageCompanyInfo?.CompanyShortName ||
+                item.storageCompanyInfo?.CompanyName ||
+                'N/A';
             tdCompany.textContent = companyName;
-            
+
             if (companyName === 'YSD' || item.storage_company === '2') {
                 tdCompany.style.cssText = 'color: #1976D2 !important; font-weight: 600 !important; background: #E3F2FD !important;';
             } else if (companyName !== 'N/A') {
@@ -616,14 +620,15 @@
             // === COL 7: Date (DeliveryDeadline) ===
             const tdDate = document.createElement('td');
             tdDate.className = 'col-date';
-            const deliveryDate = item.jobInfo?.DeliveryDeadline || 
-                                item.MoldDate || 
-                                item.DateEntry || 
-                                '-';
+            const deliveryDate =
+                item.jobInfo?.DeliveryDeadline ||
+                item.MoldDate ||
+                item.DateEntry ||
+                '-';
             tdDate.textContent = this.formatDate(deliveryDate);
             tdDate.style.color = '#757575';
 
-            // Add selected class
+            // Selected state
             if (isSelected) {
                 tr.classList.add('selected');
             }
@@ -639,6 +644,7 @@
 
             return tr;
         },
+
 
         /**
          * Format date

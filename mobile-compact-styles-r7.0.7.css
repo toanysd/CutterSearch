@@ -377,6 +377,47 @@
   .mobile-detail-modal .related-section {
     margin-bottom: 24px;
   }
+
+  /* Floating close button (bottom-left) cho MobileDetailModal */
+  .mobile-detail-modal .mobile-modal-fab-close {
+      position: fixed;
+      left: 14px;
+      bottom: 140px;              /* 70 trên thanh bottom nav một chút */
+      z-index: 9999;
+      width: 42px;
+      height: 42px;
+      border-radius: 21px;
+      border: none;
+      background: rgba(0, 0, 0, 0.75);
+      color: #FFF;
+      font-size: 10px;
+      font-weight: 600;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+      cursor: pointer;
+      padding: 4px 2px;
+  }
+
+  /* Chỉ hiện khi modal đang mở (class .show tuỳ theo bạn đang dùng) */
+  .mobile-detail-modal.hidden .mobile-modal-fab-close {
+      display: none !important;
+  }
+
+  /* Nhãn JP + VI trong nút */
+  .mobile-modal-fab-close .fab-label-ja {
+      font-size: 9px;
+      line-height: 1.1;
+  }
+
+  .mobile-modal-fab-close .fab-label-vi {
+      font-size: 8px;
+      line-height: 1.1;
+      opacity: 0.85;
+  }
+
 }
 
 /* ========================================
@@ -1999,9 +2040,17 @@ border-color: #212121 !important;
         white-space: normal; /* ← Đổi từ nowrap */
     }
     
+    /* Hover row - rõ hơn, không che màu dòng đã chọn */
     .mobile-only-table tbody tr:hover {
-        background: #F5F5F5 !important;
+        background: #FFF3E0 !important;         /* cam nhạt, dễ thấy hơn */
+        box-shadow: 0 0 0 1px #FFB74D inset;    /* viền mỏng bên trong */
     }
+
+    .mobile-only-table tbody tr.selected:hover {
+        background: #E3F2FD !important;         /* ưu tiên màu selected */
+        box-shadow: 0 0 0 1px #64B5F6 inset;
+    }
+
     
     .mobile-only-table tbody tr.selected {
         background: #E3F2FD !important;
@@ -2213,6 +2262,46 @@ border-color: #212121 !important;
     text-align: center;
 }
 
+}
+
+/* ================================
+ * R7.0.7 Mobile table filter row
+ * ================================ */
+
+/* Mặc định ẩn hàng filter để bảng gọn hơn trên iPhone */
+#mobile-results-table .column-filters {
+    display: none;
+}
+
+/* Khi có class filters-visible trên table thì hiển thị hàng filter */
+#mobile-results-table.filters-visible .column-filters {
+    display: table-row;
+}
+
+/* Input filter gọn, dễ bấm */
+#mobile-results-table .column-filters .col-filter {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 2px 4px;
+    font-size: 11px;
+}
+
+/* Nút bật/tắt filter trên toolbar */
+.table-toolbar-inline .btn-filter-row {
+    margin-left: 6px;
+    padding: 4px 8px;
+    font-size: 11px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    background: #f7f7f7;
+    color: #333;
+}
+
+/* Trạng thái đang bật filter: đổi màu để dễ nhận biết */
+.table-toolbar-inline .btn-filter-row.active {
+    background: #4caf50;
+    border-color: #4caf50;
+    color: #fff;
 }
 
 
