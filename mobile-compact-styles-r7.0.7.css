@@ -17,15 +17,16 @@
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 10px !important;
     padding: 10px !important;
-    padding-bottom: 20px !important; /* Extra space at bottom */
-    flex: 1 !important; /* Take remaining space */
-    overflow-y: auto !important; /* ONLY scroll content */
+    padding-bottom: 80px !important;      /* ← Tăng từ 20px lên 80px để tránh bị nav bar che */
+    flex: 1 1 auto !important;             /* ← Thêm 'auto' để flexible hơn */
+    overflow-y: auto !important;
     -webkit-overflow-scrolling: touch;
-    max-height: none !important; /* Remove max-height */
+    height: auto !important;               /* ← THÊM MỚI */
+    min-height: 0 !important;              /* ← THÊM MỚI: Cho phép shrink trong flexbox */
+    max-height: none !important;
   }
 
-
-  
+    
 }
 
 /* ========================================
@@ -776,7 +777,7 @@
   .upper-section {
     display: flex !important;
     flex-direction: column !important;
-    height: calc(100vh - 160px) !important;
+    height: calc(100vh - 120px) !important;
     gap: 0 !important;
   }
   
@@ -1934,6 +1935,10 @@ border-color: #212121 !important;
         background: white;
         z-index: 100;
         flex-direction: column;
+         max-height: calc(100vh - 120px);
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 35px; /* R7.0.8: Space for pagination */
     }
     
     .mobile-table-container.active {
@@ -2107,12 +2112,12 @@ border-color: #212121 !important;
         display: flex;
         justify-content: center;
         align-items: center;
-        gap: 8px;
-        padding: 6px;
+        gap: 6px;
+        padding: 4px;
         background: #F5F5F5;
         border-top: 1px solid #DDD;
         flex-shrink: 0;
-        min-height: 36px;
+        min-height: 26px;
     }
     
     .mobile-table-container .page-btn {
@@ -2162,10 +2167,10 @@ border-color: #212121 !important;
     }
     
     .quick-results-panel .panel-body {
-        position: relative;
-        padding: 0 !important;
-        overflow: visible !important;
-    }
+      position: relative;
+      padding: 0 !important;
+      /* KHÔNG override overflow ở đây */
+  }
     
     /* === HIDE DESKTOP TABLE ARROWS === */
     .results-table th:after,
@@ -2175,4 +2180,39 @@ border-color: #212121 !important;
         display: none !important;
         content: none !important;
     }
+
+    .mobile-pagination {
+    position: fixed;
+    bottom: 28px; /* R7.0.9: Closer to nav bar */
+    left: 0;
+    right: 0;
+    background: #fff;
+    padding: 6px 12px; /* R7.0.9: Reduced from 12px 16px */
+    box-shadow: 0 -1px 6px rgba(0,0,0,0.08); /* R7.0.9: Lighter shadow */
+    z-index: 900;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px; /* R7.0.9: Reduced from 12px */
 }
+
+.mobile-pagination button {
+    padding: 6px 12px; /* R7.0.9: Reduced from 8px 16px */
+    font-size: 13px; /* R7.0.9: Reduced from 14px */
+    border: 1px solid #ddd;
+    background: #fff;
+    border-radius: 4px;
+    cursor: pointer;
+    min-width: 60px; /* R7.0.9: Compact buttons */
+}
+
+.mobile-pagination .page-info {
+    font-size: 13px; /* R7.0.9: Reduced from 14px */
+    color: #666;
+    min-width: 80px; /* R7.0.9: Reduced from 100px */
+    text-align: center;
+}
+
+}
+
+

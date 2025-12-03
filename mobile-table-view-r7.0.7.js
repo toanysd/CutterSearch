@@ -171,6 +171,49 @@
                 });
             }
 
+            // R7.0.8: Prevent checkbox area from opening modal
+            if (this.elements.tableBody) {
+                this.elements.tableBody.addEventListener('click', (e) => {
+                    // Check if click is on checkbox cell or checkbox itself
+                    const isCheckboxCell = e.target.closest('td.col-select');
+                    const isCheckbox = e.target.type === 'checkbox';
+                    
+                    if (isCheckboxCell || isCheckbox) {
+                        e.stopPropagation();
+                        console.log('[MobileTableView] 🚫 Checkbox area clicked - modal prevented');
+                        return;
+                    }
+                }, true); // Use capture phase to catch early
+            }
+
+            // R7.0.7: Click name cell to open detail modal
+            if (this.elements.tableBody) {
+                this.elements.tableBody.addEventListener('click', (e) => {
+                    const nameCell = e.target.closest('td.col-name');
+                    
+                    if (nameCell) {
+                        const row = nameCell.closest('tr');
+                        const itemId = row.getAttribute('data-id');
+                        const itemType = row.getAttribute('data-type') || 'mold';
+                        
+                        console.log(`[MobileTableView] Opening detail modal for: ${itemId}`);
+                        
+                        // Dispatch event for other components
+                        window.dispatchEvent(new CustomEvent('table:name-clicked', {
+                            detail: { 
+                                type: itemType,
+                                id: parseInt(itemId)
+                            }
+                        }));
+                        
+                        // ✅ SỬA: Đổi open → show và kiểm tra đúng method
+                        if (window.MobileDetailModal && window.MobileDetailModal.show) {
+                            window.MobileDetailModal.show(itemType, parseInt(itemId));
+                        }
+                    }
+                });
+            }
+
             console.log('[MobileTableView] ✅ Table events bound');
         },
 
@@ -631,18 +674,22 @@
         openDetailModal(item, itemId) {
             console.log('[MobileTableView] Opening detail modal for:', itemId);
             
+            // R7.0.8: Determine correct itemType
+            const itemType = item.itemType || (item.MoldID ? 'mold' : 'cutter');
+            
             document.dispatchEvent(new CustomEvent('quick:select', {
                 detail: {
-                    itemType: item.itemType,
+                    itemType: itemType,
                     itemId: itemId,
                     fullData: item
                 }
             }));
             
-            if (window.MobileDetailModal && typeof window.MobileDetailModal.open === 'function') {
-                window.MobileDetailModal.open(item.itemType, itemId);
+            if (window.MobileDetailModal && window.MobileDetailModal.show) {
+                window.MobileDetailModal.show(itemType, itemId);
             }
         },
+
 
         /**
          * Sort table
