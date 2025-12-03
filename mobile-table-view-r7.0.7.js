@@ -34,12 +34,16 @@
         init() {
             console.log('[MobileTableView] r7.0.7 Initializing...');
             
-            // Check if iPhone (< 768px) - KHÔNG chạy trên tablet
-            if (window.innerWidth >= 768) {
-                console.log('[MobileTableView] Tablet/Desktop detected - skipping init');
+            // QUAN TRỌNG: Chỉ chạy trên iPhone (< 768px)
+            // KHÔNG chạy trên iPad (768px+) và Desktop
+            const screenWidth = window.innerWidth;
+            
+            if (screenWidth >= 768) {
+                console.log(`[MobileTableView] Screen width: ${screenWidth}px - Tablet/Desktop detected, skipping init`);
                 return;
             }
-
+            
+            console.log(`[MobileTableView] Screen width: ${screenWidth}px - iPhone detected, initializing...`);
             
             // Cache DOM elements
             this.cacheElements();
