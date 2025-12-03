@@ -22,8 +22,19 @@
             
             // Sort state
             sortColumn: null,
-            sortDirection: 'asc'
+            sortDirection: 'asc',
+
+            // Column filters (table header)
+            filters: {
+                code: '',
+                name: '',
+                size: '',
+                location: '',
+                company: '',
+                date: ''
+            }
         },
+
 
         // DOM elements cache
         elements: {},
@@ -53,6 +64,7 @@
             this.bindTableEvents();
             this.bindPagination();
             this.bindSortHeaders();
+            this.bindColumnFilters();
             
             // Listen to search results updates
             this.listenToSearchResults();
@@ -78,12 +90,24 @@
                 toolbarInline: document.getElementById('table-toolbar-inline'),
                 selectedCountInline: document.getElementById('selected-count-inline'),
                 printBtnInline: document.getElementById('mobile-print-btn-inline'),
+                clearSelectionBtnInline: document.getElementById('mobile-clear-selection-inline'),
+
+                // Column filter inputs
+                filterInputs: {
+                    code: document.getElementById('filter-code'),
+                    name: document.getElementById('filter-name'),
+                    size: document.getElementById('filter-size'),
+                    location: document.getElementById('filter-location'),
+                    company: document.getElementById('filter-company'),
+                    date: document.getElementById('filter-date')
+                },
                 
                 currentPageSpan: document.getElementById('current-page'),
                 totalPagesSpan: document.getElementById('total-pages'),
                 prevPageBtn: document.getElementById('prev-page-btn'),
                 nextPageBtn: document.getElementById('next-page-btn')
             };
+
 
             if (!this.elements.table) {
                 console.error('[MobileTableView] ❌ mobile-results-table not found!');
@@ -132,6 +156,37 @@
         },
 
         /**
+         * Bind column filter inputs
+         */
+        bindColumnFilters() {
+            if (!this.elements.filterInputs) return;
+
+            const inputs = this.elements.filterInputs;
+
+            const attach = (key) => {
+                const input = inputs[key];
+                if (!input) return;
+
+                input.addEventListener('input', () => {
+                    this.state.filters[key] = input.value.trim().toLowerCase();
+                    this.state.currentPage = 1;
+                    if (this.state.currentView === 'table') {
+                        this.renderTable();
+                    }
+                });
+            };
+
+            attach('code');
+            attach('name');
+            attach('size');
+            attach('location');
+            attach('company');
+            attach('date');
+
+            console.log('[MobileTableView] ✅ Column filters bound');
+        },
+
+        /**
          * Bind table events
          */
         bindTableEvents() {
@@ -142,12 +197,20 @@
                 });
             }
 
+            // Clear selection button in header
+            if (this.elements.clearSelectionBtnInline) {
+                this.elements.clearSelectionBtnInline.addEventListener('click', () => {
+                    this.clearSelection();
+                });
+            }
+
             // Print button inline
             if (this.elements.printBtnInline) {
                 this.elements.printBtnInline.addEventListener('click', () => {
                     this.handlePrint();
                 });
             }
+
 
             // Table body checkbox delegation - QUAN TRỌNG: Chỉ trong mobile table
             if (this.elements.tableBody) {
@@ -326,6 +389,68 @@
         },
 
         /**
+         * Get filtered items based on column filters
+         */
+        getFilteredItems() {
+            const filters = this.state.filters || {};
+            const hasFilter = Object.values(filters).some(v => v && v.length > 0);
+
+            // Nếu không filter gì thì trả full list
+            if (!hasFilter) {
+                return this.state.allResults;
+            }
+
+            const toLower = (v) => (v || '').toString().toLowerCase();
+
+            return this.state.allResults.filter(item => {
+                // Code
+                const codeField = item.itemType === 'mold'
+                    ? (item.MoldID || item.MoldCode || '')
+                    : (item.CutterNo || item.CutterID || '');
+                const matchesCode = !filters.code || toLower(codeField).includes(filters.code);
+
+                // Name
+                const nameField = item.displayName || item.MoldName || '';
+                const matchesName = !filters.name || toLower(nameField).includes(filters.name);
+
+                // Size
+                const sizeField = item.displayDimensions || item.cutlineSize || '';
+                const matchesSize = !filters.size || toLower(sizeField).includes(filters.size);
+
+                // Location
+                const locField =
+                    item.displayLocation ||
+                    item.rackInfo?.RackNumber ||
+                    item.rackLayerInfo?.RackLayerNumber ||
+                    '';
+                const matchesLocation = !filters.location || toLower(locField).includes(filters.location);
+
+                // Company
+                const companyField =
+                    item.storageCompanyInfo?.CompanyShortName ||
+                    item.storageCompanyInfo?.CompanyName ||
+                    '';
+                const matchesCompany = !filters.company || toLower(companyField).includes(filters.company);
+
+                // Date (match raw text)
+                const dateField =
+                    item.jobInfo?.DeliveryDeadline ||
+                    item.MoldDate ||
+                    item.DateEntry ||
+                    '';
+                const matchesDate = !filters.date || dateField.includes(filters.date);
+
+                return matchesCode &&
+                    matchesName &&
+                    matchesSize &&
+                    matchesLocation &&
+                    matchesCompany &&
+                    matchesDate;
+            });
+        },
+
+
+        /**
          * Render table
          */
         renderTable() {
@@ -334,11 +459,23 @@
                 return;
             }
 
-            const totalItems = this.state.allResults.length;
-            const totalPages = Math.ceil(totalItems / this.state.pageSize);
+            // Apply column filters
+            const workingItems = this.getFilteredItems();
+            const totalItems = workingItems.length;
+            const totalPages = Math.max(1, Math.ceil(totalItems / this.state.pageSize));
+
+            // Giữ currentPage trong khoảng hợp lệ
+            if (this.state.currentPage > totalPages) {
+                this.state.currentPage = totalPages;
+            }
+            if (this.state.currentPage < 1) {
+                this.state.currentPage = 1;
+            }
+
             const startIdx = (this.state.currentPage - 1) * this.state.pageSize;
             const endIdx = Math.min(startIdx + this.state.pageSize, totalItems);
-            const pageItems = this.state.allResults.slice(startIdx, endIdx);
+            const pageItems = workingItems.slice(startIdx, endIdx);
+
 
             console.log('[MobileTableView] Rendering:', pageItems.length, 'items');
 
@@ -542,7 +679,7 @@
          * Go to next page
          */
         goToNextPage() {
-            const totalPages = Math.ceil(this.state.allResults.length / this.state.pageSize);
+            const totalPages = Math.max(1, Math.ceil(this.getFilteredItems().length / this.state.pageSize));
             if (this.state.currentPage < totalPages) {
                 this.state.currentPage++;
                 this.renderTable();
@@ -553,9 +690,11 @@
          * Toggle select all
          */
         toggleSelectAll(checked) {
+            const workingItems = this.getFilteredItems();
             const startIdx = (this.state.currentPage - 1) * this.state.pageSize;
-            const endIdx = Math.min(startIdx + this.state.pageSize, this.state.allResults.length);
-            const pageItems = this.state.allResults.slice(startIdx, endIdx);
+            const endIdx = Math.min(startIdx + this.state.pageSize, workingItems.length);
+            const pageItems = workingItems.slice(startIdx, endIdx);
+
 
             pageItems.forEach(item => {
                 const isMold = item.itemType === 'mold';
@@ -639,7 +778,40 @@
             if (this.elements.printBtnInline) {
                 this.elements.printBtnInline.disabled = count === 0;
             }
+
+            if (this.elements.clearSelectionBtnInline) {
+                this.elements.clearSelectionBtnInline.disabled = count === 0;
+            }
         },
+
+        /**
+         * Clear all selections (current table)
+         */
+        clearSelection() {
+            // Clear state
+            this.state.selectedItems.clear();
+
+            // Uncheck header checkbox
+            if (this.elements.selectAllCheckbox) {
+                this.elements.selectAllCheckbox.checked = false;
+                this.elements.selectAllCheckbox.indeterminate = false;
+            }
+
+            // Uncheck all row checkboxes & remove highlight
+            if (this.elements.tableBody) {
+                const checkboxes = this.elements.tableBody.querySelectorAll('.row-checkbox');
+                checkboxes.forEach(cb => cb.checked = false);
+
+                const rows = this.elements.tableBody.querySelectorAll('tr');
+                rows.forEach(row => row.classList.remove('selected'));
+            }
+
+            // Update toolbar UI
+            this.updateSelectionUI();
+
+            console.log('[MobileTableView] ✅ Selection cleared');
+        },
+
 
         /**
          * Handle print
@@ -747,9 +919,14 @@
                     case 'date':
                         valA = a.jobInfo?.DeliveryDeadline || a.MoldDate || a.DateEntry || '';
                         valB = b.jobInfo?.DeliveryDeadline || b.MoldDate || b.DateEntry || '';
-                        if (!valA) return 1;
-                        if (!valB) return -1;
-                        return new Date(valA) - new Date(valB);
+
+                        // Trường trống được coi là cũ nhất
+                        const baseOld = new Date('1900-01-01').getTime();
+                        const numA = valA ? new Date(valA).getTime() : baseOld;
+                        const numB = valB ? new Date(valB).getTime() : baseOld;
+
+                        return numA - numB;
+
                         
                     default:
                         return 0;

@@ -246,10 +246,17 @@
                         <span class="selection-info-inline">
                             <span id="selected-count-inline">0</span> 件
                         </span>
+
+                        <!-- R7.0.7: Clear selection button -->
+                        <button class="btn-clear-inline" id="mobile-clear-selection-inline" disabled>
+                            全解除
+                        </button>
+
                         <button class="btn-print-inline" id="mobile-print-btn-inline" disabled>
                             <i class="fas fa-print"></i> 印刷
                         </button>
                     </div>
+
                     
                     <!-- R7.0.7: View Mode Toggle (Card/Table) -->
                     <div class="view-mode-toggle" id="mobile-view-toggle">
@@ -300,6 +307,29 @@
                                             製造日<span class="sort-indicator"></span>
                                         </th>
                                     </tr>
+                                            <!-- R7.0.7: Column filter row -->
+                                    <tr class="column-filters">
+                                        <th></th>
+                                        <th>
+                                            <input type="text" id="filter-code" class="col-filter" placeholder="コード">
+                                        </th>
+                                        <th>
+                                            <input type="text" id="filter-name" class="col-filter" placeholder="名称">
+                                        </th>
+                                        <th>
+                                            <input type="text" id="filter-size" class="col-filter" placeholder="寸法">
+                                        </th>
+                                        <th>
+                                            <input type="text" id="filter-location" class="col-filter" placeholder="棚番">
+                                        </th>
+                                        <th>
+                                            <input type="text" id="filter-company" class="col-filter" placeholder="保管">
+                                        </th>
+                                        <th>
+                                            <input type="text" id="filter-date" class="col-filter" placeholder="製造日">
+                                        </th>
+                                    </tr>
+
                                 </thead>
 
                                 <tbody id="mobile-table-body">
