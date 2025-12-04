@@ -140,6 +140,11 @@ class MobileDetailModal {
                 <div class="mobile-modal-actions">
                     <!-- Action buttons will be dynamically inserted -->
                 </div>
+                <!-- Nút close nổi bottom-left -->
+                <button class="mobile-modal-fab-close" aria-label="Close detail">
+                    <span class="fab-label-ja">閉じる</span>
+                    <span class="fab-label-vi">Đóng</span>
+                </button>
             </div>
         `;
         
@@ -161,6 +166,13 @@ class MobileDetailModal {
         if (closeBtn) {
             closeBtn.addEventListener('click', () => this.hide());
         }
+
+        // Floating close button (bottom-left)
+        const fabCloseBtn = this.modal.querySelector('.mobile-modal-fab-close');
+        if (fabCloseBtn) {
+            fabCloseBtn.addEventListener('click', () => this.hide());
+        }
+
 
         // Click outside to close
         this.modal.addEventListener('click', (e) => {
@@ -209,45 +221,102 @@ class MobileDetailModal {
             // Không làm gì, giữ nguyên modal chi tiết để user tiếp tục thao tác
         });
 
-            // R7.0.7: CRITICAL - Listen for inventory mode changes from InventoryManager
-            document.addEventListener('inventoryModeChanged', (e) => {
-                const { active } = e.detail;
-                console.log('[MobileModal] Received inventoryModeChanged event:', active);
+        // R7.0.7: CRITICAL - Listen for inventory mode changes from InventoryManager
+        document.addEventListener('inventoryModeChanged', (e) => {
+            const { active } = e.detail;
+            console.log('[MobileModal] Received inventoryModeChanged event:', active);
+            
+            // Update internal state
+            this.inventoryMode = !!active;
+            
+            // If modal is currently open, update UI immediately
+            if (this.modal && this.modal.classList.contains('show')) {
+                console.log('[MobileModal] Modal is open, updating toggle UI...');
                 
-                // Update internal state
-                this.inventoryMode = !!active;
-                
-                // If modal is currently open, update UI immediately
-                if (this.modal && this.modal.classList.contains('show')) {
-                    console.log('[MobileModal] Modal is open, updating toggle UI...');
-                    
-                    // Re-render mode toggle buttons
-                    const toggleBtns = this.modalContent.querySelectorAll('.toggle-btn');
-                    toggleBtns.forEach(btn => {
-                        if (btn.dataset.mode === 'inventory') {
-                            if (this.inventoryMode) {
-                                btn.classList.add('active');
-                            } else {
-                                btn.classList.remove('active');
-                            }
-                        } else if (btn.dataset.mode === 'checkin') {
-                            if (!this.inventoryMode) {
-                                btn.classList.add('active');
-                            } else {
-                                btn.classList.remove('active');
-                            }
+                // Re-render mode toggle buttons
+                const toggleBtns = this.modalContent.querySelectorAll('.toggle-btn');
+                toggleBtns.forEach(btn => {
+                    if (btn.dataset.mode === 'inventory') {
+                        if (this.inventoryMode) {
+                            btn.classList.add('active');
+                        } else {
+                            btn.classList.remove('active');
                         }
-                    });
-                    
-                    // Re-render action buttons to show correct set (8 buttons or 2 buttons)
-                    this.renderActionButtons();
-                    
-                    console.log('[MobileModal] UI synced with inventory mode:', this.inventoryMode);
-                }
-            });
-
-
+                    } else if (btn.dataset.mode === 'checkin') {
+                        if (!this.inventoryMode) {
+                            btn.classList.add('active');
+                        } else {
+                            btn.classList.remove('active');
+                        }
+                    }
+                });
+                
+                // Re-render action buttons to show correct set (8 buttons or 2 buttons)
+                this.renderActionButtons();
+                
+                console.log('[MobileModal] UI synced with inventory mode:', this.inventoryMode);
+            }
+        });
         console.log('✅ Modal events bound (with checkin-completed listener)');
+
+        // Swipe down to close modal (header drag)
+        const header = this.modal.querySelector('.mobile-modal-header');
+        if (header && ('ontouchstart' in window)) {
+            let startY = 0;
+            let currentY = 0;
+            let isDragging = false;
+
+            const resetDrag = () => {
+                isDragging = false;
+                this.modal.classList.remove('dragging');
+                this.modal.style.transform = '';
+                this.modal.style.opacity = '';
+            };
+
+            const onTouchStart = (e) => {
+                if (!e.touches || e.touches.length !== 1) return;
+                startY = e.touches[0].clientY;
+                currentY = startY;
+                isDragging = true;
+                this.modal.classList.add('dragging');
+            };
+
+            const onTouchMove = (e) => {
+                if (!isDragging) return;
+                const touchY = e.touches[0].clientY;
+                const deltaY = touchY - startY;
+
+                // Chỉ xử lý khi kéo xuống (deltaY > 0)
+                if (deltaY < 0) return;
+
+                currentY = touchY;
+                // Giới hạn khoảng kéo tạo hiệu ứng mờ dần
+                const translateY = Math.min(deltaY, 120);
+                const opacity = 1 - Math.min(deltaY / 200, 0.5);
+
+                this.modal.style.transform = `translateY(${translateY}px)`;
+                this.modal.style.opacity = opacity;
+            };
+
+            const onTouchEnd = () => {
+                if (!isDragging) return;
+                const deltaY = currentY - startY;
+
+                // Nếu kéo xa đủ → đóng modal, ngược lại trở về vị trí cũ
+                if (deltaY > 80) {
+                    resetDrag();
+                    this.hide();
+                } else {
+                    resetDrag();
+                }
+            };
+
+            header.addEventListener('touchstart', onTouchStart, { passive: true });
+            header.addEventListener('touchmove', onTouchMove, { passive: true });
+            header.addEventListener('touchend', onTouchEnd);
+            header.addEventListener('touchcancel', resetDrag);
+        }
+
     }
 
     /**
