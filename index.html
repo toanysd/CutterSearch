@@ -17,7 +17,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- Main Stylesheet -->
-    <link rel="stylesheet" href="styles-r7.0.6.css">
+    <link rel="stylesheet" href="styles-r7.0.7.css">
 
     <!-- <link rel="stylesheet" href="iphone-ui-r1.css"> -->
     <link rel="stylesheet" href="mobile-compact-styles-r7.0.7.css"> 
@@ -70,9 +70,9 @@
                 <span>準備完了</span>
             </div>
             <div class="status-counts">
-                <span>金型: <strong id="mold-count">4518</strong></span>
+                <span>金型: <strong id="mold-count">-</strong></span>
                 <span class="divider">|</span>
-                <span>抜型: <strong id="cutter-count">1665</strong></span>
+                <span>抜型: <strong id="cutter-count">-</strong></span>
             </div>
         </div>
     </header>
@@ -238,11 +238,22 @@
                  ======================================== -->
             <div class="panel quick-results-panel">
                 <div class="panel-header">
-                    <i class="fas fa-bolt"></i> クイック結果
+                    <i class="fas fa-bolt"></i> 結果
                     <span class="result-count-badge" id="quick-count">0件</span>
                     
                     <!-- R7.0.7: Toolbar Inline (Selection + Print) -->
                     <div class="table-toolbar-inline" id="table-toolbar-inline" style="display: none;">
+                        <!-- NEW: Mobile selection mode toggle (ON/OFF) -->
+                        <div class="inv-selection-toggle">
+                            <label class="inv-toggle-switch inv-toggle-switch-xs">
+                            <input type="checkbox" id="selection-mode-toggle">
+                            <span class="inv-toggle-slider"></span>
+                            </label>
+                            <span class="inv-selection-label">
+                            <span class="jp-text">選択</span>
+                            <span class="vi-text">Chọn</span>
+                            </span>
+                        </div>
                         <span class="selection-info-inline">
                             <span id="selected-count-inline">0</span> 件
                         </span>
@@ -939,7 +950,8 @@
     <script src="export-qr-r6.9.js"></script>
     <script src="print-r6.9.js"></script>
 
-        <!-- R7.0.7: Mobile Table View Module -->
+    <script src="selection-manager-r7.0.7.js"></script>
+    <!-- R7.0.7: Mobile Table View Module -->
     <script src="mobile-table-view-r7.0.7.js"></script>
     
     <!-- R7.0.7: Print Manager Module -->
@@ -976,7 +988,7 @@
     <script src="mobile-detail-modal-r7.0.7.js"></script>
     <!-- Inventory Manager R6.9.5 - Quản lý chế độ kiểm kê -->
          <!-- Inventory Manager R6.9.5 -->
-    <script src="inventory-manager-r7.0.6.js"></script>
+    <script src="inventory-manager-r7.0.7.js"></script>
         
     <!-- Initialization Script -->
     <script>

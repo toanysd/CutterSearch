@@ -53,97 +53,115 @@
     if (!quick) return;
     
     quick.addEventListener('click', (ev) => {
-        // ✅ R6.9.5: Handle bulk checkbox click - STOP IMMEDIATELY
-        const checkbox = ev.target;
-        if (checkbox && checkbox.classList && checkbox.classList.contains('inv-card-checkbox')) {
-            ev.preventDefault();
-            ev.stopPropagation();
-            ev.stopImmediatePropagation();
-            
-            const itemId = checkbox.dataset.itemId;
-            const itemType = checkbox.dataset.itemType;
-            const card = checkbox.closest('.result-card');
-            
-            if (!card) {
-                console.warn('[QuickResultsSync] ⚠️ Card not found');
-                return false;
-            }
-            
-            // Get item data from state
-            const idxAttr = card.getAttribute('data-index');
-            let itemData = null;
-            
-            if (idxAttr != null) {
-                const idx = Number(idxAttr);
-                if (!Number.isNaN(idx) && state.currentResults[idx]) {
-                    itemData = state.currentResults[idx];
-                }
-            }
-            
-            if (!itemData) {
-                console.warn('[QuickResultsSync] ⚠️ Item data not found');
-                return false;
-            }
-            
-            // Toggle selection
-            window.InventoryManager?.toggleItemSelection(itemId, itemType, itemData);
-            
-            // Update card visual
-            if (checkbox.checked) {
-                card.classList.add('inv-selected');
-            } else {
-                card.classList.remove('inv-selected');
-            }
-            
-            console.log('[QuickResultsSync] ✅ Checkbox toggled:', itemId, checkbox.checked);
-            
-            return false;
-        }
+      // ✅ R7.0.7: Handle card selection icon (inv-bulk-checkbox)
+      const target = ev.target;
+      if (target && target.classList && target.classList.contains('inv-bulk-checkbox')) {
+          ev.preventDefault();
+          ev.stopPropagation();
+          ev.stopImmediatePropagation();
+
+          // Lấy card bao ngoài
+          const card = target.closest('.result-card');
+          if (!card) {
+              console.warn('[QuickResultsSync] ⚠️ Card not found for bulk checkbox');
+              return false;
+          }
+
+          // Lấy id/type từ data-* trên card (chuẩn mới của ui-renderer)
+          const itemId = card.dataset.id;
+          const itemType = (card.dataset.type || '').toLowerCase();
+          if (!itemId || !itemType) {
+              console.warn('[QuickResultsSync] ⚠️ Missing id/type on card for selection');
+              return false;
+          }
+
+          // Lấy item data từ state.currentResults
+          const idxAttr = card.getAttribute('data-index');
+          let itemData = null;
+          if (idxAttr != null) {
+              const idx = Number(idxAttr);
+              if (!Number.isNaN(idx) && state.currentResults[idx]) {
+                  itemData = state.currentResults[idx];
+              }
+          }
+          if (!itemData && state.currentResults.length) {
+              // Fallback: tìm theo id
+              const keys = itemType === 'mold' ? ['MoldID', 'MoldCode'] : ['CutterID', 'CutterNo'];
+              itemData = state.currentResults.find(r =>
+                  keys.some(k => String(r?.[k] || '') === String(itemId))
+              );
+          }
+          if (!itemData) {
+              console.warn('[QuickResultsSync] ⚠️ Item data not found for selection');
+              return false;
+          }
+
+          // Toggle selection bằng SelectionManager (ưu tiên)
+          if (window.SelectionManager) {
+              window.SelectionManager.toggleItem(itemId, itemType, itemData);
+          } else {
+              window.InventoryManager?.toggleItemSelection(itemId, itemType, itemData);
+          }
+
+          // Highlight sẽ do SelectionManager.updateDomHighlights() đảm nhiệm
+          // (đã chạy bên trong add/remove/toggleItem)
+          console.log('[QuickResultsSync] ✅ Card selection icon toggled:', itemType, itemId);
+          return false;
+      }
 
         
         // Existing card click handler
         const card = ev.target.closest('.result-card');
         if (!card || !quick.contains(card)) return;
 
+        // Lấy id/type từ thuộc tính card (đã được ui-renderer.js gán đầy đủ)
+        const id = card.dataset.id;
+        const type = (card.dataset.type || '').toLowerCase();
 
-      // Lấy id/type từ thuộc tính card (đã được ui-renderer.js gán đầy đủ)
-      const id = card.dataset.id;
-      const type = card.dataset.type;
-      if (!id || !type) {
-        console.warn('[QuickResultsSync] Card missing id/type:', card);
-        return;
-      }
-
-      // ✅ Lấy item theo tập đã lọc (state.currentResults)
-      const idxAttr = card.getAttribute('data-index');
-      let item = null;
-
-      if (idxAttr != null) {
-        const idx = Number(idxAttr);
-        if (!Number.isNaN(idx) && state.currentResults[idx]) {
-          item = state.currentResults[idx];
+        if (!id || !type) {
+            console.warn('[QuickResultsSync] Card missing id/type:', card);
+            return;
         }
-      }
 
-      // Fallback: tìm theo id nếu data-index bị thiếu
-      if (!item && state.currentResults.length) {
-        const keys = type === 'mold' ? ['MoldID', 'MoldCode'] : ['CutterID', 'CutterNo'];
-        item = state.currentResults.find(r => 
-          keys.some(k => String(r?.[k] || '') === String(id))
-        );
-      }
+        // ✅ Lấy item theo tập đã lọc (state.currentResults)
+        const idxAttr = card.getAttribute('data-index');
+        let item = null;
 
-      console.log('[QuickResultsSync] 📌 Card clicked:', type, id, 'item:', item);
+        if (idxAttr != null) {
+            const idx = Number(idxAttr);
+            if (!Number.isNaN(idx) && state.currentResults[idx]) {
+                item = state.currentResults[idx];
+            }
+        }
 
-      // ✅ Phát các sự kiện như cũ để tương thích ngược
-      document.dispatchEvent(new CustomEvent('quick:select', {
-        detail: { id, type, source: 'quick-results' }
-      }));
+        // Fallback: tìm theo id nếu data-index bị thiếu
+        if (!item && state.currentResults.length) {
+            const keys = type === 'mold' ? ['MoldID', 'MoldCode'] : ['CutterID', 'CutterNo'];
+            item = state.currentResults.find(r =>
+                keys.some(k => String(r?.[k] || '') === String(id))
+            );
+        }
 
-      document.dispatchEvent(new CustomEvent('detail:open', {
-        // Truyền thêm item (nếu có) cho các module mới; module cũ có thể bỏ qua
-        detail: { id, type, preview: true, source: 'quick-results', item }
-      }));
+        // ✅ Nếu đang ở chế độ chọn (selection mode) → chỉ toggle chọn, KHÔNG mở chi tiết
+        if (window.SelectionState?.active && window.SelectionManager) {
+            ev.preventDefault();
+            ev.stopPropagation();
+
+            window.SelectionManager.toggleItem(id, type, item || null);
+            return;
+        }
+
+        // ====== Hành vi cũ (selection mode OFF) ======
+        console.log('[QuickResultsSync] 📌 Card clicked:', type, id, 'item:', item);
+
+        // ✅ Phát các sự kiện như cũ để tương thích ngược
+        document.dispatchEvent(new CustomEvent('quick:select', {
+            detail: { id, type, source: 'quick-results' }
+        }));
+        document.dispatchEvent(new CustomEvent('detail:open', {
+            // Truyền thêm item (nếu có) cho các module mới; module cũ có thể bỏ qua
+            detail: { id, type, preview: true, source: 'quick-results', item }
+        }));
     });
   }
 

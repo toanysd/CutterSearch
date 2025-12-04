@@ -49,7 +49,7 @@
     buildIndexes();
     bindEvents();
     refreshFromDetail();
-    console.log('[RelatedEquipment] FIX11 READ FROM EVENT ready');
+    //console.log('[RelatedEquipment] FIX11 READ FROM EVENT ready');
   }
 
   function waitForData() {
@@ -308,7 +308,7 @@
     const id = String(type === 'mold' ? (item.MoldID ?? item.MoldCode) : (item.CutterID ?? item.CutterNo));
     const code = String(type === 'mold' ? (item.MoldCode ?? '') : (item.CutterNo ?? item.CutterCode ?? ''));
 
-    console.log('[RelatedEquipment] 🔔 Item selected from column 4:', { type, id, code });
+    //console.log('[RelatedEquipment] 🔔 Item selected from column 4:', { type, id, code });
 
     // Update UIRenderer state
     if (window.UIRenderer) {
@@ -332,7 +332,7 @@
     State.lastKey = null;
     setTimeout(() => refreshWithItem(item), 50);
     
-    console.log('[RelatedEquipment] 📡 Dispatched: detail:changed');
+    //console.log('[RelatedEquipment] 📡 Dispatched: detail:changed');
   }
 
   function highlightQuickResult(selectedId, selectedType, selectedCode) {
@@ -416,16 +416,16 @@
     }
     
     State.lastKey = k;
-    console.log('[RelatedEquipment] 🔄 Refreshing for:', k);
+    //console.log('[RelatedEquipment] 🔄 Refreshing for:', k);
     
     if (type === 'mold') {
       const related = getRelatedCuttersForMoldKey(item.MoldID ?? item.MoldCode);
       renderList('mold', related);
-      console.log('[RelatedEquipment] ✅ Rendered', related.length, 'cutters for mold');
+      //console.log('[RelatedEquipment] ✅ Rendered', related.length, 'cutters for mold');
     } else {
       const related = getRelatedMoldsForCutterKey(item.CutterID ?? item.CutterNo);
       renderList('cutter', related);
-      console.log('[RelatedEquipment] ✅ Rendered', related.length, 'molds for cutter');
+      //console.log('[RelatedEquipment] ✅ Rendered', related.length, 'molds for cutter');
     }
   }
 
@@ -447,7 +447,7 @@
     // ✅ CRITICAL: Đọc item từ event.detail.item
     document.addEventListener('detail:changed', (e) => {
       const { item, source } = e.detail || {};
-      console.log('[RelatedEquipment] 📡 detail:changed received from:', source, 'has item:', !!item);
+      //console.log('[RelatedEquipment] 📡 detail:changed received from:', source, 'has item:', !!item);
       
       if (!item) {
         console.warn('[RelatedEquipment] No item in event, skipping');

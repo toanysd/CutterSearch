@@ -49,65 +49,65 @@
   };
 
   // ======================================================================
-// PERFORMANCE MONITORING
-// ======================================================================
-const PERF_CONFIG = {
-    enabled: true, // Đặt false khi production
-    logThreshold: 50 // Log nếu operation > 50ms
-};
+  // PERFORMANCE MONITORING
+  // ======================================================================
+  const PERF_CONFIG = {
+      enabled: true, // Đặt false khi production
+      logThreshold: 50 // Log nếu operation > 50ms
+  };
 
-function measurePerf(label, fn) {
-    if (!PERF_CONFIG.enabled) return fn();
-    const start = performance.now();
-    const result = fn();
-    const duration = performance.now() - start;
-    if (duration > PERF_CONFIG.logThreshold) {
-        console.warn(`[PERF] ${label}: ${duration.toFixed(2)}ms`);
-    }
-    return result;
-}
+  function measurePerf(label, fn) {
+      if (!PERF_CONFIG.enabled) return fn();
+      const start = performance.now();
+      const result = fn();
+      const duration = performance.now() - start;
+      if (duration > PERF_CONFIG.logThreshold) {
+          console.warn(`[PERF] ${label}: ${duration.toFixed(2)}ms`);
+      }
+      return result;
+  }
 
-// ======================================================================
-// UTILITY: DEBOUNCE & THROTTLE
-// ======================================================================
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
+  // ======================================================================
+  // UTILITY: DEBOUNCE & THROTTLE
+  // ======================================================================
+  function debounce(func, wait) {
+      let timeout;
+      return function executedFunction(...args) {
+          const later = () => {
+              clearTimeout(timeout);
+              func(...args);
+          };
+          clearTimeout(timeout);
+          timeout = setTimeout(later, wait);
+      };
+  }
 
-function throttle(func, limit) {
-    let inThrottle;
-    return function(...args) {
-        if (!inThrottle) {
-            func.apply(this, args);
-            inThrottle = true;
-            setTimeout(() => inThrottle = false, limit);
-        }
-    };
-}
+  function throttle(func, limit) {
+      let inThrottle;
+      return function(...args) {
+          if (!inThrottle) {
+              func.apply(this, args);
+              inThrottle = true;
+              setTimeout(() => inThrottle = false, limit);
+          }
+      };
+  }
 
-// ====================================================================== 
-// R7.0.2: DEVICE DETECTION HELPERS
-// ====================================================================== 
+  // ====================================================================== 
+  // R7.0.2: DEVICE DETECTION HELPERS
+  // ====================================================================== 
 
-function isMobileDevice() {
-  return window.innerWidth < 768;
-}
+  function isMobileDevice() {
+    return window.innerWidth < 768;
+  }
 
-function isIPadDevice() {
-  return window.innerWidth >= 768 && window.innerWidth <= 1024;
-}
+  function isIPadDevice() {
+    return window.innerWidth >= 768 && window.innerWidth <= 1024;
+  }
 
-function shouldUseMobileDetail() {
-  return isMobileDevice() || isIPadDevice();
-}
+  function shouldUseMobileDetail() {
+    return isMobileDevice() || isIPadDevice();
+  }
 
 
   const UIRenderer = {
@@ -142,7 +142,7 @@ function shouldUseMobileDetail() {
                 window.statusLogs[moldId] = status.includes('in') ? 'in' : 'out';
               }
             }
-            console.log('[UIRenderer] ✅ Loaded statuslogs.csv — total:', Object.keys(window.statusLogs).length, 'records');
+            //console.log('[UIRenderer] ✅ Loaded statuslogs.csv — total:', Object.keys(window.statusLogs).length, 'records');
           })
           .catch(err => console.error('[UIRenderer] ❌ Load statuslogs.csv failed:', err));
       }
@@ -174,13 +174,13 @@ function shouldUseMobileDetail() {
           // ✅ SỬA: LUÔN gọi updateLocationBadge cho mọi item (không check source)
           if (item.MoldID || item.CutterID) {
             this.updateLocationBadge(item);
-            console.log('[UIRenderer] 🎯 updateLocationBadge called for:', item.MoldID || item.CutterID, 'from source:', source);
+            //console.log('[UIRenderer] 🎯 updateLocationBadge called for:', item.MoldID || item.CutterID, 'from source:', source);
           }
           
           // ✅ SỬA: LUÔN gọi updateCheckInBadge cho mọi item
           if (item.MoldID || item.CutterID) {
             this.updateCheckInBadge(item);
-            console.log('[UIRenderer] 🎯 updateCheckInBadge called for:', item.MoldID || item.CutterID, 'from source:', source);
+            //console.log('[UIRenderer] 🎯 updateCheckInBadge called for:', item.MoldID || item.CutterID, 'from source:', source);
           }
         }
       });
@@ -189,7 +189,7 @@ function shouldUseMobileDetail() {
       document.addEventListener('inventory:sort', (e) => {
         const by = e.detail?.by || 'code';
         
-        console.log(`[UIRenderer] 🔄 Sorting results by: ${by}`);
+        //console.log(`[UIRenderer] 🔄 Sorting results by: ${by}`);
         
         // Lấy danh sách kết quả hiện tại từ state
         const currentResults = this.state.allResults || [];
@@ -209,7 +209,7 @@ function shouldUseMobileDetail() {
                 const bRack = String(b.displayLocation || b.RackLayerID || '').trim();
                 return aRack.localeCompare(bRack, undefined, { numeric: true });
             });
-            console.log('[UIRenderer] ✅ Sorted by RackLayerID');
+            //console.log('[UIRenderer] ✅ Sorted by RackLayerID');
         } else {
             // Sắp xếp theo code (MoldCode / CutterNo)
             sortedResults.sort((a, b) => {
@@ -217,21 +217,21 @@ function shouldUseMobileDetail() {
                 const bCode = String(b.displayCode || b.MoldCode || b.CutterNo || '').trim();
                 return aCode.localeCompare(bCode);
             });
-            console.log('[UIRenderer] ✅ Sorted by Code');
+            //console.log('[UIRenderer] ✅ Sorted by Code');
         }
         
         // Cập nhật state và re-render
         this.state.allResults = sortedResults;
         this.renderResults(sortedResults);
           
-          console.log(`[UIRenderer] ✅ Re-rendered ${sortedResults.length} items after sort`);
+          //console.log(`[UIRenderer] ✅ Re-rendered ${sortedResults.length} items after sort`);
       });
 
       // ✅ R6.9.5: Lắng nghe inventory:filter
         document.addEventListener('inventory:filter', (e) => {
             const { filterRack, filterLayer, filterType } = e.detail || {};
             
-            console.log('[UIRenderer] 🔍 Applying inventory filters:', { filterRack, filterLayer, filterType });
+            //console.log('[UIRenderer] 🔍 Applying inventory filters:', { filterRack, filterLayer, filterType });
             
             let filtered = this.state.allResults.slice(0);
             
@@ -258,23 +258,23 @@ function shouldUseMobileDetail() {
             
             this.renderResults(filtered);
             
-            console.log(`[UIRenderer] ✅ Filtered: ${this.state.allResults.length} → ${filtered.length} items`);
+            //console.log(`[UIRenderer] ✅ Filtered: ${this.state.allResults.length} → ${filtered.length} items`);
         });
         
         // ✅ R6.9.7: Lắng nghe inventory:bulkMode + toggle class container
         document.addEventListener('inventory:bulkMode', (e) => {
           const enabled = e.detail?.enabled || false;
-          console.log('[UIRenderer] 📦 Bulk mode:', enabled ? 'ON' : 'OFF');
+          //console.log('[UIRenderer] 📦 Bulk mode:', enabled ? 'ON' : 'OFF');
           
           // ✅ Toggle class trên container để kích hoạt CSS
           const quickList = document.querySelector('#quick-results-list');
           if (quickList) {
             if (enabled) {
               quickList.classList.add('inv-bulk-active');
-              console.log('[UIRenderer] ✅ Container class added: inv-bulk-active');
+              //console.log('[UIRenderer] ✅ Container class added: inv-bulk-active');
             } else {
               quickList.classList.remove('inv-bulk-active');
-              console.log('[UIRenderer] ✅ Container class removed: inv-bulk-active');
+              //console.log('[UIRenderer] ✅ Container class removed: inv-bulk-active');
             }
           }
           
@@ -285,14 +285,14 @@ function shouldUseMobileDetail() {
         
         // ✅ R6.9.5: Lắng nghe inventory:refreshBadges
         document.addEventListener('inventory:refreshBadges', () => {
-            console.log('[UIRenderer] 🔄 Refreshing audit badges...');
+            //console.log('[UIRenderer] 🔄 Refreshing audit badges...');
             this.renderResults(this.state.allResults);
         });
         
         // ✅ R6.9.7 - Lắng nghe 'inventory:auditRecorded' để refresh badge ngay
         document.addEventListener('inventory:auditRecorded', (e) => {
           const { itemId, itemType, date } = e.detail;
-          console.log('[UIRenderer] 📡 Audit recorded event received:', { itemId, itemType, date });
+          //console.log('[UIRenderer] 📡 Audit recorded event received:', { itemId, itemType, date });
           
           // ✅ Cập nhật badge trực tiếp trên card hiện tại (không re-render toàn bộ)
           const cardSelector = `[data-type="${itemType}"][data-id="${itemId}"]`;
@@ -315,7 +315,7 @@ function shouldUseMobileDetail() {
             if (auditBadge) {
               auditBadge.textContent = '確認済';
               auditBadge.style.display = 'inline-block';
-              console.log('[UIRenderer] ✅ Badge updated for card:', itemId);
+              //console.log('[UIRenderer] ✅ Badge updated for card:', itemId);
             }
             
             // ✅ Cập nhật ngày kiểm kê
@@ -324,7 +324,7 @@ function shouldUseMobileDetail() {
               // Parse date YYYY-MM-DD → YYYY/MM/DD
               const formatted = date.replace(/-/g, '/');
               dateSpan.textContent = formatted;
-              console.log('[UIRenderer] ✅ Date updated:', formatted);
+              //console.log('[UIRenderer] ✅ Date updated:', formatted);
             }
             
             // ✅ Thêm animation highlight
@@ -345,7 +345,7 @@ function shouldUseMobileDetail() {
         // ✅ R6.9.7 - Lắng nghe 'inventory:auditRecorded' để refresh badges
         document.addEventListener('inventory:auditRecorded', (e) => {
           const { itemId, itemType, date } = e.detail;
-          console.log('[UIRenderer] Audit recorded, refreshing badges...', itemId);
+          //console.log('[UIRenderer] Audit recorded, refreshing badges...', itemId);
           
           // Re-render toàn bộ cards để cập nhật badges
           this.renderResults(this.state.allResults);
@@ -357,7 +357,7 @@ function shouldUseMobileDetail() {
         document.addEventListener('inventory:bulkAuditCompleted', (e) => {
             const { items, date, count } = e.detail;
             
-            console.log(`[UIRenderer] 🔄 Bulk audit completed: ${count} items`);
+            //console.log(`[UIRenderer] 🔄 Bulk audit completed: ${count} items`);
             
             // ✅ Batch update badges cho tất cả items (không re-render từng item)
             items.forEach(({ itemId, itemType }) => {
@@ -401,7 +401,7 @@ function shouldUseMobileDetail() {
                 UIRenderer.renderResults(UIRenderer.state.allResults);
             }
             
-            console.log(`[UIRenderer] ✅ Bulk badges updated: ${count} items`);
+            //console.log(`[UIRenderer] ✅ Bulk badges updated: ${count} items`);
         });
 
         // =================================================================
@@ -411,7 +411,7 @@ function shouldUseMobileDetail() {
             const { item, success, mode } = e.detail;
             if (!success || !item) return;
             
-            console.log(`[UIRenderer] Check-in completed (${mode}), refreshing badges for`, item.MoldID || item.CutterID);
+            //console.log(`[UIRenderer] Check-in completed (${mode}), refreshing badges for`, item.MoldID || item.CutterID);
             
             // Re-render toàn bộ cards để cập nhật status badge
             this.renderResults(this.state.allResults);
@@ -424,7 +424,7 @@ function shouldUseMobileDetail() {
             const { item, success } = e.detail;
             if (!success || !item) return;
             
-            console.log(`[UIRenderer] Location changed, refreshing badges for`, item.MoldID || item.CutterID);
+            //console.log(`[UIRenderer] Location changed, refreshing badges for`, item.MoldID || item.CutterID);
             
             // Re-render toàn bộ cards để cập nhật location badge
             this.renderResults(this.state.allResults);
@@ -434,27 +434,88 @@ function shouldUseMobileDetail() {
         // ✅ R7.0.2: Lắng nghe inventory mode changes để sync với MobileDetailModal
         document.addEventListener('inventoryModeChanged', (e) => {
           const { enabled } = e.detail;
-          console.log('[UIRenderer] 🔄 Inventory mode changed:', enabled ? 'ON' : 'OFF');
+          //console.log('[UIRenderer] 🔄 Inventory mode changed:', enabled ? 'ON' : 'OFF');
           
           // Nếu MobileDetailModal đang mở, cập nhật toggle
           if (window.MobileDetailModal && window.MobileDetailModal.modal) {
             const isModalOpen = window.MobileDetailModal.modal.classList.contains('show');
             if (isModalOpen) {
               window.MobileDetailModal.updateModeToggle(enabled);
-              console.log('[UIRenderer] ✅ Mobile modal toggle synced');
+              //console.log('[UIRenderer] ✅ Mobile modal toggle synced');
             }
           }
         });
 
-        console.log('[UIRenderer] v7.7.7-r7.0.2 loaded (with Mobile Detail Modal support)');
+        // ==================================================================
+        // R7.0.7: Mobile selection mode toggle (header checkbox)
+        // - HTML: <input type="checkbox" id="selection-mode-toggle">
+        // - Dùng làm công tắc chính cho chế độ chọn/in trên cả Card & Table
+        // ==================================================================
+        const selectionModeToggle = document.getElementById('selection-mode-toggle');
+        if (selectionModeToggle) {
+          // Đảm bảo SelectionState tồn tại nhưng không ghi đè trạng thái cũ
+          if (!window.SelectionState) {
+            window.SelectionState = {
+              active: false,
+              items: []   // SelectionManager sẽ quản lý thực tế
+            };
+          }
 
+          // Đồng bộ UI ban đầu từ state (nếu module khác đã set active)
+          selectionModeToggle.checked = !!window.SelectionState.active;
 
+          // Khi user bật/tắt checkbox "選択 / Chọn"
+          selectionModeToggle.addEventListener('change', function () {
+            const enabled = !!selectionModeToggle.checked;
 
-        console.log('[UIRenderer] v7.7.7-r6.9.5 loaded (with Inventory support)');
-      },
+            if (!window.SelectionState) {
+              window.SelectionState = { active: false, items: [] };
+            }
+            window.SelectionState.active = enabled;
+
+            // Khi tắt chế độ chọn → xóa toàn bộ lựa chọn để tránh nhầm lẫn
+            if (!enabled && window.SelectionManager && typeof window.SelectionManager.clear === 'function') {
+              window.SelectionManager.clear();
+            }
+
+            // Thông báo cho MobileTableView, card view, v.v.
+            document.dispatchEvent(new CustomEvent('selection:modeChanged', {
+              detail: { enabled }
+            }));
+
+            //console.log('[UIRenderer] 📦 Selection mode toggled:', enabled ? 'ON' : 'OFF');
+          });
+
+          // Nếu có module khác thay đổi mode, đồng bộ lại trạng thái checkbox
+          // + bật/tắt class cho container card + re-render thẻ để hiện icon
+          document.addEventListener('selection:modeChanged', function (e) {
+            const enabled = !!(e.detail && e.detail.enabled);
+
+            // Đồng bộ trạng thái toggle
+            if (selectionModeToggle.checked !== enabled) {
+              selectionModeToggle.checked = enabled;
+            }
+
+            // Bật/tắt class inv-bulk-active để CSS cho phép hiển thị checkbox
+            const quickList = document.querySelector('#quick-results-list');
+            if (quickList) {
+              quickList.classList.toggle('inv-bulk-active', enabled);
+            }
+
+            // Re-render card để checkboxIcon (inv-bulk-checkbox) xuất hiện/ẩn đúng
+            if (window.UIRenderer && Array.isArray(UIRenderer.state?.allResults)) {
+              UIRenderer.renderQuickCards(UIRenderer.state.allResults);
+            }
+          });
+
+        }
+
+        //console.log('[UIRenderer] v7.7.7-r7.0.2 loaded (with Mobile Detail Modal support)');
+
+    },
 
     renderResults(items) {
-        console.log('[UIRenderer] 📊 renderResults called with', items.length, 'items');
+        //console.log('[UIRenderer] 📊 renderResults called with', items.length, 'items');
         
         // ✅ R6.9.5: Lưu vào state để inventory:sort có thể truy cập
         this.state.allResults = items || [];
@@ -471,7 +532,7 @@ function shouldUseMobileDetail() {
         return;
       }
 
-      console.log('[UIRenderer] ✅ Rendering', items.length, 'quick cards...');
+      //console.log('[UIRenderer] ✅ Rendering', items.length, 'quick cards...');
       //wrap.innerHTML = '';
       // ✅ Cleanup existing listeners trước khi clear
       // ✅ Cleanup: Remove delegation flag trước khi clear
@@ -543,11 +604,35 @@ function shouldUseMobileDetail() {
         }
 
         
-        // ✅ R6.9.5: Check bulk mode
+        // ✅ R7.0.7: Check bulk mode
         const isBulkMode = !!window.InventoryState?.bulkMode;
-        const isSelected = window.InventoryState?.selectedItems?.some(
-            sel => sel.id === itemId && sel.type === item.itemType
-        ) || false;
+        // 選択モード (印刷・一括操作用)
+        const isSelectionMode = !!window.SelectionState?.active;
+
+        const isSelected = (
+          window.SelectionManager?.isSelected
+            ? SelectionManager.isSelected(itemId, item.itemType)
+            : (window.InventoryState?.selectedItems?.some(
+                sel => sel.id === itemId && sel.type === item.itemType
+              ) || false)
+        );
+
+        // HIỂN THỊ ICON KHI bulkMode HOẶC SelectionMode
+        const showCheckbox = isBulkMode || isSelectionMode;
+
+        // NEW: render span icon với class .inv-bulk-checkbox để QuickResultsSync & SelectionManager bắt được
+        let checkboxIcon = '';
+        if (showCheckbox) {
+            const checkedClass = isSelected ? ' checked' : '';
+            checkboxIcon = `<span class="inv-bulk-checkbox${checkedClass}">✓</span>`;
+        }
+
+        // ✅ Thêm class nếu đã được chọn
+        if (showCheckbox && isSelected) {
+            el.classList.add('inv-bulk-selected', 'inv-selected');
+        }
+
+
 
         // ✅ FIX: Lấy RackID từ rackInfo, LayerNumber từ rackLayerInfo
         const rackId = item.rackInfo?.RackID || item.rackLayerInfo?.RackID || '-';
@@ -594,17 +679,6 @@ function shouldUseMobileDetail() {
 
 
 
-        // ✅ Checkbox icon + visual state
-        const checkboxIcon = isBulkMode
-          ? `<span class="inv-checkbox-icon${isSelected ? ' checked' : ''}">✓</span>`
-          : '';
-        
-        // ✅ Thêm class nếu đã được chọn
-        if (isBulkMode && isSelected) {
-          el.classList.add('inv-bulk-selected', 'inv-selected');
-        }
-
-
         // ✅ Render 3 dòng theo format yêu cầu
         el.innerHTML = `
             <div class="card-line-1">
@@ -627,8 +701,145 @@ function shouldUseMobileDetail() {
         fragment.appendChild(el);
       });
 
-
       wrap.appendChild(fragment);
+
+      // ✅ Sau khi render xong, sync highlight với SelectionManager
+      if (window.SelectionManager && typeof window.SelectionManager.updateDomHighlights === 'function') {
+          window.SelectionManager.updateDomHighlights();
+      }
+
+
+      // ✅ Delegation: click vào checkbox icon trên card → dùng SelectionManager
+      if (!wrap.dataset.selectionDelegationSetup) {
+        wrap.addEventListener('click', (e) => {
+          // Tìm checkbox icon
+          const checkboxIcon = e.target.closest('.inv-bulk-checkbox, .selection-checkbox-icon');
+          if (!checkboxIcon) return;
+
+          e.stopPropagation();
+
+          const card = checkboxIcon.closest('.result-card');
+          if (!card) return;
+
+          const id = card.getAttribute('data-id');
+          const type = (card.getAttribute('data-type') || 'mold').toLowerCase();
+
+          if (!id || !window.SelectionManager) return;
+
+          // Lấy itemData từ UIRenderer.state.allResults
+          const index = parseInt(card.getAttribute('data-index'), 10);
+          const itemData = (!isNaN(index) && UIRenderer.state.allResults[index])
+            ? UIRenderer.state.allResults[index]
+            : null;
+
+          // Toggle qua SelectionManager (truyền itemData để lưu vào state)
+          SelectionManager.toggleItem(id, type, itemData);
+
+          // SelectionManager tự cập nhật DOM highlight + phát event 'selection:changed'
+          //console.log('[UIRenderer] Card checkbox clicked:', { id, type, selected: SelectionManager.isSelected(id, type) });
+        });
+
+        wrap.dataset.selectionDelegationSetup = 'true';
+        //console.log('[UIRenderer] ✅ Selection delegation setup');
+      }
+
+
+
+      // Sau khi render xong → đồng bộ lại highlight từ SelectionManager
+      if (window.SelectionManager && SelectionManager.updateDomHighlights) {
+        SelectionManager.updateDomHighlights();
+      }
+
+      // ================================================
+      // 🔹 R7.0.7: EVENT DELEGATION - Card click handling
+      // ================================================
+      if (wrap.dataset.delegationSetup !== 'true') {
+          wrap.addEventListener('click', function (e) {
+            const card = e.target.closest('.result-card[data-id][data-type]');
+            if (!card) return;
+
+            const itemId = card.getAttribute('data-id');
+            const itemType = (card.getAttribute('data-type') || 'mold').toLowerCase();
+            const isSelectionMode = !!window.SelectionState?.active;
+
+            // ========================================
+            // MODE 1: CHẾ ĐỘ CHỌN ĐỂ IN (Selection Mode ON)
+            // → Bấm bất kỳ đâu trên thẻ = toggle chọn
+            // ========================================
+            if (isSelectionMode) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                if (!window.SelectionManager || typeof window.SelectionManager.toggleItem !== 'function') {
+                    console.warn('[UIRenderer] ❌ SelectionManager.toggleItem not available');
+                    return;
+                }
+
+                // Toggle trong SelectionManager
+                window.SelectionManager.toggleItem(itemId, itemType, null);
+
+                // (SelectionManager.toggleItem sẽ tự:
+                //  - Cập nhật SelectionState.items
+                //  - Gọi updateDomHighlights() để thêm/bớt class trên card
+                //  - Phát event selection:changed để toolbar cập nhật số lượng)
+                return;
+            }
+
+            // ========================================
+            // MODE 2: XEM CHI TIẾT (Selection Mode OFF)
+            // → Bấm thẻ sẽ mở modal như logic cũ
+            // ========================================
+            // MOBILE (iPhone/iPad): dùng MobileDetailModal nếu có
+            if (window.innerWidth <= 1024 && window.MobileDetailModal) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                // Lấy data item từ attribute nếu có
+                let itemData = {};
+                try {
+                    const raw = card.getAttribute('data-item');
+                    if (raw) {
+                        itemData = JSON.parse(raw);
+                    }
+                } catch (err) {
+                    console.warn('[UIRenderer] Cannot parse data-item from card:', err);
+                }
+
+                const item = Object.assign({}, itemData, {
+                    itemType: itemType,
+                    MoldID: itemId,
+                    MoldCode: card.getAttribute('data-mold-code') || itemData.MoldCode || ''
+                });
+
+                if (typeof window.MobileDetailModal.open === 'function') {
+                    window.MobileDetailModal.open(item);
+                }
+                return;
+            }
+
+            // DESKTOP: phát event detail:changed như trước
+            if (window.UIRenderer && Array.isArray(UIRenderer.state?.allResults)) {
+                const allItems = UIRenderer.state.allResults;
+                const item = allItems.find(it => {
+                    const id = itemType === 'mold' ? it.MoldID : it.CutterID;
+                    return String(id) === String(itemId);
+                });
+
+                if (item) {
+                    document.dispatchEvent(new CustomEvent('detail:changed', {
+                        detail: {
+                            item,
+                            itemType,
+                            itemId,
+                            source: 'card-click'
+                        }
+                    }));
+                }
+            }
+          });
+          wrap.dataset.delegationSetup = 'true';
+          //console.log('[UIRenderer] ✅ Event delegation set up for card container');
+      }
 
       // ✅ R7.0.3: Bind click events for mobile detail modal (FIX: Support both mold & cutter)
       if (shouldUseMobileDetail()) {
@@ -642,6 +853,12 @@ function shouldUseMobileDetail() {
               const card = e.target.closest('.result-card');
               if (!card) return;
 
+              // 🚫 Nếu đang Selection Mode thì KHÔNG mở MobileDetailModal
+              if (window.SelectionState && window.SelectionState.active) {
+                  //console.log('[UIRenderer] Selection mode ON – skip MobileDetailModal click handler');
+                  return;
+              }
+
               // Ignore checkbox clicks
               if (e.target.type === 'checkbox' || e.target.closest('.inv-bulk-checkbox')) {
                   return;
@@ -651,7 +868,7 @@ function shouldUseMobileDetail() {
               const itemType = (card.dataset.type || '').toLowerCase();
               const index = Number(card.dataset.index);
 
-              console.log('[UIRenderer] Card clicked:', { itemId, itemType, index });
+              //console.log('[UIRenderer] Card clicked:', { itemId, itemType, index });
 
               if (!window.MobileDetailModal) {
                   console.warn('[UIRenderer] MobileDetailModal not initialized');
@@ -693,13 +910,13 @@ function shouldUseMobileDetail() {
           });
 
           wrap.dataset.clickBound = 'true';
-          console.log('[UIRenderer] ✅ Mobile detail modal click event bound (EVENT DELEGATION)');
+          //console.log('[UIRenderer] ✅ Mobile detail modal click event bound (EVENT DELEGATION)');
       }
 
 
       // ✅ EVENT DELEGATION - Chỉ setup 1 lần duy nhất
-      this.setupCardEventDelegation(wrap);
-      console.log('[UIRenderer] ✅ Rendered', items.length, 'cards');
+      //this.setupCardEventDelegation(wrap);
+      //console.log('[UIRenderer] ✅ Rendered', items.length, 'cards');
 
       const badge = document.querySelector('#quick-count');
       if (badge) badge.textContent = String(items.length);
@@ -757,7 +974,7 @@ function shouldUseMobileDetail() {
             window.InventoryManager.toggleItemSelection(itemId, itemType, item);
           }
 
-          console.log('[UIRenderer] Bulk select:', itemId, isSelected ? 'REMOVED' : 'ADDED');
+          //console.log('[UIRenderer] Bulk select:', itemId, isSelected ? 'REMOVED' : 'ADDED');
 
         } else {
           // ===== NORMAL MODE: Show detail =====
@@ -767,13 +984,13 @@ function shouldUseMobileDetail() {
             detail: { index: idx, item: item }
           }));
           
-          console.log('[UIRenderer] Card clicked, dispatched quick:select for:', itemId);
+          //console.log('[UIRenderer] Card clicked, dispatched quick:select for:', itemId);
         }
       });
 
       // ✅ Mark as setup
       container.dataset.delegationSetup = 'true';
-      console.log('[UIRenderer] ✅ Event delegation setup complete');
+      //console.log('[UIRenderer] ✅ Event delegation setup complete');
     },
 
 
@@ -845,7 +1062,7 @@ function shouldUseMobileDetail() {
         })
       );
 
-      console.log('[UIRenderer] 🎨 renderDetailInfo for:', item.displayCode || 'unknown');
+      //console.log('[UIRenderer] 🎨 renderDetailInfo for:', item.displayCode || 'unknown');
     },
 
     // ✅ GIỐNG R6.3 - KHÔNG THAY ĐỔI
@@ -869,7 +1086,7 @@ function shouldUseMobileDetail() {
           const isYSD = comp.toUpperCase().includes('YSD');
           compEl.classList.remove('company-ysd', 'company-other');
           compEl.className = 'detail-company-badge ' + (isYSD ? 'company-ysd' : 'company-other');
-          console.log('[UIRenderer] Company badge:', comp, '-', isYSD ? 'YSD (blue)' : 'Other (orange)');
+          //console.log('[UIRenderer] Company badge:', comp, '-', isYSD ? 'YSD (blue)' : 'Other (orange)');
         } else {
           compEl.classList.remove('company-ysd', 'company-other');
           compEl.className = 'detail-company-badge company-neutral';
@@ -898,7 +1115,7 @@ function shouldUseMobileDetail() {
       // Rack Location
       setText(SELECTORS.detailRackLocation, item.displayRackLocation || rackInfo?.RackLocation || '-');
 
-      console.log('[UIRenderer] Rack-Layer display:', rackInfo?.RackID || '-', '-', rackLayerInfo?.RackLayerNumber || '-', 'RackLayerID:', rackLayerInfo?.RackLayerID);
+      //console.log('[UIRenderer] Rack-Layer display:', rackInfo?.RackID || '-', '-', rackLayerInfo?.RackLayerNumber || '-', 'RackLayerID:', rackLayerInfo?.RackLayerID);
 
 
 
@@ -928,7 +1145,7 @@ function shouldUseMobileDetail() {
 
       this.updateCheckInOutStatus(item);
 
-      console.log('[UIRenderer] 🎨 Updated detail panel for:', item.displayCode || item.MoldCode || item.CutterNo);
+      //console.log('[UIRenderer] 🎨 Updated detail panel for:', item.displayCode || item.MoldCode || item.CutterNo);
     },
 
     // ✅ 
@@ -960,12 +1177,12 @@ function shouldUseMobileDetail() {
         }
 
         if (itemLogs.length === 0) {
-          console.log('[UIRenderer] No status logs for', itemId);
+          //console.log('[UIRenderer] No status logs for', itemId);
           statusBadge.classList.remove('status-in', 'status-out', 'badge-pending');
           statusBadge.classList.add('no-history');
           statusBadge.innerHTML = '<div class="badge-text-main">未確認</div>';
           statusBadge.title = 'Chưa có lịch sử nhập xuất';
-          console.log('[UIRenderer] Badge set to no-history state with JP/VN text');
+          //console.log('[UIRenderer] Badge set to no-history state with JP/VN text');
           return;
         }
 
@@ -974,7 +1191,7 @@ function shouldUseMobileDetail() {
         const status = (latestLog.Status || '').toLowerCase();
         const isPending = latestLog.pending === true;
 
-        console.log('[UIRenderer] Latest log:', status, isPending, 'timestamp:', latestLog.Timestamp);
+        //console.log('[UIRenderer] Latest log:', status, isPending, 'timestamp:', latestLog.Timestamp);
 
         statusBadge.classList.remove('status-in', 'status-out', 'badge-pending', 'no-history');
 
@@ -1001,7 +1218,7 @@ function shouldUseMobileDetail() {
 
         statusBadge.innerHTML = badgeHTML + syncIcon;
 
-        console.log('[UIRenderer] Badge updated:', status, isPending ? 'pending' : 'synced');
+        //console.log('[UIRenderer] Badge updated:', status, isPending ? 'pending' : 'synced');
       } catch (err) {
         console.error('[UIRenderer] Error updating status:', err);
       }
@@ -1011,7 +1228,7 @@ function shouldUseMobileDetail() {
     // ✅ HÀM MỚI 1: UPDATE LOCATION BADGE
     // =========================================
     updateLocationBadge(item) {
-      console.log('[UIRenderer] 🎯 updateLocationBadge called');
+      //console.log('[UIRenderer] 🎯 updateLocationBadge called');
 
       const rackIdEl = document.getElementById('detail-rack-id');
       const layerNumEl = document.getElementById('detail-layer-num');
@@ -1124,7 +1341,7 @@ function shouldUseMobileDetail() {
 
             // ✅ Trường hợp 1: Không có lịch sử
             if (itemLogs.length === 0) {
-                console.log('[UIRenderer] No status logs for', itemId);
+                //console.log('[UIRenderer] No status logs for', itemId);
                 statusBadge.classList.add('no-history');
                 statusBadge.textContent = '-';
                 statusBadge.title = 'Chưa có lịch sử nhập xuất';
@@ -1137,7 +1354,7 @@ function shouldUseMobileDetail() {
             const status = (latestLog.Status || '').trim().toLowerCase();
             const isPending = latestLog.pending === true;
 
-            console.log('[UIRenderer] Latest log:', status, isPending, 'timestamp:', latestLog.Timestamp);
+            //console.log('[UIRenderer] Latest log:', status, isPending, 'timestamp:', latestLog.Timestamp);
 
             let badgeHTML = '<span class="badge-text">';
             let syncIcon = '';
@@ -1168,7 +1385,7 @@ function shouldUseMobileDetail() {
 
             statusBadge.innerHTML = badgeHTML + syncIcon;
 
-            console.log('[UIRenderer] ✅ Badge updated:', status, isPending ? 'pending' : 'synced');
+            //console.log('[UIRenderer] ✅ Badge updated:', status, isPending ? 'pending' : 'synced');
         } catch (err) {
             console.error('[UIRenderer] ❌ Error updating status:', err);
         }
@@ -1188,7 +1405,7 @@ function shouldUseMobileDetail() {
         }
       });
 
-      console.log('[UIRenderer] 🧹 Cleared detail panel');
+      //console.log('[UIRenderer] 🧹 Cleared detail panel');
     }
   };
 
@@ -1262,7 +1479,7 @@ function shouldUseMobileDetail() {
     if (el) {
       el.textContent = status?.toUpperCase?.() || '-';
       el.className = 'status-badge ' + (status === 'in' ? 'status-in' : 'status-out');
-      console.log('[UIRenderer] Status badge updated:', id, status);
+      //console.log('[UIRenderer] Status badge updated:', id, status);
     }
   });
 
@@ -1278,41 +1495,41 @@ function shouldUseMobileDetail() {
       return `${year}/${month}/${day}`;
   }
 
+  /**
+   * R6.8 - Update detail panel header (MoldID + MoldCode)
+   * @param {Object} item
+   * @param {string} itemType  'mold' | 'cutter'
+   */
+  function updateHeaderFromItem(item, itemType) {
+    if (!item) {
+      console.warn('[UIRenderer] updateHeaderFromItem: No item provided');
+      return;
+    }
+    const isMold = itemType === 'mold';
 
+    const idEl = document.getElementById('detail-item-code-span');
+    if (idEl) {
+      idEl.textContent = isMold
+        ? (item.MoldID || item.MoldCode || '-')
+        : (item.CutterID || item.CutterNo || '-');
+    }
+
+    const codeEl = document.getElementById('detail-moldcode-span');
+    if (codeEl) {
+      codeEl.textContent = isMold
+        ? (item.MoldCode || '-')
+        : (item.CutterNo || '-');
+    }
+
+    const ttlEl = document.querySelector('.detail-title');
+    if (ttlEl) {
+      ttlEl.textContent = item.displayName || item.MoldName || item.CutterName || 'N/A';
+    }
+    //console.log('[UIRenderer] ✅ Header updated');
+  }
 })();
 
-/**
- * R6.8 - Update detail panel header (MoldID + MoldCode)
- * @param {Object} item
- * @param {string} itemType  'mold' | 'cutter'
- */
-function updateHeaderFromItem(item, itemType) {
-  if (!item) {
-    console.warn('[UIRenderer] updateHeaderFromItem: No item provided');
-    return;
-  }
-  const isMold = itemType === 'mold';
 
-  const idEl = document.getElementById('detail-item-code-span');
-  if (idEl) {
-    idEl.textContent = isMold
-      ? (item.MoldID || item.MoldCode || '-')
-      : (item.CutterID || item.CutterNo || '-');
-  }
-
-  const codeEl = document.getElementById('detail-moldcode-span');
-  if (codeEl) {
-    codeEl.textContent = isMold
-      ? (item.MoldCode || '-')
-      : (item.CutterNo || '-');
-  }
-
-  const ttlEl = document.querySelector('.detail-title');
-  if (ttlEl) {
-    ttlEl.textContent = item.displayName || item.MoldName || item.CutterName || 'N/A';
-  }
-  console.log('[UIRenderer] ✅ Header updated');
-}
 
 
 

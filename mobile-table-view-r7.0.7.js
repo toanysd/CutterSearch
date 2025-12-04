@@ -71,6 +71,12 @@
             // Listen to search results updates
             this.listenToSearchResults();
             this.listenToCategoryChanges();
+            this.listenToSelectionMode();
+
+            
+            // Listen selection events from quick result cards
+            this.listenToCardSelection();
+            
             
             console.log('[MobileTableView] ✅ Initialized (mobile only)');
         },
@@ -224,10 +230,14 @@
 
             // Clear selection button in header
             if (this.elements.clearSelectionBtnInline) {
-                this.elements.clearSelectionBtnInline.addEventListener('click', () => {
+                this.elements.clearSelectionBtnInline.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    // Gọi clearSelection với ngữ cảnh MobileTableView
                     this.clearSelection();
                 });
             }
+
 
             // Print button inline
             if (this.elements.printBtnInline) {
@@ -324,19 +334,43 @@
         /**
          * Listen to category changes
          */
-        listenToCategoryChanges() {
-            document.addEventListener('categoryChanged', (e) => {
-                const { category } = e.detail || {};
-                if (category) {
-                    this.state.currentCategory = category;
-                    this.state.currentPage = 1;
-                    
-                    if (this.state.currentView === 'table') {
-                        this.renderTable();
-                    }
+        /** Listen to selection mode changes (print selection ON/OFF) */
+        // Listen selection mode changes + print / selection ON/OFF
+        listenToSelectionMode() {
+            // Bật/tắt toolbar theo SelectionState, KHÔNG tự clear danh sách chọn
+            document.addEventListener('selection:modeChanged', (e) => {
+                const enabled = e.detail?.enabled || false;
+                console.log('[MobileTableView] Selection mode changed:', enabled);
+
+                // Toolbar dùng chung cho cả card + table, nằm ở header
+                if (this.elements.toolbarInline) {
+                    this.elements.toolbarInline.style.display = enabled ? 'flex' : 'none';
                 }
+
+                // Cập nhật lại số lượng, trạng thái nút In / Xóa
+                this.updateSelectionUI();
+            });
+
+            // Khi danh sách chọn thay đổi, cập nhật lại số lượng + trạng thái checkbox
+            document.addEventListener('selection:changed', () => {
+                this.updateSelectionUI();
             });
         },
+
+
+
+
+        /**
+         * Listen to selection changes coming from quick result cards (card view)
+         * イベント: mobileCardSelectionChanged から選択状態を同期する
+         */
+        listenToCardSelection() {
+            // Card view đã gọi trực tiếp SelectionManager,
+            // MobileTableView chỉ cần lắng nghe selection:changed (đã làm ở listenToSelectionMode)
+            // nên hiện tại không cần xử lý gì thêm ở đây.
+        },
+
+
 
         /**
          * Switch view
@@ -360,20 +394,19 @@
             if (view === 'table') {
                 this.elements.cardContainer.style.display = 'none';
                 this.elements.tableContainer.style.display = 'flex';
-                
-                if (this.elements.toolbarInline) {
-                    this.elements.toolbarInline.style.display = 'flex';
-                }
-                
                 this.renderTable();
             } else {
                 this.elements.cardContainer.style.display = 'grid';
                 this.elements.tableContainer.style.display = 'none';
-                
-                if (this.elements.toolbarInline) {
-                    this.elements.toolbarInline.style.display = 'none';
-                }
             }
+
+            // Sau khi đổi view, quyết định hiển thị toolbar dựa vào SelectionState (dùng chung cho card + table)
+            if (this.elements.toolbarInline) {
+                const selectionOn = !!window.SelectionState?.active;
+                this.elements.toolbarInline.style.display = selectionOn ? 'flex' : 'none';
+            }
+
+
 
             document.dispatchEvent(new CustomEvent('mobile:viewModeChanged', {
                 detail: { view }
@@ -511,6 +544,12 @@
             this.updatePaginationUI(totalPages);
 
             console.log('[MobileTableView] ✅ Table rendered');
+
+            // Sau khi render xong bảng, đồng bộ lại trạng thái checkbox theo SelectionState
+            if (window.SelectionManager && typeof SelectionManager.updateDomHighlights === 'function') {
+                SelectionManager.updateDomHighlights();
+            }
+            
         },
 
         /**
@@ -720,156 +759,254 @@
         /**
          * Toggle select all
          */
+        // Chọn / bỏ chọn toàn bộ các dòng đang hiển thị trong bảng (trang hiện tại)
         toggleSelectAll(checked) {
-            const workingItems = this.getFilteredItems();
-            const startIdx = (this.state.currentPage - 1) * this.state.pageSize;
-            const endIdx = Math.min(startIdx + this.state.pageSize, workingItems.length);
-            const pageItems = workingItems.slice(startIdx, endIdx);
+            if (!this.elements.tableBody || !window.SelectionManager) return;
 
+            const rows = this.elements.tableBody.querySelectorAll('tr[data-id][data-type]');
+            const batch = [];
 
-            pageItems.forEach(item => {
-                const isMold = item.itemType === 'mold';
-                const itemId = isMold ? (item.MoldID || item.MoldCode) : (item.CutterID || item.CutterNo);
-                
-                if (checked) {
-                    this.state.selectedItems.add(itemId);
-                } else {
-                    this.state.selectedItems.delete(itemId);
-                }
-            });
-
-            // Update checkboxes
-            const checkboxes = this.elements.tableBody.querySelectorAll('.row-checkbox');
-            checkboxes.forEach(cb => {
-                cb.checked = checked;
-            });
-
-            // Update rows
-            const rows = this.elements.tableBody.querySelectorAll('tr');
             rows.forEach(row => {
+                const id = row.getAttribute('data-id');
+                const type = (row.getAttribute('data-type') || 'mold').toLowerCase();
+                const checkbox = row.querySelector('input.row-checkbox[type="checkbox"]');
+
                 if (checked) {
+                    batch.push([id, type, null]);
+                    if (checkbox) checkbox.checked = true;
                     row.classList.add('selected');
                 } else {
+                    batch.push([id, type]);
+                    if (checkbox) checkbox.checked = false;
                     row.classList.remove('selected');
                 }
             });
 
-            this.updateSelectionUI();
+            if (checked) {
+                SelectionManager.addMultiple(batch);
+            } else {
+                SelectionManager.removeMultiple(batch);
+            }
 
-            console.log('[MobileTableView] Select all:', checked, '| Total:', this.state.selectedItems.size);
+            this.updateSelectionUI();
         },
+
 
         /**
          * Toggle item selection
          */
         toggleItemSelection(itemId, itemType, checked) {
+            const type = itemType || 'mold';
+            if (!window.SelectionManager) return;
+
             if (checked) {
-                this.state.selectedItems.add(itemId);
+                SelectionManager.addItem(itemId, type);
             } else {
-                this.state.selectedItems.delete(itemId);
+                SelectionManager.removeItem(itemId, type);
             }
 
-            // Update row class
-            const checkbox = this.elements.tableBody.querySelector(`input[data-id="${itemId}"]`);
-            if (checkbox) {
-                const row = checkbox.closest('tr');
-                if (row) {
-                    if (checked) {
-                        row.classList.add('selected');
-                    } else {
-                        row.classList.remove('selected');
-                    }
-                }
-            }
-
-            // Update select all checkbox
-            const totalCheckboxes = this.elements.tableBody.querySelectorAll('.row-checkbox').length;
-            const checkedCheckboxes = this.elements.tableBody.querySelectorAll('.row-checkbox:checked').length;
-            
-            if (this.elements.selectAllCheckbox) {
-                this.elements.selectAllCheckbox.checked = totalCheckboxes > 0 && totalCheckboxes === checkedCheckboxes;
-                this.elements.selectAllCheckbox.indeterminate = checkedCheckboxes > 0 && checkedCheckboxes < totalCheckboxes;
-            }
-
+            // SelectionManager sẽ phát selection:changed, nhưng vẫn gọi để chắc chắn sync toolbar
             this.updateSelectionUI();
-
-            console.log('[MobileTableView] Item selection:', itemId, checked, '| Total:', this.state.selectedItems.size);
         },
+
 
         /**
          * Update selection UI
          */
+        // Cập nhật toolbar + nút In + nút 全解除 + checkbox "select all"
         updateSelectionUI() {
-            const count = this.state.selectedItems.size;
+            // Lấy danh sách từ SelectionManager (nguồn chuẩn)
+            const items = (window.SelectionManager && SelectionManager.getSelectedItems)
+                ? SelectionManager.getSelectedItems()
+                : (window.SelectionState && Array.isArray(window.SelectionState.items)
+                    ? window.SelectionState.items
+                    : []);
 
+            const count = items.length;
+
+            console.log('[MobileTableView] updateSelectionUI → count =', count);
+
+            // Hiển thị số lượng đã chọn
             if (this.elements.selectedCountInline) {
                 this.elements.selectedCountInline.textContent = count;
             }
 
+            // Bật/tắt nút In và nút 全解除
+            const hasSelection = count > 0;
             if (this.elements.printBtnInline) {
-                this.elements.printBtnInline.disabled = count === 0;
+                this.elements.printBtnInline.disabled = !hasSelection;
+                this.elements.printBtnInline.classList.toggle('disabled', !hasSelection);
+            }
+            if (this.elements.clearSelectionBtnInline) {
+                this.elements.clearSelectionBtnInline.disabled = !hasSelection;
+                this.elements.clearSelectionBtnInline.classList.toggle('disabled', !hasSelection);
             }
 
-            if (this.elements.clearSelectionBtnInline) {
-                this.elements.clearSelectionBtnInline.disabled = count === 0;
+            // Cập nhật checkbox "chọn tất cả" cho trang hiện tại
+            if (this.elements.selectAllCheckbox && this.elements.tableBody) {
+                const rows = this.elements.tableBody.querySelectorAll('tr[data-id][data-type]');
+                let allChecked = true;
+                let anyRow = false;
+
+                rows.forEach(row => {
+                    const id = row.getAttribute('data-id');
+                    const type = (row.getAttribute('data-type') || 'mold').toLowerCase();
+                    const isChecked = items.some(sel => String(sel.id) === String(id) && sel.type === type);
+                    anyRow = true;
+                    if (!isChecked) {
+                        allChecked = false;
+                    }
+                });
+
+                this.elements.selectAllCheckbox.indeterminate = !allChecked && hasSelection && anyRow;
+                this.elements.selectAllCheckbox.checked = allChecked && anyRow;
             }
         },
 
-        /**
-         * Clear all selections (current table)
-         */
+        // Xóa toàn bộ lựa chọn (card + table, mọi view)
         clearSelection() {
-            // Clear state
-            this.state.selectedItems.clear();
-
-            // Uncheck header checkbox
+            if (!window.SelectionManager) return;
+            SelectionManager.clear();
             if (this.elements.selectAllCheckbox) {
                 this.elements.selectAllCheckbox.checked = false;
                 this.elements.selectAllCheckbox.indeterminate = false;
             }
-
-            // Uncheck all row checkboxes & remove highlight
-            if (this.elements.tableBody) {
-                const checkboxes = this.elements.tableBody.querySelectorAll('.row-checkbox');
-                checkboxes.forEach(cb => cb.checked = false);
-
-                const rows = this.elements.tableBody.querySelectorAll('tr');
-                rows.forEach(row => row.classList.remove('selected'));
-            }
-
-            // Update toolbar UI
             this.updateSelectionUI();
-
-            console.log('[MobileTableView] ✅ Selection cleared');
         },
 
-
-        /**
-         * Handle print
-         */
+        // Handle print - mở trang in A4 song ngữ JP-VI
         handlePrint() {
-            const selectedIds = Array.from(this.state.selectedItems);
-            
-            if (selectedIds.length === 0) {
-                alert('印刷する項目を選択してください\nVui lòng chọn mục để in');
+            if (!window.SelectionManager || !window.SelectionState) {
+                alert('[translate:SelectionManager が見つかりません] | SelectionManager không tồn tại.');
                 return;
             }
 
-            const selectedItems = this.state.allResults.filter(item => {
-                const isMold = item.itemType === 'mold';
-                const itemId = isMold ? (item.MoldID || item.MoldCode) : (item.CutterID || item.CutterNo);
-                return selectedIds.includes(itemId);
+            const selectedItems = SelectionManager.getSelectedItems(); // [{id, type}, ...]
+
+            if (!selectedItems.length) {
+                alert('[translate:印刷する結果が選択されていません。]\nChưa chọn kết quả nào để in.');
+                return;
+            }
+
+            // Lấy dữ liệu chi tiết từ UIRenderer.state.allResults
+            const allResults = (window.UIRenderer && UIRenderer.state && Array.isArray(UIRenderer.state.allResults))
+                ? UIRenderer.state.allResults
+                : (this.state.allResults || []);
+
+            if (!allResults.length) {
+                alert('[translate:印刷用のデータが読み込まれていません。]\nKhông có dữ liệu kết quả để in.');
+                return;
+            }
+
+            const records = [];
+            selectedItems.forEach(sel => {
+                const id = String(sel.id);
+                const type = (sel.type || 'mold').toLowerCase();
+                
+                const item = allResults.find(it => {
+                if (type === 'mold') {
+                    return String(it.MoldID || it.MoldCode || '') === id;
+                }
+                return String(it.CutterID || it.CutterNo || '') === id;
+                });
+                
+                if (item) records.push({ sel, item });
             });
 
-            document.dispatchEvent(new CustomEvent('mobile:printRequested', {
-                detail: {
-                    items: selectedItems,
-                    category: this.state.currentCategory
-                }
-            }));
+            if (!records.length) {
+                alert('[translate:選択された結果の詳細を取得できませんでした。]\nKhông tìm thấy chi tiết cho các kết quả đã chọn.');
+                return;
+            }
 
-            console.log('[MobileTableView] ✅ Print event dispatched');
+            // Tạo cửa sổ in
+            const win = window.open('', '_blank');
+            if (!win) {
+                alert('[translate:ポップアップがブロックされています。]\nCửa sổ in bị chặn (popup blocked).');
+                return;
+            }
+
+            const rowsHtml = records.map(({ sel, item }, idx) => {
+                const isMold = (sel.type === 'mold');
+                const code = isMold
+                ? (item.MoldID || item.MoldCode || '')
+                : (item.CutterNo || item.CutterID || '');
+                const name = item.displayName || item.MoldName || '';
+                const size = item.displayDimensions || item.cutlineSize || '';
+                const loc = item.displayLocation
+                || item.rackInfo?.RackLocation
+                || item.rackLayerInfo?.RackLayerNumber
+                || '';
+                const company = item.storageCompanyInfo?.CompanyShortName
+                || item.storageCompanyInfo?.CompanyName
+                || '';
+                const date = item.jobInfo?.DeliveryDeadline || item.MoldDate || item.DateEntry || '';
+
+                return `
+                <tr>
+                    <td style="padding:4px 8px; border:1px solid #ccc;">${idx + 1}</td>
+                    <td style="padding:4px 8px; border:1px solid #ccc;">${isMold ? '[translate:金型]' : '[translate:抜型]'}</td>
+                    <td style="padding:4px 8px; border:1px solid #ccc;">${code}</td>
+                    <td style="padding:4px 8px; border:1px solid #ccc;">${name}</td>
+                    <td style="padding:4px 8px; border:1px solid #ccc;">${size}</td>
+                    <td style="padding:4px 8px; border:1px solid #ccc;">${loc}</td>
+                    <td style="padding:4px 8px; border:1px solid #ccc;">${company}</td>
+                    <td style="padding:4px 8px; border:1px solid #ccc;">${date}</td>
+                </tr>
+                `;
+            }).join('');
+
+            const html = `
+                <!DOCTYPE html>
+                <html lang="ja">
+                <head>
+                <meta charset="UTF-8" />
+                <title>[translate:選択結果の印刷] | In danh sách đã chọn</title>
+                <style>
+                    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 12px; }
+                    h1 { font-size: 16px; margin-bottom: 8px; }
+                    table { border-collapse: collapse; width: 100%; }
+                    th { background: #f0f0f0; }
+                    @media print {
+                    body { margin: 10mm; }
+                    }
+                </style>
+                </head>
+                <body>
+                <h1>[translate:選択結果一覧] | Danh sách kết quả đã chọn</h1>
+                <table>
+                    <thead>
+                    <tr>
+                        <th style="padding:4px 8px; border:1px solid #ccc;">No.</th>
+                        <th style="padding:4px 8px; border:1px solid #ccc;">[translate:種別] | Loại</th>
+                        <th style="padding:4px 8px; border:1px solid #ccc;">[translate:コード] | Mã</th>
+                        <th style="padding:4px 8px; border:1px solid #ccc;">[translate:名称] | Tên</th>
+                        <th style="padding:4px 8px; border:1px solid #ccc;">[translate:寸法] | Kích thước</th>
+                        <th style="padding:4px 8px; border:1px solid #ccc;">[translate:棚番] | Vị trí</th>
+                        <th style="padding:4px 8px; border:1px solid #ccc;">[translate:保管] | Công ty</th>
+                        <th style="padding:4px 8px; border:1px solid #ccc;">[translate:日付] | Ngày</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    ${rowsHtml}
+                    </tbody>
+                </table>
+                <script>
+                    window.onload = function() {
+                    setTimeout(function() { window.print(); }, 300);
+                    };
+                </script>
+                </body>
+                </html>
+            `;
+
+            win.document.open();
+            win.document.write(html);
+            win.document.close();
+            win.focus();
+
+            console.log('[MobileTableView] Print window opened for', records.length, 'items');
         },
+
 
         /**
          * Open detail modal

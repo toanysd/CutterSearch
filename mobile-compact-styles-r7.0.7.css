@@ -810,6 +810,8 @@
   }
 }
 
+
+
 @media (max-width: 767px) {
   
   /* ========================================
@@ -1826,6 +1828,8 @@ border-color: #212121 !important;
     opacity: 1 !important;
 }
 
+
+
 /* =================================================================
    R7.0.6 - BADGE IN DETAIL PANEL (Column 3) - GIỮ NGUYÊN SIZE
    KHÔNG thay đổi kích thước badge trong detail panel
@@ -1964,6 +1968,66 @@ border-color: #212121 !important;
         cursor: not-allowed;
         opacity: 0.7;
     }
+
+    /* R7.0.7: Mobile selection mode toggle (ON/OFF) */
+    .inv-selection-toggle {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-right: 4px;
+    }
+
+    .inv-selection-toggle .inv-toggle-switch.inv-toggle-switch-xs {
+      transform: scale(0.75);
+      transform-origin: left center;
+    }
+
+    .inv-selection-label {
+      display: flex;
+      flex-direction: column;
+      font-size: 9px;
+      line-height: 1.1;
+      color: #2D5016; /* cùng tông với header results */
+    }
+
+    .inv-selection-label .jp-text {
+      font-weight: 700;
+    }
+
+    .inv-selection-label .vi-text {
+      opacity: 0.8;
+    }
+
+    /* Thu nhỏ thêm trong header mobile để không chiếm chỗ */
+    .quick-results-panel .panel-header .inv-selection-toggle {
+      gap: 3px;
+    }
+
+
+    /* Thu nhỏ nút trong header panel kết quả (mobile) */
+    .quick-results-panel .view-mode-toggle .toggle-btn {
+        height: 24px;
+        padding: 2px 6px;
+        font-size: 10px;
+    }
+
+    .quick-results-panel .table-toolbar-inline {
+        gap: 4px;
+    }
+
+    .quick-results-panel .selection-info-inline {
+        font-size: 10px;
+        padding: 2px 4px;
+    }
+
+    .quick-results-panel .table-toolbar-inline .btn-print-inline,
+    .quick-results-panel .table-toolbar-inline .btn-filter-row {
+        height: 22px;
+        padding: 2px 6px;
+        font-size: 10px;
+        white-space: nowrap; /* Không xuống dòng text trên nút */
+    }
+
     
     /* === MOBILE TABLE CONTAINER === */
     .mobile-table-container {
@@ -2198,18 +2262,40 @@ border-color: #212121 !important;
     }
     
     /* === PANEL ADJUSTMENTS === */
+    /* PANEL ADJUSTMENTS - Mobile results header compact */
     .quick-results-panel .panel-header {
-        flex-wrap: nowrap;
-        gap: 6px;
-        padding: 6px 8px !important;
+        display: flex;
+        flex-wrap: nowrap;              /* Không cho wrap khối con */
         align-items: center;
-        min-height: 36px;
+        justify-content: space-between;
+        gap: 4px;                       /* Giảm khoảng cách giữa các cụm */
+        padding: 4px 6px !important;    /* Giảm padding để header thấp hơn */
+        min-height: 30px;               /* Thấp hơn để tránh “3 hàng” */
+        line-height: 1.2;               /* Hạn chế giãn dòng */
+        font-size: 10px;                /* Gộp nhỏ text trong header */
         position: sticky;
         top: 0;
         z-index: 200;
-        background: white;
+        background: #ffffff;
         border-bottom: 1px solid #DDD;
     }
+
+    /* Tiêu đề header: chiếm phần còn lại, cắt bớt nếu quá dài */
+    .quick-results-panel .panel-header .panel-title {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        flex: 1 1 auto;     /* Cho phép nở/thu, ưu tiên chiếm chiều ngang */
+        min-width: 0;       /* Bắt buộc để text-overflow hoạt động trong flex */
+    }
+
+    .quick-results-panel .panel-header .panel-title span {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+
     
     .quick-results-grid.hidden-by-table {
         display: none !important;
