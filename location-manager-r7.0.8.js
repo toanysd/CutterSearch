@@ -331,119 +331,132 @@ const LocationManager = {
     const layerDisplay = currentRackLayer?.RackLayerNumber || '?';
     const rackLocation = currentRack?.RackLocation || '-';
 
-    // Build HTML modal
+   // Build HTML modal
     const html = `
-    <div class="location-panel" id="loc-panel">
-      <!-- HEADER -->
-      <div class="location-header">
-        <div class="location-title">
-          <i class="fas fa-map-marker-alt"></i>
-          <div class="location-title-text">
-            <span class="location-title-main">位置変更 / Cập nhật vị trí</span>
-            <span class="location-title-sub">Thay đổi Giá - Tầng lưu kho</span>
+      <div class="location-panel" id="loc-panel">
+        <!-- HEADER -->
+        <div class="location-header">
+          <div class="location-title">
+            <i class="fas fa-map-marker-alt"></i>
+            <div class="location-title-text">
+              <span class="location-title-main">位置変更 / Cập nhật vị trí</span>
+              <span class="location-title-sub">Thay đổi Giá - Tầng lưu kho</span>
+            </div>
           </div>
+          <button class="btn-close-location" id="loc-close" title="Close (ESC)">×</button>
         </div>
-        <button class="btn-close-location" id="loc-close" title="Close (ESC)">×</button>
-      </div>
 
-      <!-- BODY: 3 COLUMNS -->
-      <div class="location-body">
-        <!-- CỘT 1: LỊCH SỬ - 50% -->
-        <section class="loc-history">
-          <h4>📋 履歴 / Lịch sử thay đổi (${historyLogs.length})</h4>
-          <div class="location-filter-row">
-            <input type="text" id="loc-search" class="location-form-control" 
-              <input placeholder="検索... / Tìm kiếm...">
-          </div>
-          <div class="location-history-wrap">
-            ${this.renderHistory(historyLogs, racksList, rackLayersList)}
-          </div>
-        </section>
+        <!-- BODY: 3 SECTIONS (STATUS / INPUTS / HISTORY) -->
+        <div class="location-body">
 
-        <!-- CỘT 2: TRẠNG THÁI - 25% -->
-        <section class="loc-status">
-          <h4>📊 情報 / Thông tin hiện tại</h4>
+          <!-- CỘT 1: TRẠNG THÁI - 25% -->
+          <section class="loc-status">
+            <h4>📊 情報 / Thông tin hiện tại</h4>
 
-          <div class="loc-inline-status">
-            <!-- Hàng 1: ID + Tên -->
-            <div class="loc-inline-row">
-              <span class="loc-inline-label">ID / Mã</span>
-              <span class="loc-inline-value">${moldID}</span>
-              <span class="loc-inline-sep">｜</span>
-              <span class="loc-inline-label">名称 / Tên</span>
-              <span class="loc-inline-value">${moldName}</span>
+            <div class="loc-inline-status">
+              <!-- Hàng 1: ID + Tên -->
+              <div class="loc-inline-row">
+                <span class="loc-inline-label">ID / Mã</span>
+                <span class="loc-inline-value">${moldID}</span>
+                <span class="loc-inline-sep">｜</span>
+                <span class="loc-inline-label">名称 / Tên</span>
+                <span class="loc-inline-value">${moldName}</span>
+              </div>
+
+              <!-- Hàng 2: Giá + Tầng -->
+              <div class="loc-inline-row">
+                <span class="loc-inline-label">現在位置 / Vị trí hiện tại:</span>
+                <span class="loc-inline-value">${rackDisplay} - Tầng ${layerDisplay}</span>
+              </div>
+
+              <!-- Hàng 3: Vị trí kho -->
+              <div class="loc-inline-row">
+                <span class="loc-inline-label">保管場所 / Vị trí kho:</span>
+                <span class="loc-inline-value">${rackLocation}</span>
+              </div>
+            </div>
+          </section>
+
+          <!-- CỘT 2: NHẬP LIỆU - 25% -->
+          <section class="loc-inputs">
+            <h4>✏️ 新位置 / Vị trí mới</h4>
+
+            <!-- Chọn Giá -->
+            <div class="location-form-group">
+              <label class="location-form-label">* 棚番号 / Giá</label>
+              <select id="loc-rack" class="location-form-control">
+                <option value="">-- 棚選択・Chọn Giá --</option>
+                ${
+                  racksList.map(r => {
+                    const displayText =
+                      `${r.RackSymbol || r.RackNumber || `Giá ${r.RackID}`} (${r.RackLocation || '-'})`;
+                    return `
+                      <option value="${r.RackID}"
+                              data-rack-symbol="${r.RackSymbol}"
+                              data-rack-loc="${r.RackLocation}">
+                        ${displayText}
+                      </option>`;
+                  }).join('') || ''
+                }
+              </select>
             </div>
 
-            <!-- Hàng 2: Giá + Tầng -->
-            <div class="loc-inline-row">
-              <span class="loc-inline-label">現在位置 / Vị trí hiện tại:</span>
-              <span class="loc-inline-value">${rackDisplay} - Tầng ${layerDisplay}</span>
+            <!-- Chọn Tầng -->
+            <div class="location-form-group">
+              <label class="location-form-label">* 棚の段 / Tầng</label>
+              <select id="loc-layer" class="location-form-control" disabled>
+                <option value="">-- 棚の段選択・Chọn Tầng --</option>
+              </select>
             </div>
 
-            <!-- Hàng 3: Vị trí kho -->
-            <div class="loc-inline-row">
-              <span class="loc-inline-label">保管場所 / Vị trí kho:</span>
-              <span class="loc-inline-value">${rackLocation}</span>
+            <!-- Dropdown nhân viên -->
+            <div class="location-form-group">
+              <label class="location-form-label">* 担当者 / Nhân viên</label>
+              <select id="loc-employee" class="location-form-control">
+                <option value="">-- 担当者選択・Chọn --</option>
+              </select>
             </div>
-          </div>
-        </section>
 
+            <!-- Ghi chú -->
+            <div class="location-form-group">
+              <label class="location-form-label">メモ / Ghi chú</label>
+              <textarea id="loc-note"
+                        class="location-form-control"
+                        rows="2"
+                        placeholder="Lý do thay đổi vị trí..."></textarea>
+            </div>
 
-        <!-- CỘT 3: NHẬP LIỆU - 25% -->
-        <section class="loc-inputs">
-          <h4>✏️ 新位置 / Vị trí mới</h4>
+            <!-- Nút xác nhận / hủy -->
+            <div class="location-btn-row">
+              <button class="btn-cancel-location" id="btn-loc-cancel">
+                ✕ キャンセル / Hủy
+              </button>
+              <button class="btn-confirm-location" id="btn-loc-confirm">
+                ✓ 更新 / Cập nhật
+              </button>
+            </div>
+          </section>
 
-          <!-- Chọn Giá -->
-          <div class="location-form-group">
-            <label class="location-form-label">* 棚番号 / Giá</label>
-            <select id="loc-rack" class="location-form-control">
-              <option value="">-- 棚選択・Chọn Giá --</option>
-              ${racksList.map(r => {
-                const displayText = `${r.RackSymbol || r.RackNumber || `Giá ${r.RackID}`} (${r.RackLocation || '-'})`;
-                return `<option value="${r.RackID}" data-rack-symbol="${r.RackSymbol}" data-rack-loc="${r.RackLocation}">
-                  ${displayText}
-                </option>`;
-              }).join('') || ''}
-            </select>
-          </div>
+          <!-- CỘT 3: LỊCH SỬ - 50% -->
+          <section class="loc-history">
+            <h4>📋 履歴 / Lịch sử thay đổi (${historyLogs.length})</h4>
 
-          <!-- Chọn Tầng -->
-          <div class="location-form-group">
-            <label class="location-form-label">* 棚の段 / Tầng</label>
-            <select id="loc-layer" class="location-form-control" disabled>
-              <option value="">-- 棚の段選択・Chọn Tầng --</option>
-            </select>
-          </div>
+            <div class="location-filter-row">
+              <input type="text"
+                    id="loc-search"
+                    class="location-form-control"
+                    placeholder="検索... / Tìm kiếm...">
+            </div>
 
-          <!-- ✅ THÊM: Dropdown nhân viên -->
-          <div class="location-form-group">
-            <label class="location-form-label">* 担当者 / Nhân viên</label>
-            <select id="loc-employee" class="location-form-control">
-              <option value="">-- 担当者選択・Chọn --</option>
-            </select>
-          </div>
+            <div class="location-history-wrap">
+              ${this.renderHistory(historyLogs, racksList, rackLayersList)}
+            </div>
+          </section>
 
-          <!-- Ghi chú -->
-          <div class="location-form-group">
-            <label class="location-form-label">メモ / Ghi chú</label>
-            <textarea id="loc-note" class="location-form-control" 
-                      rows="2" placeholder="Lý do thay đổi vị trí..."></textarea>
-          </div>
-
-          <!-- Nút xác nhận / hủy -->
-          <div class="location-btn-row">
-            <button class="btn-cancel-location" id="btn-loc-cancel">
-              ✕ キャンセル / Hủy
-            </button>
-            <button class="btn-confirm-location" id="btn-loc-confirm">
-              ✓ 更新 / Cập nhật
-            </button>
-            
-          </div>
-        </section>
-      </div>
-    </div>
+        </div> <!-- /.location-body -->
+      </div> <!-- /.location-panel -->
     `;
+
 
     upper.insertAdjacentHTML('beforeend', html);
 
