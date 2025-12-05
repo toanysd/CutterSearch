@@ -254,6 +254,7 @@
                             <span class="vi-text">Chọn</span>
                             </span>
                         </div>
+
                         <span class="selection-info-inline">
                             <span id="selected-count-inline">0</span> 件
                         </span>
@@ -263,26 +264,31 @@
                             全解除
                         </button>
 
+                        
+
+                        <button class="btn-print-inline" id="mobile-print-btn-inline" disabled>
+                            <i class="fas fa-print"></i> 印刷
+                        </button>
+
+                        <!-- R7.0.7: View Mode Toggle (Card/Table) -->
+                        <div class="view-mode-toggle" id="mobile-view-toggle">
+                            <button class="toggle-btn active" data-view="card" title="カード表示">
+                                カード
+                            </button>
+                            <button class="toggle-btn" data-view="table" title="表形式">
+                                一覧
+                            </button>
+                        </div>
+
                         <!-- R7.0.7: Toggle column filter row -->
                         <button class="btn-filter-row" id="toggle-column-filters">
                             フィルタ
                         </button>
 
-                        <button class="btn-print-inline" id="mobile-print-btn-inline" disabled>
-                            <i class="fas fa-print"></i> 印刷
-                        </button>
                     </div>
 
                     
-                    <!-- R7.0.7: View Mode Toggle (Card/Table) -->
-                    <div class="view-mode-toggle" id="mobile-view-toggle">
-                        <button class="toggle-btn active" data-view="card" title="カード表示">
-                            カード
-                        </button>
-                        <button class="toggle-btn" data-view="table" title="表形式">
-                            一覧
-                        </button>
-                    </div>
+                    
 
                 </div>
 
@@ -933,14 +939,14 @@
 
     <!-- Action Modules -->
     <link rel="stylesheet" href="checkin-checkout-r6.9.css">
-    <link rel="stylesheet" href="checkin-checkout-mobile-r7.0.5.css">
-    <script src="checkin-checkout-r7.0.5.js"></script>
+    <link rel="stylesheet" href="checkin-checkout-mobile-r7.0.8.css">
+    <script src="checkin-checkout-r7.0.8.js"></script>
     <script src="action-buttons-r6.9.9.js"></script>
     <!-- Location Manager Module -->
-    <script src="location-manager-r7.0.4.js"></script>
+    <script src="location-manager-r7.0.8.js"></script>
     <!-- Location Manager Module CSS -->
     <link rel="stylesheet" href="location-manager-r6.9.css">
-    <link rel="stylesheet" href="location-manager-mobile-r7.0.4.css">
+    <link rel="stylesheet" href="location-manager-mobile-r7.0.8.css">
 
     <script src="shipping-manager-r7.0.8.js"></script>
     <link rel="stylesheet" href="shipping-mobile-r7.0.8.css">

@@ -27,6 +27,62 @@
   let currentItem = null;
   let isSaving = false;
 
+  // Helper: vuốt xuống từ header để đóng modal (mobile only)
+  function attachSwipeToClose(headerEl, modalEl, hideCallback) {
+      if (!headerEl || !modalEl || !('ontouchstart' in window)) return;
+
+      let startY = 0;
+      let currentY = 0;
+      let isDragging = false;
+
+      const resetDrag = () => {
+          isDragging = false;
+          modalEl.classList.remove('dragging');
+          modalEl.style.transform = '';
+          modalEl.style.opacity = '';
+      };
+
+      const onTouchStart = (e) => {
+          if (!e.touches || e.touches.length !== 1) return;
+          startY = e.touches[0].clientY;
+          currentY = startY;
+          isDragging = true;
+          modalEl.classList.add('dragging');
+      };
+
+      const onTouchMove = (e) => {
+          if (!isDragging) return;
+          const touchY = e.touches[0].clientY;
+          const deltaY = touchY - startY;
+          if (deltaY < 0) return; // chỉ xử lý kéo xuống
+
+          currentY = touchY;
+          const translateY = Math.min(deltaY, 120);
+          const opacity = 1 - Math.min(deltaY / 200, 0.5);
+
+          modalEl.style.transform = `translateY(${translateY}px)`;
+          modalEl.style.opacity = opacity;
+      };
+
+      const onTouchEnd = () => {
+          if (!isDragging) return;
+          const deltaY = currentY - startY;
+
+          if (deltaY > 80) {
+              resetDrag();
+              if (typeof hideCallback === 'function') hideCallback();
+          } else {
+              resetDrag();
+          }
+      };
+
+      headerEl.addEventListener('touchstart', onTouchStart, { passive: true });
+      headerEl.addEventListener('touchmove', onTouchMove, { passive: true });
+      headerEl.addEventListener('touchend', onTouchEnd);
+      headerEl.addEventListener('touchcancel', resetDrag);
+  }
+
+
   const ShippingManager = {
     INIT() {
       console.log('ShippingManager r7.0.8 loaded');
@@ -83,101 +139,91 @@
       const todayISO = new Date().toISOString().split('T')[0];
 
       const html = `
-<div class="checkio-panel ship-panel" id="ship-panel">
-  <!-- HEADER -->
-  <div class="checkio-header">
-    <div class="checkio-mode">
-      <button type="button" class="mode-btn active" data-mode="shipping" style="cursor:default;">
-        🚚 出荷・移動<br/>Vận chuyển
-      </button>
-    </div>
-    <button class="btn-close-compact" id="ship-close" title="閉じる / Đóng">×</button>
-  </div>
-
-  <!-- BODY: 3 khu vực -->
-  <div class="checkio-body">
-    <!-- 1. INPUTS -->
-    <section class="cio-inputs">
-      <h4>データ入力 / Nhập liệu</h4>
-
-      <div class="form-group">
-        <label class="form-label">
-          出荷元 / Nơi gửi
-        </label>
-        <div id="ship-from-select-container"></div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">
-          出荷先 / Nơi nhận *
-        </label>
-        <div id="ship-to-select-container"></div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">
-          担当者 / Nhân viên *
-        </label>
-        <div id="ship-employee-select-container"></div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">
-          出荷日 / Ngày gửi *
-        </label>
-        <input type="date" id="ship-date" class="form-control" value="${todayISO}">
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">
-          備考 / Ghi chú
-        </label>
-        <textarea id="ship-note" class="form-control" rows="2" placeholder="メモ / Ghi chú..."></textarea>
-      </div>
-
-      <div class="btn-row">
-        <button class="btn-cancel" id="ship-cancel">
-          ✕ 戻る / Hủy
-        </button>
-        <button class="btn-confirm" id="ship-save">
-          ✔ 確認 / Xác nhận
-        </button>
-      </div>
-    </section>
-
-    <!-- 2. STATUS -->
-    <section class="cio-status">
-      <h4>現在の状態 / Trạng thái hiện tại</h4>
-      <div class="status-badges">
-        <div class="badge-row">
-          <span class="badge-label">ID</span>
-          <div class="badge badge-mold">${itemId || '-'}</div>
-        </div>
-        <div class="badge-row">
-          <span class="badge-label">名称 / Tên</span>
-          <div class="badge badge-mold-name">${this.escapeHtml(itemName || '-')}</div>
-        </div>
-        <div class="badge-row">
-          <span class="badge-label">保管場所 / Nơi lưu hiện tại</span>
-          <div class="badge badge-company">
-            ${currentStorageName || '-'}
+      <div class="checkio-panel ship-panel" id="ship-panel">
+        <!-- HEADER -->
+        <div class="checkio-header">
+          <div class="checkio-mode">
+            <button type="button" class="mode-btn active" data-mode="shipping" style="cursor:default;">
+              🚚 出荷・移動<br/>Vận chuyển
+            </button>
           </div>
+          <button class="btn-close-compact" id="ship-close" title="閉じる / Đóng">×</button>
+        </div>
+
+        <!-- BODY: 3 khu vực -->
+        <div class="checkio-body">
+          <!-- 1. INPUTS -->
+          <section class="cio-inputs">
+              <h4>Nhập liệu</h4>
+
+              <!-- Nơi nhận đặt trước -->
+              <div class="form-group">
+                  <label class="form-label">Nơi nhận / 出荷先</label>
+                  <div id="ship-to-select-container"></div>
+              </div>
+
+              <!-- Nơi gửi phía dưới -->
+              <div class="form-group">
+                  <label class="form-label">Nơi gửi / 出荷元</label>
+                  <div id="ship-from-select-container"></div>
+              </div>
+
+              <!-- Các ô còn lại giữ nguyên -->
+              <div class="form-group">
+                  <label class="form-label">Nhân viên / 担当者 *</label>
+                  <div id="ship-employee-select-container"></div>
+              </div>
+
+              <div class="form-group">
+                  <label class="form-label">Ngày gửi / 出荷日 *</label>
+                  <input type="date" id="ship-date" class="form-control" value="${todayISO}">
+              </div>
+
+              <div class="form-group">
+                  <label class="form-label">Ghi chú / メモ</label>
+                  <textarea id="ship-note" class="form-control" rows="2" placeholder="Ghi chú..."></textarea>
+              </div>
+
+              <div class="btn-row">
+                  <button class="btn-cancel" id="ship-cancel">✕ 戻る / Hủy</button>
+                  <button class="btn-confirm" id="ship-save">✓ 確認 / Xác nhận</button>
+              </div>
+          </section>
+
+
+          <!-- 2. STATUS -->
+          <section class="cio-status">
+            <h4>現在の状態 / Trạng thái hiện tại</h4>
+            <div class="status-badges">
+              <div class="badge-row">
+                <span class="badge-label">ID</span>
+                <div class="badge badge-mold">${itemId || '-'}</div>
+              </div>
+              <div class="badge-row">
+                <span class="badge-label">名称 / Tên</span>
+                <div class="badge badge-mold-name">${this.escapeHtml(itemName || '-')}</div>
+              </div>
+              <div class="badge-row">
+                <span class="badge-label">保管場所 / Nơi lưu hiện tại</span>
+                <div class="badge badge-company">
+                  ${currentStorageName || '-'}
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 3. HISTORY -->
+          <section class="cio-history">
+            <h4>履歴 / Lịch sử vận chuyển</h4>
+            <div class="filter-row">
+              <input type="text" id="ship-search" placeholder="検索... / Tìm kiếm..." />
+            </div>
+            <div class="history-wrap">
+              ${this.renderHistory(historyLogs, companies, employees)}
+            </div>
+          </section>
         </div>
       </div>
-    </section>
-
-    <!-- 3. HISTORY -->
-    <section class="cio-history">
-      <h4>履歴 / Lịch sử vận chuyển</h4>
-      <div class="filter-row">
-        <input type="text" id="ship-search" placeholder="検索... / Tìm kiếm..." />
-      </div>
-      <div class="history-wrap">
-        ${this.renderHistory(historyLogs, companies, employees)}
-      </div>
-    </section>
-  </div>
-</div>
       `;
 
       upper.insertAdjacentHTML('beforeend', html);
@@ -413,6 +459,14 @@
           this.saveRecord(item, companies, employees)
         );
       }
+
+              // Swipe xuống từ header để đóng modal Shipping (mobile)
+        const panelEl = document.getElementById('ship-panel');
+        const headerEl = panelEl ? panelEl.querySelector('.checkio-header') : null;
+        attachSwipeToClose(headerEl, panelEl, () => {
+            ShippingManager.close();
+        });
+
 
       // ESC để đóng
       document.addEventListener(

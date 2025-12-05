@@ -1,0 +1,458 @@
+/* ========================================================================
+   LOCATION MANAGER MOBILE - R7.0.4 PRODUCTION (iPhone Only)
+   ========================================================================
+   - Compact 4-line status layout
+   - Fixed scrollbar overlap issue
+   - Full-height without upper-section constraint
+   ======================================================================== */
+
+/* ========================================================================
+   OVERRIDE: Unlock upper-section constraint
+   ======================================================================== */
+
+body.modal-open .upper-section {
+    position: static !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+}
+
+body.modal-open #loc-panel,
+body.modal-open .location-panel {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    border-radius: 0 !important;
+    border: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    z-index: 10000 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    background: #fcfcf9 !important;
+    overflow: hidden !important;
+}
+
+/* ========================================================================
+   HEADER - With proper padding to avoid scrollbar overlap
+   ======================================================================== */
+
+body.modal-open .location-header {
+    flex-shrink: 0 !important;
+    padding: 4px 12px !important; /* ⬇ Giảm từ 8px xuống 4px */
+    padding-right: 12px !important; /* ⬇ Giảm từ 16px xuống 12px */
+    padding-top: calc(4px + env(safe-area-inset-top, 0px)) !important; /* ⬇ Giảm từ 8px xuống 4px */
+    background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%) !important;
+    color: white !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 10px !important;
+    min-height: 24px !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) !important;
+}
+
+body.modal-open .location-title {
+    flex: 1 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+body.modal-open .location-title i {
+    font-size: 18px !important;
+    color: white !important;
+}
+
+body.modal-open .location-title-main {
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    color: white !important;
+}
+
+body.modal-open .location-title-sub {
+    display: none !important;
+}
+
+body.modal-open .btn-close-location {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 18px !important;
+    background: rgba(255, 255, 255, 0.2) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    border-radius: 50% !important;
+    color: white !important;
+}
+
+/* ========================================================================
+   BODY - 3-section vertical layout
+   ======================================================================== */
+
+body.modal-open .location-body {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    padding: 0 !important;
+    gap: 0 !important;
+    overflow: hidden !important;
+    min-height: 0 !important;
+    background: #f5f5f5 !important;
+}
+
+/* ========================================================================
+   SECTION 1: HISTORY (Top, scrollable)
+   ======================================================================== */
+
+/* SECTION 3: HISTORY – đưa xuống cuối, chiều cao giống check-in */
+body.modal-open .loc-history {
+    order: 3 !important;                      /* Sau status + inputs */
+    flex: 0 0 auto !important;
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    background: rgba(255, 152, 0, 0.03) !important;
+    border-top: 1px solid rgba(94, 82, 64, 0.12) !important;
+    padding: 8px 16px 8px 12px !important;
+    max-height: 32vh !important;              /* Giới hạn ~1/3 màn hình */
+    min-height: 0 !important;                 /* Không ép cao tối thiểu */
+    overflow-y: auto !important;              /* Cuộn độc lập */
+}
+
+
+body.modal-open .loc-history h4 {
+    font-size: 9px !important;
+    font-weight: 700 !important;
+    color: #E65100 !important;
+    padding-bottom: 4px !important;
+    margin-bottom: 6px !important;
+    border-bottom: 1px solid rgba(94, 82, 64, 0.15) !important;
+    flex-shrink: 0 !important;
+}
+
+body.modal-open .location-filter-row {
+    margin-bottom: 6px !important;
+    flex-shrink: 0 !important;
+}
+
+body.modal-open .location-filter-row input {
+    width: 100% !important;
+    padding: 6px 10px !important;
+    font-size: 13px !important;
+    border: 1px solid rgba(94, 82, 64, 0.2) !important;
+    border-radius: 6px !important;
+}
+
+body.modal-open .location-history-wrap {
+    flex: 1 !important;
+    overflow-y: auto !important;
+    overflow-x: auto !important;
+    min-height: 0 !important;
+    -webkit-overflow-scrolling: touch !important;
+}
+
+body.modal-open .location-history-table {
+    width: 100% !important;
+    font-size: 9px !important;
+}
+
+body.modal-open .location-history-table th {
+    padding: 6px 4px !important;
+    font-size: 9px !important;
+    position: sticky !important;
+    top: 0 !important;
+    background: white !important;
+    z-index: 2 !important;
+}
+
+body.modal-open .location-history-table td {
+    padding: 4px 3px !important;
+}
+
+body.modal-open .btn-delete-history {
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 13px !important;
+}
+
+/* ========================================================================
+   SECTION 2: STATUS (Middle, COMPACT 4-LINE LAYOUT)
+   ======================================================================== */
+
+body.modal-open .loc-status {
+    order: 1 !important;                      /* Ngay dưới header */
+    flex: 0 0 auto !important;
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    background: linear-gradient(135deg, rgba(21, 101, 192, 0.05), rgba(13, 71, 161, 0.05)) !important;
+    border-bottom: 1px solid rgba(94, 82, 64, 0.12) !important;
+    padding: 8px 16px 8px 12px !important;
+}
+
+body.modal-open .loc-status h4 {
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    color: #1565C0 !important;
+    margin: 0 0 6px 0 !important;
+    padding-bottom: 3px !important;
+    border-bottom: 1px solid rgba(21, 101, 192, 0.2) !important;
+}
+
+/* ✅ COMPACT LAYOUT: 4 horizontal rows */
+body.modal-open .location-status-badges {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+}
+
+/* Row 1: ID + Name (horizontal) */
+body.modal-open .location-badge-row:nth-of-type(1),
+body.modal-open .location-badge-row:nth-of-type(2) {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    width: auto !important;
+}
+
+body.modal-open .location-badge-row:nth-of-type(1) {
+    float: left !important;
+    margin-right: 8px !important;
+}
+
+body.modal-open .location-badge-row:nth-of-type(2) {
+    float: left !important;
+    clear: none !important;
+}
+
+/* Clear float after row 2 */
+body.modal-open .location-badge-row:nth-of-type(2)::after {
+    content: '' !important;
+    display: block !important;
+    clear: both !important;
+}
+
+body.modal-open .location-badge-label {
+    font-size: 9px !important;
+    font-weight: 600 !important;
+    color: #455a64 !important;
+    white-space: nowrap !important;
+}
+
+body.modal-open .badge {
+    font-size: 13px !important;
+    padding: 2px 6px !important;
+    border-radius: 3px !important;
+    white-space: nowrap !important;
+}
+
+body.modal-open .badge-mold,
+body.modal-open .badge-mold-name {
+    background: #1976D2 !important;
+    color: white !important;
+}
+
+/* Row 3: Current Location (Rack-Layer horizontal) */
+body.modal-open .current-location-group {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 3px !important;
+    clear: both !important;
+    margin-top: 4px !important;
+}
+
+body.modal-open .current-location-group > .location-badge-label {
+    font-size: 13px !important;
+    margin-bottom: 2px !important;
+}
+
+body.modal-open .badge-group {
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+}
+
+body.modal-open .badge-rack {
+    background: #FF9800 !important;
+    color: white !important;
+}
+
+body.modal-open .badge-layer {
+    background: #4CAF50 !important;
+    color: white !important;
+}
+
+body.modal-open .badge-sep {
+    color: #626c7c !important;
+    font-weight: bold !important;
+}
+
+/* Row 4: Rack Location */
+body.modal-open .rack-location {
+    font-size: 11px !important;
+    color: #626c7c !important;
+    margin-top: 2px !important;
+}
+
+body.modal-open .rack-location .loc-label {
+    font-weight: 600 !important;
+}
+
+body.modal-open .rack-location .loc-value {
+    color: #FF6F00 !important;
+    font-weight: 600 !important;
+}
+
+/* ========================================================================
+   SECTION 3: INPUTS (Bottom, above fixed buttons)
+   ======================================================================== */
+
+body.modal-open .loc-inputs {
+    order: 2 !important;                      /* Ngay dưới status */
+    flex: 0 0 auto !important;
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    background: white !important;
+    border-top: 1px solid rgba(94, 82, 64, 0.12) !important;
+    padding: 10px 16px 10px 12px !important;
+    padding-bottom: calc(10px + 70px) !important; /* Chừa chỗ cho nút cố định */
+    overflow: visible !important;
+}
+
+body.modal-open .loc-inputs h4 {
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    color: #E65100 !important;
+    margin: 0 0 8px 0 !important;
+    padding-bottom: 4px !important;
+    border-bottom: 1px solid rgba(94, 82, 64, 0.15) !important;
+}
+
+body.modal-open .location-form-group {
+    margin-bottom: 8px !important;
+}
+
+body.modal-open .location-form-label {
+    display: block !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    color: #134252 !important;
+    margin-bottom: 4px !important;
+}
+
+body.modal-open .location-form-control {
+    width: 100% !important;
+    padding: 8px 10px !important;
+    font-size: 14px !important;
+    border: 1px solid rgba(94, 82, 64, 0.3) !important;
+    border-radius: 6px !important;
+    min-height: 36px !important;
+}
+
+body.modal-open select.location-form-control {
+    height: 36px !important;
+}
+
+body.modal-open textarea.location-form-control {
+    min-height: 60px !important;
+    resize: vertical !important;
+}
+
+/* ========================================================================
+   BUTTONS - Fixed at bottom
+   ======================================================================== */
+
+body.modal-open .location-btn-row {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    order: 4 !important;
+    display: flex !important;
+    gap: 8px !important;
+    padding: 10px 12px !important;
+    padding-bottom: max(10px, env(safe-area-inset-bottom, 0px)) !important;
+    background: white !important;
+    border-top: 1px solid rgba(94, 82, 64, 0.12) !important;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1) !important;
+    z-index: 100 !important;
+}
+
+body.modal-open .btn-confirm-location,
+body.modal-open .btn-cancel-location {
+    flex: 1 !important;
+    padding: 11px 16px !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    border: none !important;
+    border-radius: 8px !important;
+    min-height: 44px !important;
+}
+
+body.modal-open .btn-confirm-location {
+    background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%) !important;
+    color: white !important;
+    box-shadow: 0 2px 6px rgba(255, 152, 0, 0.25) !important;
+}
+
+body.modal-open .btn-cancel-location {
+    background: rgba(148, 163, 184, 0.12) !important;
+    color: #475569 !important;
+    border: 1px solid rgba(148, 163, 184, 0.25) !important;
+}
+
+/* ========================================================================
+   SCROLLBAR - Thin, non-overlapping
+   ======================================================================== */
+
+body.modal-open .location-history-wrap::-webkit-scrollbar {
+    width: 4px !important;
+}
+
+body.modal-open .location-history-wrap::-webkit-scrollbar-thumb {
+    background: rgba(255, 152, 0, 0.4) !important;
+    border-radius: 2px !important;
+}
+
+body.modal-open .location-history-wrap::-webkit-scrollbar-track {
+    background: transparent !important;
+}
+
+
+/* ===== Inline status rows (Mobile) ===== */
+
+body.modal-open .loc-inline-status {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+    font-size: 12px !important;
+}
+
+body.modal-open .loc-inline-row {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: 4px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+body.modal-open .loc-inline-label {
+    font-weight: 600 !important;
+    color: #455a64 !important;
+    font-size: 10px !important;
+}
+
+body.modal-open .loc-inline-value {
+    font-weight: 700 !important;
+    color: #111827 !important;
+    font-size: 11px !important;
+}
+
+body.modal-open .loc-inline-sep {
+    color: #9ca3af !important;
+    padding: 0 2px !important;
+}
