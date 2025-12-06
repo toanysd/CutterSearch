@@ -196,10 +196,18 @@
           overflow: hidden;
           min-height: 220px;
           max-height: 320px;
+          /* NEW: căn giữa nội dung bên trong */
+          display: flex;
+          align-items: center;      /* 縦方向中央揃え – căn giữa theo chiều dọc */
+          justify-content: center;  /* 横方向中央揃え – căn giữa theo chiều ngang */
         }
         #qrscan-camera-view {
           width: 100%;
-          min-height: 220px;
+          /* Bỏ min-height ở đây để Html5Qrcode tự quyết chiều cao video */
+        }
+        /* NEW: đảm bảo container do Html5Qrcode tạo ra cũng được căn giữa */
+        #qrscan-camera-view > * {
+          margin: 0 auto;
         }
 
         .qrscan-manual-block {
