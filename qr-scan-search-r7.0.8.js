@@ -199,7 +199,7 @@
         }
         #qrscan-camera-view {
           width: 100%;
-          min-height: 220px;
+          min-height: 20px;
         }
 
         .qrscan-manual-block {
@@ -836,3 +836,4 @@
   // Expose ra global nếu cần debug
   window.QRScanSearch = QRScanSearch;
 })();
+
