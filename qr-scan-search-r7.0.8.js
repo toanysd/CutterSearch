@@ -189,24 +189,34 @@
           color: #666;
         }
 
-        .qrscan-camera-view-wrap {
+                .qrscan-camera-view-wrap {
           position: relative;
           background: #000;
           border-radius: 6px;
           overflow: hidden;
-          min-height: 220px;
-          max-height: 320px;
-          /* NEW: căn giữa nội dung bên trong */
+
+          /* Chiều cao khối đen cố định cho mobile */
+          height: 260px;
+          max-height: 260px;
+
+          /* CĂN GIỮA NỘI DUNG BÊN TRONG KHỐI ĐEN (không phải popup) */
           display: flex;
-          align-items: center;      /* 縦方向中央揃え – căn giữa theo chiều dọc */
-          justify-content: center;  /* 横方向中央揃え – căn giữa theo chiều ngang */
+          align-items: center;      /* căn giữa theo chiều dọc trong khối đen */
+          justify-content: center;  /* căn giữa theo chiều ngang trong khối đen */
         }
+
         #qrscan-camera-view {
           width: 100%;
-          /* Bỏ min-height ở đây để Html5Qrcode tự quyết chiều cao video */
+          height: 100%;        /* lấp đầy chiều cao khối đen */
+          display: flex;
+          align-items: center; /* tiếp tục căn giữa video bên trong */
+          justify-content: center;
         }
-        /* NEW: đảm bảo container do Html5Qrcode tạo ra cũng được căn giữa */
+
+        /* Đảm bảo container video do Html5Qrcode tạo ra nằm chính giữa */
         #qrscan-camera-view > * {
+          max-width: 100%;
+          max-height: 100%;
           margin: 0 auto;
         }
 
