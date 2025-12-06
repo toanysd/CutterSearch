@@ -13,7 +13,7 @@
  *  - Nếu KHÔNG match ID + Code:
  *      + Dùng Code làm từ khóa
  *      + Lọc DataManager.data.molds / DataManager.data.cutters
- *      + Phát event "searchupdated" (origin: "qr-scan") để UIRenderer render. [file:2][file:5]
+ *      + Phát event "searchupdated" (origin: "qr-scan") để UIRenderer render.
  *
  * QR camera:
  *  - Dùng Html5Qrcode (window.Html5Qrcode) nếu có.
@@ -27,7 +27,7 @@
  *      .btn-qr-scan, [data-role="qr-scan-trigger"]
  *
  * Ghi chú:
- *  - Không sửa các module khác (UIRenderer, MobileDetailModal, ExportQR...). [file:2][file:4][file:5]
+ *  - Không sửa các module khác (UIRenderer, MobileDetailModal, ExportQR...).
  *  - Chỉ require DataManager.data đã load.
  * ===========================================================
  */
@@ -189,6 +189,7 @@
           color: #666;
         }
 
+        /* --- FIX CAMERA ALIGNMENT --- */
         .qrscan-camera-view-wrap {
           position: relative;
           background: #000;
@@ -196,11 +197,36 @@
           overflow: hidden;
           min-height: 220px;
           max-height: 320px;
+          display: flex;           /* Flexbox để căn giữa */
+          align-items: center;     /* Căn giữa dọc */
+          justify-content: center; /* Căn giữa ngang */
         }
+        
         #qrscan-camera-view {
-          width: 100%;
-          min-height: 20px;
+          width: 100% !important;
+          height: 100% !important; /* Chiếm toàn bộ chiều cao wrap */
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0;
+          padding: 0;
         }
+        
+        /* Reset margin/padding cho các element con của Html5Qrcode */
+        #qrscan-camera-view video, 
+        #qrscan-camera-view canvas {
+            width: 100% !important;
+            height: auto !important;
+            max-height: 320px !important; /* Giới hạn chiều cao video */
+            object-fit: contain !important; /* Đảm bảo hiển thị đủ video */
+            margin: 0 auto !important;
+        }
+        
+        /* Ẩn các nút/text mặc định của thư viện nếu có */
+        #qrscan-camera-view button {
+            display: none !important;
+        }
+        /* ---------------------------- */
 
         .qrscan-manual-block {
           border-radius: 6px;
@@ -836,4 +862,3 @@
   // Expose ra global nếu cần debug
   window.QRScanSearch = QRScanSearch;
 })();
-
