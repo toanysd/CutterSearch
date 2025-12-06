@@ -189,35 +189,17 @@
           color: #666;
         }
 
-                .qrscan-camera-view-wrap {
+        .qrscan-camera-view-wrap {
           position: relative;
           background: #000;
           border-radius: 6px;
           overflow: hidden;
-
-          /* Chiều cao khối đen cố định cho mobile */
-          height: 260px;
-          max-height: 260px;
-
-          /* CĂN GIỮA NỘI DUNG BÊN TRONG KHỐI ĐEN (không phải popup) */
-          display: flex;
-          align-items: center;      /* căn giữa theo chiều dọc trong khối đen */
-          justify-content: center;  /* căn giữa theo chiều ngang trong khối đen */
+          min-height: 220px;
+          max-height: 320px;
         }
-
         #qrscan-camera-view {
           width: 100%;
-          height: 100%;        /* lấp đầy chiều cao khối đen */
-          display: flex;
-          align-items: center; /* tiếp tục căn giữa video bên trong */
-          justify-content: center;
-        }
-
-        /* Đảm bảo container video do Html5Qrcode tạo ra nằm chính giữa */
-        #qrscan-camera-view > * {
-          max-width: 100%;
-          max-height: 100%;
-          margin: 0 auto;
+          min-height: 220px;
         }
 
         .qrscan-manual-block {
