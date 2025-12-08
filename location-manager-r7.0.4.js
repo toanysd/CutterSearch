@@ -37,6 +37,62 @@ let sortColumn = 'DateEntry';
 let sortOrder = 'desc';
 let isClosingAfterSave = false; // NEW: Flag để tránh dispatch duplicate
 
+// Helper: vuốt xuống từ header để đóng modal (mobile only)
+function attachSwipeToClose(headerEl, modalEl, hideCallback) {
+    if (!headerEl || !modalEl || !('ontouchstart' in window)) return;
+
+    let startY = 0;
+    let currentY = 0;
+    let isDragging = false;
+
+    const resetDrag = () => {
+        isDragging = false;
+        modalEl.classList.remove('dragging');
+        modalEl.style.transform = '';
+        modalEl.style.opacity = '';
+    };
+
+    const onTouchStart = (e) => {
+        if (!e.touches || e.touches.length !== 1) return;
+        startY = e.touches[0].clientY;
+        currentY = startY;
+        isDragging = true;
+        modalEl.classList.add('dragging');
+    };
+
+    const onTouchMove = (e) => {
+        if (!isDragging) return;
+        const touchY = e.touches[0].clientY;
+        const deltaY = touchY - startY;
+        if (deltaY < 0) return; // chỉ xử lý kéo xuống
+
+        currentY = touchY;
+        const translateY = Math.min(deltaY, 120);
+        const opacity = 1 - Math.min(deltaY / 200, 0.5);
+
+        modalEl.style.transform = `translateY(${translateY}px)`;
+        modalEl.style.opacity = opacity;
+    };
+
+    const onTouchEnd = () => {
+        if (!isDragging) return;
+        const deltaY = currentY - startY;
+
+        if (deltaY > 80) {
+            resetDrag();
+            if (typeof hideCallback === 'function') hideCallback();
+        } else {
+            resetDrag();
+        }
+    };
+
+    headerEl.addEventListener('touchstart', onTouchStart, { passive: true });
+    headerEl.addEventListener('touchmove', onTouchMove, { passive: true });
+    headerEl.addEventListener('touchend', onTouchEnd);
+    headerEl.addEventListener('touchcancel', resetDrag);
+}
+
+
 // =====================================================
 // LOCATION CACHE - Tương tự PendingCache
 // =====================================================
@@ -612,6 +668,13 @@ const LocationManager = {
         });
     }
 
+    // Swipe xuống từ header để đóng popup location (mobile)
+    const panelEl = document.getElementById('loc-panel');
+    const headerEl = panelEl ? panelEl.querySelector('.location-header') : null;
+    attachSwipeToClose(headerEl, panelEl, () => {
+        // false = chỉ đóng popup location, giữ nguyên detail modal
+        LocationManager.close(false);
+    });
 
 
     // Bind delete history buttons

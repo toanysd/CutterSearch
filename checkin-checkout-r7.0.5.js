@@ -17,6 +17,62 @@
   // ✅ NEW: SESSION STORAGE TRACKER (THÊM ĐOẠN NÀY)
   const SESSION_KEY_LAST_ACTION = 'checkin_last_action_timestamp';
 
+  // Helper: vuốt xuống từ header để đóng modal (mobile only)
+    function attachSwipeToClose(headerEl, modalEl, hideCallback) {
+        if (!headerEl || !modalEl || !('ontouchstart' in window)) return;
+
+        let startY = 0;
+        let currentY = 0;
+        let isDragging = false;
+
+        const resetDrag = () => {
+            isDragging = false;
+            modalEl.classList.remove('dragging');
+            modalEl.style.transform = '';
+            modalEl.style.opacity = '';
+        };
+
+        const onTouchStart = (e) => {
+            if (!e.touches || e.touches.length !== 1) return;
+            startY = e.touches[0].clientY;
+            currentY = startY;
+            isDragging = true;
+            modalEl.classList.add('dragging');
+        };
+
+        const onTouchMove = (e) => {
+            if (!isDragging) return;
+            const touchY = e.touches[0].clientY;
+            const deltaY = touchY - startY;
+            if (deltaY < 0) return; // chỉ xử lý kéo xuống
+
+            currentY = touchY;
+            const translateY = Math.min(deltaY, 120);
+            const opacity = 1 - Math.min(deltaY / 200, 0.5);
+
+            modalEl.style.transform = `translateY(${translateY}px)`;
+            modalEl.style.opacity = opacity;
+        };
+
+        const onTouchEnd = () => {
+            if (!isDragging) return;
+            const deltaY = currentY - startY;
+
+            if (deltaY > 80) {
+                resetDrag();
+                if (typeof hideCallback === 'function') hideCallback();
+            } else {
+                resetDrag();
+            }
+        };
+
+        headerEl.addEventListener('touchstart', onTouchStart, { passive: true });
+        headerEl.addEventListener('touchmove', onTouchMove, { passive: true });
+        headerEl.addEventListener('touchend', onTouchEnd);
+        headerEl.addEventListener('touchcancel', resetDrag);
+    }
+
+
   function setLastActionTime() {
     sessionStorage.setItem(SESSION_KEY_LAST_ACTION, Date.now().toString());
     console.log('[CheckInOut] 📝 Last action time updated');
@@ -902,6 +958,14 @@
         saveBtn.addEventListener('click', () => this.saveRecord(item));
       }
 
+            // Swipe xuống từ header để đóng modal Check-in/Check-out (mobile)
+        const panelEl = document.getElementById('cio-panel');
+        const headerEl = panelEl ? panelEl.querySelector('.checkio-header') : null;
+        attachSwipeToClose(headerEl, panelEl, () => {
+            CheckInOut.close();
+        });
+
+
       // FIX: Chuyển đổi mode (sửa lại event listener)
       const inBtn = document.getElementById('btn-in');
       const outBtn = document.getElementById('btn-out');
@@ -1529,259 +1593,248 @@
   };
 
   // ========================================
-  // R7.0.9: INLINE AUTOCOMPLETE + SELECT ALL ON FOCUS
-  // ========================================
-  function createSearchableSelect(inputId, options, onSelect) {
-      const wrapper = document.createElement('div');
-      wrapper.className = 'searchable-select-wrapper';
-      
-      // Main input
-      const input = document.createElement('input');
-      input.type = 'text';
-      input.className = 'search-input';
-      input.id = inputId;
-      input.placeholder = '検索... / Tìm kiếm...';
-      input.autocomplete = 'off';
-      
-      // Store selected value
-      let selectedId = '';
-      let selectedName = '';
-      let currentSuggestion = null;
-      let isAcceptingSuggestion = false; // Flag to prevent loops
-      
-      // Dropdown icon
-      const icon = document.createElement('span');
-      icon.className = 'dropdown-icon';
-      icon.textContent = '▼';
-      
-      // Options list
-      const optionsList = document.createElement('div');
-      optionsList.className = 'options-list';
-      
-      wrapper.appendChild(input);
-      wrapper.appendChild(icon);
-      wrapper.appendChild(optionsList);
-      
-      // R7.0.10: FIX INLINE AUTOCOMPLETE - Match ID first, then name
-      function updateInlineAutocomplete(filterText) {
-          if (!filterText || filterText.length === 0 || isAcceptingSuggestion) {
-              currentSuggestion = null;
-              return;
-          }
-          
-          const lowerFilter = filterText.toLowerCase();
-          
-          // R7.0.10: PRIORITY MATCHING
-          // 1. First try exact ID match (e.g., "11" matches ID "11")
-          // 2. Then try ID startsWith (e.g., "1" matches ID "10", "11", "12")
-          // 3. Then try name startsWith
-          // 4. Finally try name includes
-          
-          let firstMatch = null;
-          
-          // Priority 1: Exact ID match
-          firstMatch = options.find(opt => opt.id.toLowerCase() === lowerFilter);
-          
-          // Priority 2: ID startsWith
-          if (!firstMatch) {
-              firstMatch = options.find(opt => opt.id.toLowerCase().startsWith(lowerFilter));
-          }
-          
-          // Priority 3: Name startsWith
-          if (!firstMatch) {
-              firstMatch = options.find(opt => opt.name.toLowerCase().startsWith(lowerFilter));
-          }
-          
-          // Priority 4: Name includes
-          if (!firstMatch) {
-              firstMatch = options.find(opt => opt.name.toLowerCase().includes(lowerFilter));
-          }
-          
-          if (firstMatch) {
-              currentSuggestion = firstMatch;
-              
-              // R7.0.10: Show suggestion in input
-              const suggestion = firstMatch.name;
-              const userTextLength = filterText.length;
-              
-              // Check if suggestion starts with user's text
-              const suggestionLower = suggestion.toLowerCase();
-              const idLower = firstMatch.id.toLowerCase();
-              
-              // Determine what to show as autocomplete
-              let displayText = '';
-              let selectionStart = 0;
-              
-              if (idLower === lowerFilter || idLower.startsWith(lowerFilter)) {
-                  // User is typing the ID → show full name
-                  displayText = suggestion;
-                  selectionStart = 0; // Highlight entire name
-              } else if (suggestionLower.startsWith(lowerFilter)) {
-                  // User is typing the name → autocomplete rest of name
-                  displayText = suggestion;
-                  selectionStart = userTextLength;
-              } else {
-                  // User typed something in the middle → just show full name
-                  displayText = suggestion;
-                  selectionStart = 0;
-              }
-              
-              input.value = displayText;
-              input.setSelectionRange(selectionStart, displayText.length);
-              
-              console.log('[Autocomplete] Suggestion:', displayText, 'ID:', firstMatch.id);
-          } else {
-              currentSuggestion = null;
-          }
-      }
+// R7.0.13: DROPDOWN-ONLY AUTOCOMPLETE
+// - NO inline suggestion in input
+// - ONLY highlight matched rows in dropdown
+// - Press Enter/Tab/Click to select
+// ========================================
+function createSearchableSelect(inputId, options, onSelect) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'searchable-select-wrapper';
+    
+    // Main input
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'search-input';
+    input.id = inputId;
+    input.placeholder = '検索... / Tìm kiếm...';
+    input.autocomplete = 'off';
+    
+    // Store state
+    let selectedId = '';
+    let selectedName = '';
+    let currentHighlighted = null; // Current highlighted option in dropdown
+    let highlightedIndex = -1; // Index of highlighted option
+    let isFirstFocus = true;
+    
+    // Dropdown icon
+    const icon = document.createElement('span');
+    icon.className = 'dropdown-icon';
+    icon.textContent = '▼';
+    
+    // Options list
+    const optionsList = document.createElement('div');
+    optionsList.className = 'options-list';
+    
+    wrapper.appendChild(input);
+    wrapper.appendChild(icon);
+    wrapper.appendChild(optionsList);
+    
+    // R7.0.13: Render options with HIGHLIGHTED ROWS (no input modification)
+    function renderOptions(filterText = '') {
+        const lowerFilter = filterText.toLowerCase().trim();
+        
+        if (options.length === 0) {
+            optionsList.innerHTML = '<div class="no-results">結果なし / Không có kết quả</div>';
+            currentHighlighted = null;
+            highlightedIndex = -1;
+            return;
+        }
+        
+        // Build options with match status
+        const renderedOptions = options.map((opt, index) => {
+            const displayText = `${opt.name} (${opt.id})`;
+            
+            // Check if matches filter
+            let isMatched = false;
+            if (lowerFilter && lowerFilter.length > 0) {
+                isMatched = displayText.toLowerCase().includes(lowerFilter);
+            }
+            
+            const isSelected = opt.id === selectedId ? 'selected' : '';
+            const matchedClass = isMatched ? 'matched' : '';
+            
+            // R7.0.13: First matched item is auto-highlighted
+            if (isMatched && highlightedIndex === -1) {
+                highlightedIndex = index;
+                currentHighlighted = opt;
+            }
+            
+            const highlightedClass = (index === highlightedIndex) ? 'highlighted' : '';
+            
+            return `
+                <div class="option-item ${isSelected} ${matchedClass} ${highlightedClass}" 
+                     data-id="${opt.id}" 
+                     data-name="${opt.name}"
+                     data-index="${index}">
+                    ${displayText}
+                </div>
+            `;
+        });
+        
+        optionsList.innerHTML = renderedOptions.join('');
+        
+        // Bind click events
+        optionsList.querySelectorAll('.option-item').forEach(item => {
+            item.addEventListener('click', () => {
+                selectOption(item.getAttribute('data-id'), item.getAttribute('data-name'));
+            });
+        });
+        
+        // Scroll highlighted item into view
+        if (highlightedIndex >= 0) {
+            const highlightedEl = optionsList.querySelector('.option-item.highlighted');
+            if (highlightedEl) {
+                highlightedEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            }
+        }
+        
+        console.log('[Dropdown] Rendered. Filter:', filterText, 'Highlighted index:', highlightedIndex);
+    }
+    
+    // Select option helper
+    function selectOption(id, name) {
+        selectedId = id;
+        selectedName = name;
+        
+        const displayText = `${name} (${id})`;
+        input.value = displayText;
+        input.dataset.selectedId = id;
+        currentHighlighted = null;
+        highlightedIndex = -1;
+        isFirstFocus = false;
+        
+        optionsList.classList.remove('show');
+        wrapper.classList.remove('open');
+        
+        if (onSelect) onSelect(id, name);
+        console.log('[Selected]:', displayText);
+    }
+    
+    // R7.0.13: FOCUS - Select all ONLY if coming from another field
+    input.addEventListener('focus', () => {
+        if (isFirstFocus && input.value && input.value.length > 0) {
+            setTimeout(() => {
+                input.select();
+                isFirstFocus = false;
+            }, 0);
+        }
+        
+        highlightedIndex = -1; // Reset highlight
+        renderOptions(input.value);
+        optionsList.classList.add('show');
+        wrapper.classList.add('open');
+    });
+    
+    // R7.0.13: BLUR - Reset first focus flag
+    input.addEventListener('blur', () => {
+        setTimeout(() => {
+            isFirstFocus = true;
+        }, 200);
+    });
+    
+    // R7.0.13: INPUT - Just filter dropdown, DON'T modify input
+    input.addEventListener('input', () => {
+        isFirstFocus = false;
+        highlightedIndex = -1; // Reset highlight before render
+        
+        // R7.0.13: CRITICAL - Use input.value AS-IS, don't modify
+        const userInput = input.value;
+        
+        console.log('[Input] User typed:', userInput);
+        
+        renderOptions(userInput);
+        
+        if (!optionsList.classList.contains('show')) {
+            optionsList.classList.add('show');
+            wrapper.classList.add('open');
+        }
+    });
+    
+    // R7.0.13: KEYDOWN - Navigate and select with keyboard
+    input.addEventListener('keydown', (e) => {
+        const visibleItems = optionsList.querySelectorAll('.option-item.matched, .option-item:not(.matched)');
+        const matchedItems = optionsList.querySelectorAll('.option-item.matched');
+        const itemsToUse = matchedItems.length > 0 ? matchedItems : visibleItems;
+        
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            highlightedIndex = Math.min(highlightedIndex + 1, itemsToUse.length - 1);
+            const targetItem = itemsToUse[highlightedIndex];
+            if (targetItem) {
+                currentHighlighted = {
+                    id: targetItem.getAttribute('data-id'),
+                    name: targetItem.getAttribute('data-name')
+                };
+                renderOptions(input.value); // Re-render with new highlight
+            }
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            highlightedIndex = Math.max(highlightedIndex - 1, 0);
+            const targetItem = itemsToUse[highlightedIndex];
+            if (targetItem) {
+                currentHighlighted = {
+                    id: targetItem.getAttribute('data-id'),
+                    name: targetItem.getAttribute('data-name')
+                };
+                renderOptions(input.value);
+            }
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (currentHighlighted) {
+                selectOption(currentHighlighted.id, currentHighlighted.name);
+            } else if (matchedItems.length === 1) {
+                // Only one match → auto-select
+                const singleMatch = matchedItems[0];
+                selectOption(singleMatch.getAttribute('data-id'), singleMatch.getAttribute('data-name'));
+            }
+        } else if (e.key === 'Tab') {
+            // Tab → Select highlighted if exists
+            if (currentHighlighted) {
+                e.preventDefault();
+                selectOption(currentHighlighted.id, currentHighlighted.name);
+            }
+        } else if (e.key === 'Escape') {
+            optionsList.classList.remove('show');
+            wrapper.classList.remove('open');
+            currentHighlighted = null;
+            highlightedIndex = -1;
+        }
+    });
+    
+    // Click outside to close
+    document.addEventListener('click', (e) => {
+        if (!wrapper.contains(e.target)) {
+            optionsList.classList.remove('show');
+            wrapper.classList.remove('open');
+            currentHighlighted = null;
+            
+            // Restore selected value if not selected
+            if (selectedName && input.value !== `${selectedName} (${selectedId})`) {
+                input.value = selectedName ? `${selectedName} (${selectedId})` : '';
+            }
+        }
+    });
+    
+    // Public methods
+    wrapper.setValue = (id) => {
+        const option = options.find(o => o.id === id);
+        if (option) {
+            selectedId = id;
+            selectedName = option.name;
+            input.value = `${option.name} (${id})`;
+            input.dataset.selectedId = id;
+        }
+    };
+    
+    wrapper.getValue = () => selectedId;
+    
+    return wrapper;
+}
 
-      
-      // Render options with row highlight
-      function renderOptions(filterText = '') {
-          const lowerFilter = filterText.toLowerCase().trim();
-          
-          if (options.length === 0) {
-              optionsList.innerHTML = '<div class="no-results">結果なし / Không có kết quả</div>';
-              return;
-          }
-          
-          optionsList.innerHTML = options.map(opt => {
-              const displayText = `${opt.name} (${opt.id})`;
-              
-              let isMatched = false;
-              if (lowerFilter && lowerFilter.length > 0) {
-                  const matchName = opt.name.toLowerCase().includes(lowerFilter);
-                  const matchId = opt.id.toLowerCase().includes(lowerFilter);
-                  isMatched = matchName || matchId;
-              }
-              
-              const isSelected = opt.id === selectedId ? 'selected' : '';
-              const matchedClass = isMatched ? 'matched' : '';
-              
-              return `
-                  <div class="option-item ${isSelected} ${matchedClass}" 
-                      data-id="${opt.id}" 
-                      data-name="${opt.name}">
-                      ${displayText}
-                  </div>
-              `;
-          }).join('');
-          
-          // Bind click events
-          optionsList.querySelectorAll('.option-item').forEach(item => {
-              item.addEventListener('click', () => {
-                  selectOption(item.getAttribute('data-id'), item.getAttribute('data-name'));
-              });
-          });
-      }
-      
-      // Select option helper
-      function selectOption(id, name) {
-          isAcceptingSuggestion = true;
-          selectedId = id;
-          selectedName = name;
-          input.value = name;
-          input.dataset.selectedId = id;
-          currentSuggestion = null;
-          
-          optionsList.classList.remove('show');
-          wrapper.classList.remove('open');
-          
-          if (onSelect) onSelect(id, name);
-          console.log('[SearchableSelect] Selected:', name, id);
-          
-          setTimeout(() => { isAcceptingSuggestion = false; }, 100);
-      }
-      
-      // R7.0.9: SELECT ALL ON FOCUS
-      input.addEventListener('focus', () => {
-          // Select all text when focusing from another field
-          if (input.value && input.value.length > 0) {
-              setTimeout(() => {
-                  input.select(); // Highlight all text
-              }, 0);
-          }
-          
-          renderOptions(input.value);
-          optionsList.classList.add('show');
-          wrapper.classList.add('open');
-      });
-      
-      // R7.0.9: Update on input with inline autocomplete
-      input.addEventListener('input', (e) => {
-          // Don't trigger if accepting suggestion
-          if (isAcceptingSuggestion) return;
-          
-          const currentValue = input.value;
-          renderOptions(currentValue);
-          
-          // Only show autocomplete if user is typing (not deleting/selecting)
-          if (e.inputType === 'insertText' || e.inputType === 'insertFromPaste') {
-              updateInlineAutocomplete(currentValue);
-          }
-          
-          if (!optionsList.classList.contains('show')) {
-              optionsList.classList.add('show');
-              wrapper.classList.add('open');
-          }
-      });
-      
-      // R7.0.9: Handle keyboard shortcuts
-      input.addEventListener('keydown', (e) => {
-          if (e.key === 'Tab' || e.key === 'ArrowRight') {
-              // Accept inline autocomplete
-              if (currentSuggestion && input.selectionStart !== input.selectionEnd) {
-                  e.preventDefault();
-                  selectOption(currentSuggestion.id, currentSuggestion.name);
-              }
-          } else if (e.key === 'Enter') {
-              e.preventDefault();
-              if (currentSuggestion) {
-                  selectOption(currentSuggestion.id, currentSuggestion.name);
-              }
-          } else if (e.key === 'Escape') {
-              optionsList.classList.remove('show');
-              wrapper.classList.remove('open');
-              currentSuggestion = null;
-          } else if (e.key === 'ArrowDown') {
-              e.preventDefault();
-              // Focus first matched item in dropdown
-              const firstMatched = optionsList.querySelector('.option-item.matched');
-              if (firstMatched) firstMatched.scrollIntoView({ block: 'nearest' });
-          }
-      });
-      
-      // Click outside to close
-      document.addEventListener('click', (e) => {
-          if (!wrapper.contains(e.target)) {
-              optionsList.classList.remove('show');
-              wrapper.classList.remove('open');
-              currentSuggestion = null;
-              
-              // Restore selected name if user didn't select
-              if (selectedName && input.value !== selectedName) {
-                  input.value = selectedName;
-              }
-          }
-      });
-      
-      // Public methods
-      wrapper.setValue = (id) => {
-          const option = options.find(o => o.id === id);
-          if (option) {
-              selectedId = id;
-              selectedName = option.name;
-              input.value = option.name;
-              input.dataset.selectedId = id;
-          }
-      };
-      
-      wrapper.getValue = () => selectedId;
-      
-      return wrapper;
-  }
+window.createSearchableSelect = createSearchableSelect;
 
-  window.createSearchableSelect = createSearchableSelect;
+
 
 
 
