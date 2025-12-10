@@ -118,6 +118,7 @@
       root: null,
       backdrop: null,
       dialog: null,
+      header: null,
       tableBody: null,
       tableHead: null,
       dateFrom: null,
@@ -153,256 +154,257 @@
       const style = document.createElement('style');
       style.id = 'history-view-styles';
       style.textContent = `
-.hist-root {
-  position: fixed;
-  inset: 0;
-  z-index: 9998;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-}
-.hist-root.hist-open {
-  display: flex;
-}
-.hist-backdrop {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-}
-.hist-dialog {
-  position: relative;
-  z-index: 1;
-  background: #ffffff;
-  border-radius: 10px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
-  width: 98%;
-  max-width: 1100px;
-  height: 90vh;
-  max-height: 90vh;
-  display: flex;
-  flex-direction: column;
-}
-.hist-header {
-  flex-shrink: 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 6px 10px;
-  border-radius: 10px 10px 0 0;
-  background: linear-gradient(90deg, #1976d2 0%, #42a5f5 100%);
-  color: #ffffff;
-}
-.hist-title {
-  font-size: 15px;
-  font-weight: 600;
-}
-.hist-title span {
-  display: block;
-  line-height: 1.3;
-}
-.hist-title .ja {
-  font-size: 15px;
-}
-.hist-title .vi {
-  font-size: 12px;
-  color: #e3f2fd;
-}
-.hist-close {
-  border: none;
-  background: transparent;
-  font-size: 22px;
-  line-height: 1;
-  cursor: pointer;
-  padding: 0 4px;
-  color: #ffffff;
-}
-.hist-summary {
-  flex-shrink: 0;
-  font-size: 12px;
-  color: #555;
-  text-align: right;
-  padding: 4px 10px 2px;
-}
-.hist-body {
-  flex: 1 1 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 0 10px;
-  overflow: hidden;
-  padding-bottom: 60px;
-}
-.hist-filters {
-  flex-shrink: 0;
-  border: 1px solid #bbdefb;
-  border-radius: 8px;
-  padding: 8px;
-  background: linear-gradient(180deg, #e3f2fd 0%, #ffffff 60%);
-  font-size: 12px;
-}
-.hist-filter-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: 8px 12px;
-  margin-bottom: 6px;
-}
-.hist-filter-row label {
-  font-size: 11px;
-  min-width: 80px;
-  color: #0d47a1;
-  font-weight: 600;
-  display: flex;
-  flex-direction: column;
-  line-height: 1.3;
-}
-.hist-filter-row label .ja {
-  font-size: 11px;
-}
-.hist-filter-row label .vi {
-  font-size: 10px;
-  color: #1565c0;
-  font-weight: 400;
-}
-.hist-filter-row input,
-.hist-filter-row select {
-  font-size: 11px;
-  padding: 4px 6px;
-  border-radius: 4px;
-  border: 1px solid #b0bec5;
-  flex: 1;
-  min-width: 120px;
-}
-.hist-table-wrap {
-  flex: 1 1 auto;
-  overflow: auto;
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
-  background: #ffffff;
-}
-.hist-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 11px;
-}
-.hist-table th,
-.hist-table td {
-  border-bottom: 1px solid #eee;
-  padding: 4px 6px;
-  vertical-align: top;
-}
-.hist-table th {
-  background: #e3f2fd;
-  color: #0d47a1;
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  font-size: 11px;
-}
-.hist-table th.sortable {
-  cursor: pointer;
-}
-.hist-table th.sortable:hover {
-  background: #bbdefb;
-}
-.hist-table th.sort-asc::after {
-  content: ' ▲';
-  font-size: 9px;
-}
-.hist-table th.sort-desc::after {
-  content: ' ▼';
-  font-size: 9px;
-}
-.hist-table tbody tr:nth-child(odd) {
-  background-color: #fafafa;
-}
-.hist-table tbody tr:hover {
-  background-color: #e3f2fd;
-}
-.hist-item-code {
-  font-weight: 600;
-  color: #0056b3;
-}
-.hist-item-name {
-  font-size: 10px;
-  color: #555;
-}
-.hist-type-vi {
-  font-size: 10px;
-  color: #666;
-}
-.hist-from-label,
-.hist-to-label {
-  font-size: 10px;
-  color: #777;
-  font-weight: 600;
-}
-.hist-actions {
-  flex-shrink: 0;
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 10000;
-  padding: 8px 12px;
-  background: #f5f5f5;
-  border-top: 1px solid #ccc;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-}
-.hist-actions-left,
-.hist-actions-right {
-  display: flex;
-  gap: 8px;
-}
-.hist-btn {
-  font-size: 12px;
-  padding: 6px 12px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-  background: #f5f5f5;
-  cursor: pointer;
-}
-.hist-btn-primary {
-  background: #1976d2;
-  color: #fff;
-  border-color: #1976d2;
-}
-.hist-btn-cancel {
-  background: #ffffff;
-  color: #555;
-}
-.hist-item-link {
-  border: none;
-  background: transparent;
-  padding: 0;
-  margin: 0;
-  text-align: left;
-  cursor: pointer;
-}
-.hist-item-link:hover .hist-item-code {
-  text-decoration: underline;
-}
+      .hist-root {
+        position: fixed;
+        inset: 0;
+        z-index: 9998;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      .hist-root.hist-open {
+        display: flex;
+      }
+      .hist-backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+      }
+      .hist-dialog {
+        position: relative;
+        z-index: 1;
+        background: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+        width: 98%;
+        max-width: 1100px;
+        height: 90vh;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+      }
+      .hist-header {
+        flex-shrink: 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 6px 10px;
+        border-radius: 10px 10px 0 0;
+        background: linear-gradient(90deg, #1976d2 0%, #42a5f5 100%);
+        color: #ffffff;
+      }
+      .hist-title {
+        font-size: 15px;
+        font-weight: 600;
+      }
+      .hist-title span {
+        display: block;
+        line-height: 1.3;
+      }
+      .hist-title .ja {
+        font-size: 15px;
+      }
+      .hist-title .vi {
+        font-size: 12px;
+        color: #e3f2fd;
+      }
+      .hist-close {
+        border: none;
+        background: transparent;
+        font-size: 22px;
+        line-height: 1;
+        cursor: pointer;
+        padding: 0 4px;
+        color: #ffffff;
+      }
+      .hist-summary {
+        flex-shrink: 0;
+        font-size: 12px;
+        color: #555;
+        text-align: right;
+        padding: 4px 10px 2px;
+      }
+      .hist-body {
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        padding: 0 10px;
+        overflow: hidden;
+        padding-bottom: 60px;
+      }
+      .hist-filters {
+        flex-shrink: 0;
+        border: 1px solid #bbdefb;
+        border-radius: 8px;
+        padding: 8px;
+        background: linear-gradient(180deg, #e3f2fd 0%, #ffffff 60%);
+        font-size: 12px;
+      }
+      .hist-filter-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        gap: 8px 12px;
+        margin-bottom: 6px;
+      }
+      .hist-filter-row label {
+        font-size: 11px;
+        min-width: 80px;
+        color: #0d47a1;
+        font-weight: 600;
+        display: flex;
+        flex-direction: column;
+        line-height: 1.3;
+      }
+      .hist-filter-row label .ja {
+        font-size: 11px;
+      }
+      .hist-filter-row label .vi {
+        font-size: 10px;
+        color: #1565c0;
+        font-weight: 400;
+      }
+      .hist-filter-row input,
+      .hist-filter-row select {
+        font-size: 11px;
+        padding: 4px 6px;
+        border-radius: 4px;
+        border: 1px solid #b0bec5;
+        flex: 1;
+        min-width: 120px;
+      }
+      .hist-table-wrap {
+        flex: 1 1 auto;
+        overflow: auto;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        background: #ffffff;
+      }
+      .hist-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 11px;
+      }
+      .hist-table th,
+      .hist-table td {
+        border-bottom: 1px solid #eee;
+        padding: 4px 6px;
+        vertical-align: top;
+      }
+      .hist-table th {
+        background: #e3f2fd;
+        color: #0d47a1;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        font-size: 11px;
+      }
+      .hist-table th.sortable {
+        cursor: pointer;
+      }
+      .hist-table th.sortable:hover {
+        background: #bbdefb;
+      }
+      .hist-table th.sort-asc::after {
+        content: ' ▲';
+        font-size: 9px;
+      }
+      .hist-table th.sort-desc::after {
+        content: ' ▼';
+        font-size: 9px;
+      }
+      .hist-table tbody tr:nth-child(odd) {
+        background-color: #fafafa;
+      }
+      .hist-table tbody tr:hover {
+        background-color: #e3f2fd;
+      }
+      .hist-item-code {
+        font-weight: 600;
+        color: #0056b3;
+      }
+      .hist-item-name {
+        font-size: 10px;
+        color: #555;
+      }
+      .hist-type-vi {
+        font-size: 10px;
+        color: #666;
+      }
+      .hist-from-label,
+      .hist-to-label {
+        font-size: 10px;
+        color: #777;
+        font-weight: 600;
+      }
+      .hist-actions {
+        flex-shrink: 0;
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 10000;
+        padding: 8px 12px;
+        background: #f5f5f5;
+        border-top: 1px solid #ccc;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+      }
+      .hist-actions-left,
+      .hist-actions-right {
+        display: flex;
+        gap: 8px;
+      }
+      .hist-btn {
+        font-size: 12px;
+        padding: 6px 12px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        background: #f5f5f5;
+        cursor: pointer;
+      }
+      .hist-btn-primary {
+        background: #1976d2;
+        color: #fff;
+        border-color: #1976d2;
+      }
+      .hist-btn-cancel {
+        background: #ffffff;
+        color: #555;
+      }
+      .hist-item-link {
+        border: none;
+        background: transparent;
+        padding: 0;
+        margin: 0;
+        text-align: left;
+        cursor: pointer;
+      }
+      .hist-item-link:hover .hist-item-code {
+        text-decoration: underline;
+      }
 
-@media (max-width: 767px) {
-  .hist-dialog {
-    width: 100%;
-    max-width: 100%;
-    height: 100vh;
-    max-height: 100vh;
-    border-radius: 0;
-  }
-  .hist-body {
-    padding-bottom: 56px;
-  }
-  .hist-table-wrap {
-    max-height: none;
-  }
-}
-`;
+      @media (max-width: 767px) {
+        .hist-dialog {
+          width: 100%;
+          max-width: 100%;
+          height: 100vh;
+          max-height: 100vh;
+          border-radius: 0;
+          margin-top: env(safe-area-inset-top, 8px); /* chừa chỗ cho notch/status bar */
+        }
+        .hist-body {
+          padding-bottom: 56px;
+        }
+        .hist-table-wrap {
+          max-height: none;
+        }
+      }
+    `;
       document.head.appendChild(style);
     },
 
@@ -521,6 +523,7 @@
       this.els.root = root;
       this.els.backdrop = root.querySelector('.hist-backdrop');
       this.els.dialog = root.querySelector('.hist-dialog');
+      this.els.header = root.querySelector('.hist-header');
       this.els.tableBody = root.querySelector('#history-table tbody');
       this.els.tableHead = root.querySelector('#history-table thead');
       this.els.dateFrom = root.querySelector('#history-date-from');
@@ -884,14 +887,15 @@
         });
       }
 
-      // Vuốt xuống để đóng popup (mobile)
-      if (this.els.dialog) {
+      // Vuốt xuống để đóng popup (mobile) – CHỈ cho phép vuốt từ header
+      const swipeTarget = this.els.header || this.els.dialog;
+      if (swipeTarget) {
         let startY = null;
         let startX = null;
         let lastY = null;
         let lastX = null;
 
-        this.els.dialog.addEventListener('touchstart', (e) => {
+        swipeTarget.addEventListener('touchstart', (e) => {
           if (!e.touches || !e.touches.length) return;
           const t = e.touches[0];
           startY = t.clientY;
@@ -900,18 +904,18 @@
           lastX = t.clientX;
         }, { passive: true });
 
-        this.els.dialog.addEventListener('touchmove', (e) => {
+        swipeTarget.addEventListener('touchmove', (e) => {
           if (!e.touches || !e.touches.length) return;
           const t = e.touches[0];
           lastY = t.clientY;
           lastX = t.clientX;
         }, { passive: true });
 
-        this.els.dialog.addEventListener('touchend', () => {
+        swipeTarget.addEventListener('touchend', () => {
           if (startY == null || lastY == null) return;
           const dy = lastY - startY;
           const dx = lastX - startX;
-
+          // Vuốt chủ yếu theo chiều dọc xuống, dài hơn 80px
           if (dy > 80 && Math.abs(dx) < 60) {
             this.close();
           }
