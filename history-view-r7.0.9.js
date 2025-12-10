@@ -119,6 +119,7 @@
       backdrop: null,
       dialog: null,
       header: null,
+      filters: null,        // ⇦ NEW: khối Lọc dùng để vuốt đóng
       tableBody: null,
       tableHead: null,
       dateFrom: null,
@@ -389,6 +390,12 @@
       }
 
       @media (max-width: 767px) {
+        /* Căn dialog từ mép trên giống Teflon, tránh che header */
+        .hist-root {
+          align-items: flex-start;
+          justify-content: center;
+        }
+
         .hist-dialog {
           width: 100%;
           max-width: 100%;
@@ -524,6 +531,7 @@
       this.els.backdrop = root.querySelector('.hist-backdrop');
       this.els.dialog = root.querySelector('.hist-dialog');
       this.els.header = root.querySelector('.hist-header');
+      this.els.filters = root.querySelector('.hist-filters');   // ⇦ NEW
       this.els.tableBody = root.querySelector('#history-table tbody');
       this.els.tableHead = root.querySelector('#history-table thead');
       this.els.dateFrom = root.querySelector('#history-date-from');
@@ -887,8 +895,8 @@
         });
       }
 
-      // Vuốt xuống để đóng popup (mobile) – CHỈ cho phép vuốt từ header
-      const swipeTarget = this.els.header || this.els.dialog;
+      // Vuốt xuống để đóng popup (mobile) – ưu tiên vuốt từ khối Lọc
+      const swipeTarget = this.els.filters || this.els.header || this.els.dialog;
       if (swipeTarget) {
         let startY = null;
         let startX = null;
@@ -915,10 +923,15 @@
           if (startY == null || lastY == null) return;
           const dy = lastY - startY;
           const dx = lastX - startX;
+
           // Vuốt chủ yếu theo chiều dọc xuống, dài hơn 80px
           if (dy > 80 && Math.abs(dx) < 60) {
             this.close();
           }
+          startY = startX = lastY = lastX = null;
+        });
+
+        swipeTarget.addEventListener('touchcancel', () => {
           startY = startX = lastY = lastX = null;
         });
       }

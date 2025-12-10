@@ -346,7 +346,7 @@
       '現在の状態: ' + migrationData.coating + '\n' +
       '送信日: ' + (migrationData.sentDate || '-') + '\n' +
       '受入日: ' + (migrationData.receivedDate || '-') + '\n\n' +
-      '新しい履歴テーブルに移行しますか？\n' +
+      '旧データからテフロン依頼フォームに値をコピーしますか？\n' +
       'Có muốn chuyển sang bảng lịch sử mới (teflonlog) không?';
 
     const confirmed = window.confirm(msg);
