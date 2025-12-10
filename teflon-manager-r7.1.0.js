@@ -309,6 +309,24 @@
 
       upper.insertAdjacentHTML('beforeend', html);
 
+      // === Vuốt từ header để đóng modal (mobile) ===
+      const panelEl = document.getElementById('teflon-panel');
+      if (panelEl) {
+        // Header của panel (thanh tiêu đề, nơi có nút Đóng)
+        const headerEl = panelEl.querySelector('.teflon-header'); // đổi class nếu bạn đang dùng class khác
+
+        // Nút đóng đang có sẵn trong header
+        const closeBtn = panelEl.querySelector('.teflon-close');  // đổi selector này cho đúng nút Đóng hiện tại
+
+        if (headerEl && closeBtn) {
+          attachSwipeToClose(headerEl, panelEl, () => {
+            // Tái sử dụng logic đóng sẵn có bằng cách trigger click
+            closeBtn.click();
+          });
+        }
+      }
+
+
       document.getElementById('teflon-close-btn').addEventListener('click', () => this.closePanel());
 
       const statusFilterEl = document.getElementById('teflon-status-filter');
