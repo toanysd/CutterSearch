@@ -745,25 +745,47 @@ class MobileDetailModal {
                         <span>YSDでの保管位置 / Vị trí lưu trữ mặc định tại YSD${companyInfo.isExternal ? ' (Tham khảo)' : ''}</span>
                     </div>
                     
-                    <!-- Row 3: Badges Row (Rack-Layer + Check-in Status) -->
+                    <!-- Row 3: Badges Row (Rack-Layer + Status + Last Confirm Date) -->
                     <div class="badges-row">
-                        <div class="badge-group">
-                            <span class="badge-label">棚 - 段 / Giá - Tầng</span>
-                            <div class="badge-inline">
-                                <div class="badge-circle">${rackId}</div>
-                                <span class="badge-sep">-</span>
-                                <div class="badge-rectangle">${layerNum}</div>
-                            </div>
-                        </div>
-                        
-                        <div class="status-group">
-                            <span class="badge-label">確認状態 / Trạng thái xác nhận</span>
-                            <div class="status-badge-compact ${statusInfo.class}">
-                                <i class="${statusInfo.icon}"></i>
-                                <span>${statusInfo.textShort}</span>
-                            </div>
+                    <!-- 棚・段 / Giá - Tầng -->
+                    <div class="badge-group">
+                        <span class="badge-label">
+                        <span class="ja">棚・段</span>
+                        <span class="vi">Giá - Tầng</span>
+                        </span>
+                        <div class="badge-inline">
+                        <div class="badge-circle">${rackId}</div>
+                        <span class="badge-sep">-</span>
+                        <div class="badge-rectangle">${layerNum}</div>
                         </div>
                     </div>
+
+                    <!-- 確認状態 / Trạng thái xác nhận -->
+                    <div class="status-group">
+                        <span class="badge-label">
+                        <span class="ja">確認状態</span>
+                        <span class="vi">Trạng thái xác nhận</span>
+                        </span>
+                        <div class="status-badge-compact ${statusInfo.class}">
+                        <i class="${statusInfo.icon}"></i>
+                        <span>${statusInfo.textShort}</span>
+                        </div>
+                    </div>
+
+                    <!-- 最終確認日 / Ngày xác nhận -->
+                    <div class="confirm-date-group ${statusInfo.isExpired ? 'expired' : ''}">
+                        <span class="badge-label">
+                        <span class="ja">最終確認日</span>
+                        <span class="vi">Ngày xác nhận</span>
+                        </span>
+                        <div class="date-badge-compact">
+                        <i class="fas fa-calendar-check"></i>
+                        <span class="date-text">${statusInfo.lastConfirmDateText}</span>
+                        </div>
+                    </div>
+                    </div>
+
+
                     
                     <!-- Row 4: Location -->
                     <div class="info-line">
@@ -803,81 +825,125 @@ class MobileDetailModal {
 
 
 
-    /**
-     * Helper: Get storage status from statuslogs (CORRECT LOGIC)
-     */
+    /* *
+    * Helper: Get storage status from statuslogs (CORRECT LOGIC)
+    * + R7.0.9: Trả về luôn ngày xác nhận mới nhất & cờ quá hạn
+    */
     getStorageStatus(item) {
-        if (!item) return {
-            class: 'no-history',
-            icon: 'fas fa-question-circle',
-            text: '未確認 / Chưa rõ',
-            textShort: '未確認'
+    // Giá trị mặc định cho ngày xác nhận
+    const defaultDateInfo = {
+        lastConfirmDate: null,
+        lastConfirmDateText: '-',
+        isExpired: false
+    };
+
+    if (!item) return {
+        class: 'no-history',
+        icon: 'fas fa-question-circle',
+        text: '未確認 / Chưa rõ',
+        textShort: '未確認',
+        ...defaultDateInfo
+    };
+
+    // ✅ LOGIC ĐÚNG: Lấy từ statuslogs
+    const statusLogs = window.DataManager?.data?.statuslogs || [];
+    const itemId = item.MoldID || item.CutterID;
+
+    if (!itemId || statusLogs.length === 0) {
+        return {
+        class: 'badge-checkin', // Default
+        icon: 'fas fa-sign-in-alt',
+        text: 'チェックイン / Check-in',
+        textShort: 'チェックイン',
+        ...defaultDateInfo
         };
-        
-        // ✅ LOGIC ĐÚNG: Lấy từ statuslogs
-        const statusLogs = window.DataManager?.data?.statuslogs || [];
-        const itemId = item.MoldID || item.CutterID;
-        
-        if (!itemId || statusLogs.length === 0) {
-            return {
-                class: 'badge-checkin', // Default
-                icon: 'fas fa-sign-in-alt',
-                text: 'チェックイン / Check-in',
-                textShort: 'チェックイン'
-            };
-        }
-        
-        // Tìm logs của item
-        const itemLogs = statusLogs.filter(log => 
-            String(log.MoldID || '').trim() === String(itemId).trim()
-        );
-        
-        if (itemLogs.length === 0) {
-            return {
-                class: 'no-history',
-                icon: 'fas fa-question-circle',
-                text: '未確認 / Chưa rõ',
-                textShort: '未確認'
-            };
-        }
-        
-        // Lấy log mới nhất
-        itemLogs.sort((a, b) => new Date(b.Timestamp) - new Date(a.Timestamp));
-        const latestLog = itemLogs[0];
-        const status = (latestLog.Status || '').toLowerCase();
-        
-        const statusMap = {
-            'checkin': {
-                class: 'badge-checkin',
-                icon: 'fas fa-sign-in-alt',
-                text: 'チェックイン / Check-in',
-                textShort: 'チェックイン'
-            },
-            'checkout': {
-                class: 'badge-checkout',
-                icon: 'fas fa-sign-out-alt',
-                text: 'チェックアウト / Check-out',
-                textShort: 'チェックアウト'
-            },
-            'audit': {
-                class: 'badge-audit',
-                icon: 'fas fa-clipboard-check',
-                text: '棚卸 / Kiểm kê',
-                textShort: '棚卸'
-            }
+    }
+
+    // Tìm logs của item
+    const itemLogs = statusLogs.filter(log =>
+        String(log.MoldID || '').trim() === String(itemId).trim()
+    );
+
+    if (itemLogs.length === 0) {
+        return {
+        class: 'no-history',
+        icon: 'fas fa-question-circle',
+        text: '未確認 / Chưa rõ',
+        textShort: '未確認',
+        ...defaultDateInfo
         };
-        
-        // Detect status
-        if (status.includes('in')) {
-            return statusMap['checkin'];
-        } else if (status.includes('out')) {
-            return statusMap['checkout'];
-        } else if (status.includes('audit')) {
-            return statusMap['audit'];
+    }
+
+    // Lấy log mới nhất
+    itemLogs.sort((a, b) => new Date(b.Timestamp) - new Date(a.Timestamp));
+    const latestLog = itemLogs[0];
+
+    // === R7.0.9: Tính ngày xác nhận mới nhất ===
+    const rawTs =
+        latestLog.Timestamp ||
+        latestLog.CheckTimestamp ||
+        latestLog.UpdatedAt ||
+        latestLog.CreatedAt;
+
+    let lastDate = rawTs ? new Date(rawTs) : null;
+    let lastDateText = '-';
+    let isExpired = false;
+
+    if (lastDate && !isNaN(lastDate.getTime())) {
+        const y = lastDate.getFullYear();
+        const m = String(lastDate.getMonth() + 1).padStart(2, '0');
+        const d = String(lastDate.getDate()).padStart(2, '0');
+        // Định dạng đơn giản YYYY/MM/DD (JP-style)
+        lastDateText = `${y}/${m}/${d}`;
+
+        // Nếu chênh lệch lớn hơn ~11 tháng (~335 ngày) → cảnh báo
+        const diffMs = Date.now() - lastDate.getTime();
+        const diffDays = diffMs / (1000 * 60 * 60 * 24);
+        isExpired = diffDays > 335;
+    } else {
+        lastDate = null;
+    }
+
+    const baseResult = {
+        lastConfirmDate: lastDate,
+        lastConfirmDateText: lastDateText,
+        isExpired
+    };
+
+    const status = (latestLog.Status || '').toLowerCase();
+
+    const statusMap = {
+        'checkin': {
+        class: 'badge-checkin',
+        icon: 'fas fa-sign-in-alt',
+        text: 'チェックイン / Check-in',
+        textShort: 'チェックイン'
+        },
+        'checkout': {
+        class: 'badge-checkout',
+        icon: 'fas fa-sign-out-alt',
+        text: 'チェックアウト / Check-out',
+        textShort: 'チェックアウト'
+        },
+        'audit': {
+        class: 'badge-audit',
+        icon: 'fas fa-clipboard-check',
+        text: '棚卸 / Kiểm kê',
+        textShort: '棚卸'
         }
-        
-        // Default
-        return statusMap['checkin'];
+    };
+
+    // Detect status
+    if (status.includes('in')) {
+        return { ...statusMap['checkin'], ...baseResult };
+    } else if (status.includes('out')) {
+        return { ...statusMap['checkout'], ...baseResult };
+    } else if (status.includes('audit')) {
+        return { ...statusMap['audit'], ...baseResult };
+    }
+
+    // Default
+    return { ...statusMap['checkin'], ...baseResult };
     }
 
 
