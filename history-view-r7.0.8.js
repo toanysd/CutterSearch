@@ -997,13 +997,52 @@
           <div class="hist-item-code">${ev.ItemCode || ''}</div>
           <div class="hist-item-name">${ev.ItemName || ''}</div>
         `;
+        // ĐOẠN MỚI THAY THẾ CHO HANDLER CLICK
         btn.addEventListener('click', () => {
-          this.close();
-          const detailEvt = new CustomEvent('history:item-select', {
-            detail: { type: ev.ItemType, id: ev.ItemId }
-          });
-          document.dispatchEvent(detailEvt);
+          // Đóng popup lịch sử (履歴ポップアップを閉じる)
+          //this.close();
+
+          const dm = window.DataManager;
+          if (!dm || !dm.data) return;
+
+          const data = dm.data;
+          let item = null;
+          let itemType = ev.ItemType;
+
+          if (itemType === 'mold') {
+            const moldId = String(ev.MoldID || ev.ItemId || '').trim();
+            if (!moldId) return;
+            const molds = Array.isArray(data.molds) ? data.molds : [];
+            item = molds.find(m => String(m.MoldID).trim() === moldId);
+            itemType = 'mold';
+          } else if (itemType === 'cutter') {
+            const cutterId = String(ev.CutterID || ev.ItemId || '').trim();
+            if (!cutterId) return;
+            const cutters = Array.isArray(data.cutters) ? data.cutters : [];
+            item = cutters.find(c => String(c.CutterID).trim() === cutterId);
+            itemType = 'cutter';
+          }
+
+          if (!item) {
+            console.warn('HistoryView: item not found for history row', ev);
+            return;
+          }
+
+          // 🔁 Phân nhánh theo thiết bị
+          if (window.innerWidth < 768 && window.MobileDetailModal) {
+            // 📱 iPhone: Mở MobileDetailModal bằng event showMobileDetail
+            const evt = new CustomEvent('showMobileDetail', {
+              detail: { item, type: itemType }
+            });
+            document.dispatchEvent(evt);
+            console.log('HistoryView: showMobileDetail dispatched from history table');
+          } else if (window.UIRenderer && typeof window.UIRenderer.showDetail === 'function') {
+            // 💻 iPad / Desktop: Gọi UIRenderer.showDetail như bình thường
+            window.UIRenderer.showDetail(item, itemType);
+            console.log('HistoryView: UIRenderer.showDetail called from history table');
+          }
         });
+
         itemTd.appendChild(btn);
 
         const typeTd = document.createElement('td');
