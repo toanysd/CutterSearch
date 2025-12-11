@@ -417,96 +417,149 @@
                     <div class="filter-modal-container">
                         <div class="filter-modal-header">
                             <div class="filter-modal-title">
-                                <span class="title-ja">フィルター & ソート</span>
+                                <span class="title-ja">フィルター ＆ ソート</span>
                                 <span class="title-vi">Bộ lọc & Sắp xếp</span>
                             </div>
                             <button class="filter-modal-close-btn" aria-label="Close">
                                 <i class="fas fa-times"></i>
                             </button>
                         </div>
+
                         <div class="filter-modal-body">
-                            <!-- Category Tabs -->
+                            <!-- CATEGORY GROUP -->
                             <div class="filter-section category-section">
                                 <div class="section-label">
-                                    <span class="ja">カテゴリ</span>
-                                    <span class="vi">Nhóm hiển thị</span>
+                                    <span class="section-title-ja">カテゴリ</span>
+                                    <span class="section-title-vi">Nhóm hiển thị</span>
                                 </div>
-                                <div class="category-tabs filter-category-tabs" data-role="filter-category-tabs">
-                                    <button class="category-tab active" data-category="all">
-                                        <span class="ja">すべて</span><span class="vi">Tất cả</span>
-                                    </button>
-                                    <button class="category-tab" data-category="mold">
-                                        <span class="ja">金型</span><span class="vi">Khuôn</span>
-                                    </button>
-                                    <button class="category-tab" data-category="cutter">
-                                        <span class="ja">抜型</span><span class="vi">Dao cắt</span>
-                                    </button>
+                                <div class="section-body">
+                                    <div class="filter-category-tabs category-tabs" data-role="filter-category-tabs">
+                                        <button class="category-tab active" data-category="all">
+                                            <span class="ja">すべて</span>
+                                            <span class="vi">Tất cả</span>
+                                        </button>
+                                        <button class="category-tab" data-category="mold">
+                                            <span class="ja">金型</span>
+                                            <span class="vi">Khuôn</span>
+                                        </button>
+                                        <button class="category-tab" data-category="cutter">
+                                            <span class="ja">抜型</span>
+                                            <span class="vi">Dao cắt</span>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
-                            <!-- Filter Field + Value -->
-                            <div class="filter-section">
+                            <!-- FILTER GROUP -->
+                            <div class="filter-section filter-main-section">
                                 <div class="section-label">
-                                    <span class="ja">フィルター</span>
-                                    <span class="vi">Bộ lọc</span>
+                                    <span class="section-title-ja">フィルター</span>
+                                    <span class="section-title-vi">Bộ lọc</span>
                                 </div>
-                                <label class="filter-label">
-                                    <span class="sub-label">フィールド選択 / Chọn trường lọc</span>
-                                    <select id="modal-filter-field" class="filter-select"></select>
-                                </label>
-                                <label class="filter-label">
-                                    <span class="sub-label">値選択 / Chọn giá trị</span>
-                                    <select id="modal-filter-value" class="filter-select"></select>
-                                </label>
+                                <div class="section-body">
+                                    <div class="filter-row">
+                                        <div class="filter-row-label">
+                                            <span class="label-ja">フィールド選択</span>
+                                            <span class="label-vi">Chọn trường lọc</span>
+                                        </div>
+                                        <div class="filter-row-control">
+                                            <select id="modal-filter-field" class="filter-select"></select>
+                                        </div>
+                                    </div>
+                                    <div class="filter-row">
+                                        <div class="filter-row-label">
+                                            <span class="label-ja">値選択</span>
+                                            <span class="label-vi">Chọn giá trị</span>
+                                        </div>
+                                        <div class="filter-row-control">
+                                            <select id="modal-filter-value" class="filter-select"></select>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
-                            <!-- Sort Field + Direction -->
-                            <div class="filter-section">
+                            <!-- SORT GROUP -->
+                            <div class="filter-section sort-section">
                                 <div class="section-label">
-                                    <span class="ja">ソート</span>
-                                    <span class="vi">Sắp xếp kết quả</span>
+                                    <span class="section-title-ja">ソート</span>
+                                    <span class="section-title-vi">Sắp xếp kết quả</span>
                                 </div>
-                                <label class="filter-label">
-                                    <span class="sub-label">項目 / Trường sắp xếp</span>
-                                    <select id="modal-sort-field" class="filter-select"></select>
-                                </label>
-                                <label class="filter-label">
-                                    <span class="sub-label">順序 / Thứ tự</span>
-                                    <select id="modal-sort-direction" class="filter-select">
-                                        <option value="desc">降順 | Giảm dần (Mới → Cũ)</option>
-                                        <option value="asc">昇順 | Tăng dần (Cũ → Mới)</option>
-                                    </select>
-                                </label>
+                                <div class="section-body">
+                                    <div class="filter-row">
+                                        <div class="filter-row-label">
+                                            <span class="label-ja">項目</span>
+                                            <span class="label-vi">Trường sắp xếp</span>
+                                        </div>
+                                        <div class="filter-row-control">
+                                            <select id="modal-sort-field" class="filter-select"></select>
+                                        </div>
+                                    </div>
+                                    <div class="filter-row">
+                                        <div class="filter-row-label">
+                                            <span class="label-ja">順序</span>
+                                            <span class="label-vi">Thứ tự</span>
+                                        </div>
+                                        <div class="filter-row-control">
+                                            <select id="modal-sort-direction" class="filter-select">
+                                                <option value="desc">降順 ｜ Giảm dần (Mới → Cũ)</option>
+                                                <option value="asc">昇順 ｜ Tăng dần (Cũ → Mới)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
+                        <!-- FOOTER BUTTONS -->
                         <div class="filter-modal-footer">
-                            <div class="footer-buttons main-buttons">
-                                <button class="btn btn-reset-filter" data-role="btn-reset-filter">
-                                    <i class="fas fa-undo"></i>
-                                    <span class="ja">フィルター解除</span>
-                                    <span class="vi">Reset bộ lọc</span>
+                            <div class="filter-modal-actions">
+                                <button class="modal-action-btn action-close" data-role="btn-close-modal">
+                                    <div class="btn-icon">
+                                        <i class="fas fa-chevron-down"></i>
+                                    </div>
+                                        <div class="btn-text">
+                                        <span class="text-ja">閉じる</span>
+                                        <span class="text-vi">Đóng</span>
+                                    </div>
                                 </button>
-                                <button class="btn btn-reset-sort" data-role="btn-reset-sort">
-                                    <i class="fas fa-sort-amount-down-alt"></i>
-                                    <span class="ja">ソート初期化</span>
-                                    <span class="vi">Reset sắp xếp</span>
+                                
+                                <button class="modal-action-btn action-reset-filter" data-role="btn-reset-filter">
+                                    <div class="btn-icon">
+                                        <i class="fas fa-undo"></i>
+                                    </div>
+                                    <div class="btn-text">
+                                        <span class="text-ja">フィルター解除</span>
+                                        <span class="text-vi">Reset bộ lọc</span>
+                                    </div>
                                 </button>
-                                <button class="btn btn-reset-all" data-role="btn-reset-all">
-                                    <i class="fas fa-fast-backward"></i>
-                                    <span class="ja">全てリセット</span>
-                                    <span class="vi">Reset toàn bộ</span>
+
+                                <button class="modal-action-btn action-reset-sort" data-role="btn-reset-sort">
+                                    <div class="btn-icon">
+                                        <i class="fas fa-sort-amount-down-alt"></i>
+                                    </div>
+                                    <div class="btn-text">
+                                        <span class="text-ja">ソート初期化</span>
+                                        <span class="text-vi">Reset sắp xếp</span>
+                                    </div>
                                 </button>
+
+                                <button class="modal-action-btn action-reset-all" data-role="btn-reset-all">
+                                    <div class="btn-icon">
+                                        <i class="fas fa-fast-backward"></i>
+                                    </div>
+                                    <div class="btn-text">
+                                        <span class="text-ja">全てリセット</span>
+                                        <span class="text-vi">Reset toàn bộ</span>
+                                    </div>
+                                </button>
+
+                                
                             </div>
-                            <button class="btn btn-close-bottom" data-role="btn-close-modal">
-                                <i class="fas fa-chevron-down"></i>
-                                <span class="ja">閉じる</span>
-                                <span class="vi">Đóng</span>
-                            </button>
                         </div>
                     </div>
                 </div>
             `;
+
 
             document.body.insertAdjacentHTML('beforeend', html);
 
