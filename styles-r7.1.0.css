@@ -629,13 +629,13 @@ input:focus, select:focus, textarea:focus {
 /* Màu nền theo loại thiết bị – dịu, ít tương phản */
 .result-card.card-mold {
     /* Xanh rất nhạt → gần như trắng, chuyển chậm tới cuối card */
-    background: linear-gradient(135deg, #d1ecff 60%, #f9fbff 40%, #ffffff 20%);
+    background: linear-gradient(135deg, #daeefc 30%, #e7eefa 30%, #ffffff 70%);
 
 }
 
 .result-card.card-cutter {
     /* Cam pastel → trắng, chuyển chậm để không bị chia mảng */
-    background: linear-gradient(135deg, #fde4bc 60%, #fffaf0 40%, #ffffff 20%);
+    background: linear-gradient(135deg, #f7e5c9 30%, #fdf4e3 30%, #ffffff 70%);
     border-color: #ff9800;
 }
 

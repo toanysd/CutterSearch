@@ -1,0 +1,422 @@
+/**
+ * ============================================================================
+ * FILTER-MODULE-MOBILE-R7.1.0.CSS
+ * ============================================================================
+ * Mục đích:
+ * - CSS riêng cho Filter + Sort full-screen trên mobile (iPhone/Android)
+ * - Ẩn panel lọc inline cũ (#mobile-filter-panel)
+ * - Overlay full màn hình, header xanh, body cuộn, footer nút hành động
+ *
+ * 対象:
+ * - モバイル専用フィルターフルスクリーンモーダル
+ * - #filter-fullscreen-modal 配下の要素
+ * ============================================================================
+ */
+
+/* =========================================================
+ * R7.1.0 - iPhone Filter & Sort FULLSCREEN (new)
+ * - Ẩn panel lọc nhỏ (#mobile-filter-panel)
+ * - Dùng full màn hình, bám top/bottom, co giãn theo viewport
+ * - Tiêu đề nhóm nền xanh/tối, chữ trắng, viền cùng màu
+ * =======================================================*/
+@media (max-width: 767px) {
+
+    /* 1. Ẩn panel lọc inline cũ
+     * 旧インラインフィルターパネルを非表示
+     */
+    #mobile-filter-panel {
+        display: none !important;
+    }
+
+    /* 2. Overlay modal toàn màn hình (giống mobile-detail-modal)
+     * 全画面オーバーレイ（詳細モーダルと同様）
+     */
+    .filter-fullscreen-modal {
+        position: fixed;
+        inset: 0;
+        height: calc(var(--vh, 100vh)); /* hỗ trợ address bar iOS / iOSアドレスバー対応 */
+        background: rgba(0, 0, 0, 0.85);
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.25s ease;
+    }
+
+    .filter-fullscreen-modal.show {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .filter-fullscreen-modal.hidden {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+    }
+
+    /* 3. Container trắng full-screen bên trong overlay
+     * オーバーレイ内の白いフルスクリーンコンテナ
+     */
+    .filter-modal-container {
+        flex: 1;
+        background: #F5F7FA;
+        display: flex;
+        flex-direction: column;
+        max-height: calc(var(--vh, 100vh));
+        width: 100%;
+        border-radius: 0; /* full-screen giống mobile-detail-modal */
+        box-shadow: none;
+        overflow: hidden;
+    }
+
+    /* 4. HEADER - gradient xanh đậm, chữ trắng
+     * ヘッダー：濃い青グラデーション＋白文字
+     */
+    .filter-modal-header {
+        background: linear-gradient(135deg, #1565C0 0%, #0D47A1 100%);
+        color: #FFFFFF;
+        padding: 16px 16px 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: relative;
+        flex-shrink: 0;
+        border-bottom: 2px solid #0D47A1;
+    }
+
+    .filter-modal-header::before {
+        content: '';
+        position: absolute;
+        top: 8px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 36px;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.4);
+        border-radius: 2px;
+    }
+
+    .filter-modal-title {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .filter-modal-title .title-ja {
+        font-size: 13px;
+        font-weight: 700;
+        line-height: 1.2;
+    }
+
+    .filter-modal-title .title-vi {
+        font-size: 9px;
+        font-weight: 500;
+        opacity: 0.9;
+        line-height: 1.2;
+    }
+
+    .filter-modal-close-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: 1.5px solid rgba(255, 255, 255, 0.4);
+        background: rgba(255, 255, 255, 0.15);
+        color: #FFFFFF;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        cursor: pointer;
+        flex-shrink: 0;
+        transition: all 0.2s ease;
+    }
+
+    .filter-modal-close-btn:active {
+        transform: scale(0.92);
+        background: rgba(255, 255, 255, 0.25);
+    }
+
+    /* 5. BODY - khu vực cuộn nội dung
+     * 本文：スクロール可能領域
+     */
+    .filter-modal-body {
+        flex: 1;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 10px 12px 8px;
+        background: #F5F7FA;
+    }
+
+    /* 6. SECTION CARD (Category / Filter / Sort)
+     * セクションカード（カテゴリ／フィルター／ソート）
+     */
+    .filter-section {
+        margin-bottom: 10px;
+        background: #FFFFFF;
+        border-radius: 10px;
+        border: 1px solid #E0E0E0;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+        overflow: hidden;
+    }
+
+    /* Tiêu đề nhóm – nền đậm, chữ trắng, 2 dòng JP/VI
+     * セクションヘッダー：濃い背景＋白文字（JP/VI 2行）
+     */
+    .filter-section .section-label {
+        margin: 0;
+        padding: 6px 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+        color: #FFFFFF;
+    }
+
+    .filter-section .section-label .ja {
+        font-size: 11px;
+        font-weight: 700;
+        line-height: 1.2;
+    }
+
+    .filter-section .section-label .vi {
+        font-size: 9px;
+        font-weight: 600;
+        line-height: 1.2;
+        opacity: 0.95;
+    }
+
+    /* Màu header + viền cho từng nhóm (dựa theo detail modal)
+     * 各セクションごとの色分け
+     */
+    /* Category */
+    .filter-section.category-section {
+        border-color: #1565C0;
+    }
+
+    .filter-section.category-section .section-label {
+        background: linear-gradient(135deg, #1565C0 0%, #0D47A1 100%);
+    }
+
+    /* Filter */
+    .filter-section.filter-section-main {
+        border-color: #388E3C;
+    }
+
+    .filter-section.filter-section-main .section-label {
+        background: linear-gradient(135deg, #388E3C 0%, #2E7D32 100%);
+    }
+
+    /* Sort */
+    .filter-section.sort-section {
+        border-color: #7B1FA2;
+    }
+
+    .filter-section.sort-section .section-label {
+        background: linear-gradient(135deg, #7B1FA2 0%, #4A148C 100%);
+    }
+
+    /* Nội dung bên trong section / セクション内容 */
+    .filter-section .section-body {
+        padding: 8px 10px 10px;
+        background: #FFFFFF;
+    }
+
+    /* 7. Dòng field 2 cột: label trái, control phải
+     * 2カラム行：左ラベル／右コントロール
+     */
+    .filter-row {
+        display: grid;
+        grid-template-columns: 1.1fr 1.7fr;
+        column-gap: 8px;
+        align-items: center;
+        padding: 4px 0;
+    }
+
+    .filter-row + .filter-row {
+        border-top: 1px dashed #E5E7EB;
+        margin-top: 4px;
+        padding-top: 6px;
+    }
+
+    .filter-row-label {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+        font-size: 11px;
+        color: #374151;
+    }
+
+    .filter-row-label .label-ja {
+        font-weight: 700;
+    }
+
+    .filter-row-label .label-vi {
+        font-size: 10px;
+        opacity: 0.9;
+    }
+
+    .filter-row-control select.filter-select {
+        width: 100%;
+        font-size: 13px;
+        padding: 6px 8px;
+        border-radius: 8px;
+        border: 1px solid #D1D5DB;
+        background: #FFFFFF;
+    }
+
+    /* === CATEGORY TABS: All / Mold / Cutter (R7.1.0) ===
+     * カテゴリタブ：すべて／金型／抜型
+     */
+    .filter-category-tabs {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+    }
+
+    /* Base style chung / ベーススタイル */
+    .filter-category-tabs .category-tab {
+        padding: 6px 4px;
+        border-radius: 999px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+        font-size: 10px;
+        font-weight: 600;
+        transition: all 0.18s ease;
+    }
+
+    .filter-category-tabs .category-tab .ja {
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    .filter-category-tabs .category-tab .vi {
+        font-size: 9px;
+        opacity: 0.9;
+    }
+
+    /* Tất cả – nền trung tính xám
+     * すべて：グレー基調
+     */
+    .filter-category-tabs .category-tab[data-category="all"] {
+        background: #E5E7EB;
+        border: 1.5px solid #D1D5DB;
+        color: #111827;
+    }
+
+    .filter-category-tabs .category-tab[data-category="all"].active {
+        background: #D1D5DB;
+        border-color: #9CA3AF;
+    }
+
+    /* Khuôn – xanh dương / 金型：ブルー系 */
+    .filter-category-tabs .category-tab[data-category="mold"] {
+        background: #DBEAFE; /* xanh dương nhạt khi chưa chọn */
+        border: 1.5px solid #93C5FD;
+        color: #1D4ED8;
+    }
+
+    .filter-category-tabs .category-tab[data-category="mold"].active {
+        background: #1D4ED8; /* xanh dương đậm khi chọn */
+        border-color: #1E40AF;
+        color: #FFFFFF;
+    }
+
+    /* Dao cắt – da cam / 抜型：オレンジ系 */
+    .filter-category-tabs .category-tab[data-category="cutter"] {
+        background: #FFEDD5; /* cam nhạt khi chưa chọn */
+        border: 1.5px solid #FED7AA;
+        color: #C2410C;
+    }
+
+    .filter-category-tabs .category-tab[data-category="cutter"].active {
+        background: #F97316; /* cam đậm khi chọn */
+        border-color: #EA580C;
+        color: #FFFFFF;
+    }
+
+    /* 9. FOOTER -- hàng nút action 4 cột, bám đáy màn hình
+     * フッター：4ボタン行、画面下固定
+     */
+    .filter-modal-footer {
+        flex-shrink: 0;
+        padding: 6px 8px 10px;
+        border-top: 1px solid #E0E0E0;
+        background: #FFFFFF;
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.15);
+    }
+
+    .filter-modal-actions {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 6px;
+    }
+
+    .modal-action-btn {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 6px 4px;
+        border-radius: 10px;
+        border: 2px solid #CCCCCC;
+        background: #FFFFFF;
+        gap: 6px;
+        min-height: 52px;
+        font-size: 11px;
+        text-align: left;
+    }
+
+    .modal-action-btn .btn-icon {
+        width: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+    }
+
+    .modal-action-btn .btn-text {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+        flex: 1;
+    }
+
+    .modal-action-btn .btn-text .text-ja {
+        font-weight: 700;
+        font-size: 11px;
+    }
+
+    .modal-action-btn .btn-text .text-vi {
+        font-size: 10px;
+        opacity: 0.9;
+    }
+
+    .modal-action-btn:active {
+        transform: scale(0.96);
+        background: #F5F5F5;
+    }
+
+    /* Màu nút theo chức năng / 機能別ボタンカラー */
+    .modal-action-btn.action-reset-filter {
+        border-color: #C2185B;
+        color: #C2185B;
+    }
+
+    .modal-action-btn.action-reset-sort {
+        border-color: #1976D2;
+        color: #1565C0;
+    }
+
+    .modal-action-btn.action-reset-all {
+        border-color: #EF6C00;
+        color: #E65100;
+    }
+
+    .modal-action-btn.action-close {
+        border-color: #757575;
+        color: #424242;
+    }
+}
+/* ====== END: FILTER FULLSCREEN MOBILE ====== */
