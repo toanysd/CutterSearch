@@ -452,11 +452,6 @@
     border-radius: 0 !important; /* Remove individual radius */
   }
 
-  /* Result cards - nested rounding */
-  .result-card {
-    border-radius: 10px !important;
-  }
-
   
 
   /* Detail info rows */

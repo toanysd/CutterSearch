@@ -422,12 +422,9 @@ class MobileDetailModal {
 
 
 
-    /**
-     * Show/hide modal
-     */
-    // Show/hide modal
+    // Show/hide modal (giữ nguyên layout R7.1.0, chỉ cải tiến header)
     show(item, type = 'mold') {
-        // R7.0.3: FIX - Allow re-opening modal for related equipment
+        // Không hiển thị nếu không ở mobile hoặc không có item
         if (!this.shouldShowModal || !item) {
             console.warn('[Modal] Cannot show modal', {
                 shouldShow: this.shouldShowModal,
@@ -440,7 +437,7 @@ class MobileDetailModal {
 
         console.log('[Modal] Opening detail modal', item, type);
 
-        // === FIX: Store item FIRST before any rendering ===
+        // Lưu item hiện tại
         this.currentItem = item;
         this.currentItemType = type;
 
@@ -451,47 +448,52 @@ class MobileDetailModal {
             itemType: type
         });
 
-        // R7.0.7: CRITICAL - Sync inventory mode from global state when opening modal
+        // Đồng bộ lại chế độ kiểm kê khi mở modal
         this.inventoryMode = !!window.InventoryState?.active;
         console.log('[MobileModal] Synced inventory mode on open:', this.inventoryMode);
 
+        // Cập nhật header với nhãn loại + mã hiển thị (giữ nguyên mold, chỉ rõ ràng hơn cho cutter)
+        const typeLabelEl = this.modal.querySelector('.item-type-label');
+        const idCodeEl = this.modal.querySelector('.item-id-code');
 
-        // FIX: Update header title with CORRECT format
-        const typeLabel = this.modal.querySelector('.item-type-label');
-        const idCode = this.modal.querySelector('.item-id-code');
-
-        if (typeLabel && idCode) {
+        if (typeLabelEl && idCodeEl) {
             if (type === 'mold') {
-                typeLabel.textContent = '金型';
-                idCode.textContent = `${item.MoldID} - ${item.MoldCode} ${item.MoldName || ''}`;
+                // 金型 / Khuôn
+                typeLabelEl.textContent = '金型 / Khuôn';
+                const code = item.MoldCode || '';
+                const name = item.MoldName || '';
+                idCodeEl.textContent =
+                    (code + ' ' + name).trim() || String(item.MoldID || '');
             } else {
-                typeLabel.textContent = '刃型';
-                idCode.textContent = `ID: ${item.CutterID} - No. ${item.CutterNo} - ${item.CutterName || item.CutterCode || ''}`;
+                // 刃物 / カッター / Dao cắt
+                typeLabelEl.textContent = '刃物 / カッター / Dao cắt';
+                const no = item.CutterNo || '';
+                const name = item.CutterName || item.CutterDesignCode || '';
+                idCodeEl.textContent =
+                    (no + ' ' + name).trim() || String(item.CutterID || '');
             }
         }
 
-        // Reload data if needed
-        if (this.data.molds.length === 0) {
+        // Nếu dữ liệu DataManager chưa sẵn, nạp lại
+        if (this.data.molds.length === 0 && window.DataManager?.data) {
             this.loadDataReferences();
         }
 
-        // Render content
+        // Render đầy đủ nội dung chuẩn (Location, Basic, Technical, Product, Related, Status…)
         this.renderContent();
 
-        // Render action buttons (will use this.currentItem internally)
+        // Render các action button (8 nút thường / 2 nút kiểm kê)
         this.renderActionButtons();
 
-        // Show modal
+        // Hiển thị modal
         this.modal.classList.remove('hidden');
         this.modal.classList.add('show');
         document.body.style.overflow = 'hidden';
 
-        // R7.0.3: Reset scroll position to top
+        // Reset scroll về đầu
         if (this.modalContent) {
             this.modalContent.scrollTop = 0;
         }
-
-        // Backup: Also reset modal body if exists
         const modalBody = this.modal?.querySelector('.mobile-modal-body');
         if (modalBody) {
             modalBody.scrollTop = 0;
@@ -500,6 +502,339 @@ class MobileDetailModal {
         console.log('✅ Modal shown with scroll reset');
     }
 
+
+    // Cập nhật header: loại item + mã hiển thị
+    updateHeaderForItem(item, type) {
+        const typeLabelEl = this.modal.querySelector('.item-type-label');
+        const idCodeEl = this.modal.querySelector('.item-id-code');
+
+        let labelJa = '';
+        let labelVi = '';
+        let codeText = '';
+
+        if (type === 'cutter') {
+            // Loại: Dao cắt
+            labelJa = '刃物 / カッター';
+            labelVi = 'Dao cắt';
+
+            // Ưu tiên: CutterName > CutterNo > CutterDesignCode
+            const name = item.CutterName || '';
+            const no = item.CutterNo || '';
+            const design = item.CutterDesignCode || '';
+
+            if (name && no) {
+                codeText = `${name} (${no})`;
+            } else if (name) {
+                codeText = name;
+            } else if (no) {
+                codeText = no;
+            } else if (design) {
+                codeText = design;
+            }
+        } else {
+            // Loại: Khuôn
+            labelJa = '金型';
+            labelVi = 'Khuôn';
+
+            // Ưu tiên: MoldCode > MoldName > MoldDesignCode
+            const moldCode = item.MoldCode || '';
+            const moldName = item.MoldName || '';
+            const designCode = item.MoldDesignCode || item.MoldDesignCodeJA || '';
+
+            if (moldCode && moldName) {
+                codeText = `${moldCode} (${moldName})`;
+            } else if (moldCode) {
+                codeText = moldCode;
+            } else if (moldName) {
+                codeText = moldName;
+            } else if (designCode) {
+                codeText = designCode;
+            }
+        }
+
+        if (typeLabelEl) {
+            typeLabelEl.textContent = `${labelJa} / ${labelVi}`;
+        }
+        if (idCodeEl) {
+            idCodeEl.textContent = codeText;
+        }
+    }
+
+    // Escape text để tránh XSS
+    escapeHtml(text) {
+        if (text == null) return '';
+        return String(text)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    // Section cho DAO CẮT
+    buildCutterDetailSections(cutter) {
+        const e = (v) => this.escapeHtml(v);
+
+        // Từ cutters.csv: các cột chính dùng hiển thị [file:1]
+        const basicHtml = `
+            <section class="section section-basic">
+                <h3 class="section-title">
+                    <span class="ja">基本情報</span>
+                    <span class="vi">Thông tin cơ bản</span>
+                </h3>
+                <div class="detail-row">
+                    <div class="label">
+                        <span class="ja">刃物名</span>
+                        <span class="vi">Tên dao</span>
+                    </div>
+                    <div class="value">${e(cutter.CutterName)}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="label">
+                        <span class="ja">カッター番号</span>
+                        <span class="vi">Mã dao (No)</span>
+                    </div>
+                    <div class="value">${e(cutter.CutterNo)}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="label">
+                        <span class="ja">設計コード</span>
+                        <span class="vi">Mã thiết kế dao</span>
+                    </div>
+                    <div class="value">${e(cutter.CutterDesignCode)}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="label">
+                        <span class="ja">タイプ</span>
+                        <span class="vi">Loại dao</span>
+                    </div>
+                    <div class="value">${e(cutter.CutterType)}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="label">
+                        <span class="ja">刃数</span>
+                        <span class="vi">Số lưỡi</span>
+                    </div>
+                    <div class="value">${e(cutter.BladeCount)}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="label">
+                        <span class="ja">樹脂種</span>
+                        <span class="vi">Loại nhựa cắt</span>
+                    </div>
+                    <div class="value">${e(cutter.PlasticCutType)}</div>
+                </div>
+            </section>
+        `;
+
+        const techHtml = `
+            <section class="section section-technical">
+                <h3 class="section-title">
+                    <span class="ja">技術情報</span>
+                    <span class="vi">Thông số kỹ thuật</span>
+                </h3>
+                <div class="detail-row">
+                    <div class="label">
+                        <span class="ja">全体サイズ</span>
+                        <span class="vi">Kích thước tổng thể</span>
+                    </div>
+                    <div class="value">
+                        ${e(cutter.OverallDimensions || cutter.CutterDim)}
+                    </div>
+                </div>
+                <div class="detail-row">
+                    <div class="label">
+                        <span class="ja">カッターサイズ (L×W×H)</span>
+                        <span class="vi">Kích thước dao (D×R×C)</span>
+                    </div>
+                    <div class="value">
+                        ${e(cutter.CutterLength)} × ${e(cutter.CutterWidth)} × ${e(cutter.CutterHeight)}
+                    </div>
+                </div>
+                <div class="detail-row">
+                    <div class="label">
+                        <span class="ja">カットライン (L×W)</span>
+                        <span class="vi">Cutline (D×R)</span>
+                    </div>
+                    <div class="value">
+                        ${e(cutter.CutlineLength)} × ${e(cutter.CutlineWidth)}
+                    </div>
+                </div>
+                <div class="detail-row">
+                    <div class="label">
+                        <span class="ja">ピッチ</span>
+                        <span class="vi">Pitch</span>
+                    </div>
+                    <div class="value">${e(cutter.Pitch)}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="label">
+                        <span class="ja">後カットサイズ</span>
+                        <span class="vi">Kích thước sau cắt</span>
+                    </div>
+                    <div class="value">
+                        ${e(cutter.PostCutLength)} × ${e(cutter.PostCutWidth)}
+                    </div>
+                </div>
+                <div class="detail-row">
+                    <div class="label">
+                        <span class="ja">板厚</span>
+                        <span class="vi">Độ dày dao</span>
+                    </div>
+                    <div class="value">${e(cutter.CutterThickness)}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="label">
+                        <span class="ja">コーナーR / 面取り</span>
+                        <span class="vi">Corner R / Vát cạnh</span>
+                    </div>
+                    <div class="value">
+                        R: ${e(cutter.CutterCorner)} / C: ${e(cutter.CutterChamfer)}
+                    </div>
+                </div>
+            </section>
+        `;
+
+        const statusHtml = `
+            <section class="section section-status">
+                <h3 class="section-title">
+                    <span class="ja">状態・履歴</span>
+                    <span class="vi">Tình trạng & lịch sử</span>
+                </h3>
+                <div class="detail-row">
+                    <div class="label">
+                        <span class="ja">使用状態</span>
+                        <span class="vi">Tình trạng sử dụng</span>
+                    </div>
+                    <div class="value">${e(cutter.UsageStatus)}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="label">
+                        <span class="ja">刃物有無</span>
+                        <span class="vi">Tình trạng dao</span>
+                    </div>
+                    <div class="value">${e(cutter.CutterPresence)}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="label">
+                        <span class="ja">製作日</span>
+                        <span class="vi">Ngày chế tạo</span>
+                    </div>
+                    <div class="value">${e(cutter.CutterManufactureDate)}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="label">
+                        <span class="ja">登録日</span>
+                        <span class="vi">Ngày nhập kho</span>
+                    </div>
+                    <div class="value">${e(cutter.CutterEntry)}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="label">
+                        <span class="ja">メモ</span>
+                        <span class="vi">Ghi chú</span>
+                    </div>
+                    <div class="value">
+                        ${e(cutter.CutterNote)}<br/>
+                        ${e(cutter.CutterDetail)}<br/>
+                        ${e(cutter.GhiChuSXdao)}
+                    </div>
+                </div>
+            </section>
+        `;
+
+        const relationHtml = `
+            <section class="section section-relation">
+                <h3 class="section-title">
+                    <span class="ja">関連情報</span>
+                    <span class="vi">Liên kết</span>
+                </h3>
+                <div class="detail-row">
+                    <div class="label">
+                        <span class="ja">金型設計ID</span>
+                        <span class="vi">MoldDesignID</span>
+                    </div>
+                    <div class="value">${e(cutter.MoldDesignID)}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="label">
+                        <span class="ja">設計コード（金型）</span>
+                        <span class="vi">Mã thiết kế khuôn</span>
+                    </div>
+                    <div class="value">${e(cutter.IDMaKhuonThietKe)}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="label">
+                        <span class="ja">QRコード</span>
+                        <span class="vi">QR Code</span>
+                    </div>
+                    <div class="value">${e(cutter.QrLink)}</div>
+                </div>
+            </section>
+        `;
+
+        return `
+            <div class="detail-sections cutter-detail">
+                ${basicHtml}
+                ${techHtml}
+                ${statusHtml}
+                ${relationHtml}
+            </div>
+        `;
+    }
+
+    buildMoldDetailSections(mold) {
+        const e = (v) => this.escapeHtml(v);
+
+        return `
+            <div class="detail-sections mold-detail">
+                <section class="section section-basic">
+                    <h3 class="section-title">
+                        <span class="ja">基本情報</span>
+                        <span class="vi">Thông tin cơ bản</span>
+                    </h3>
+                    <div class="detail-row">
+                        <div class="label">
+                            <span class="ja">金型名</span>
+                            <span class="vi">Tên khuôn</span>
+                        </div>
+                        <div class="value">${e(mold.MoldDesignName || mold.MoldName)}</div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="label">
+                            <span class="ja">設計コード</span>
+                            <span class="vi">Mã thiết kế</span>
+                        </div>
+                        <div class="value">${e(mold.MoldDesignCode)}</div>
+                    </div>
+                </section>
+                <section class="section section-technical">
+                    <h3 class="section-title">
+                        <span class="ja">技術情報</span>
+                        <span class="vi">Thông số kỹ thuật</span>
+                    </h3>
+                    <div class="detail-row">
+                        <div class="label">
+                            <span class="ja">金型サイズ</span>
+                            <span class="vi">Kích thước khuôn</span>
+                        </div>
+                        <div class="value">
+                            ${e(mold.MoldDesignLength)} × ${e(mold.MoldDesignWidth)}
+                        </div>
+                    </div>
+                    <div class="detail-row">
+                        <div class="label">
+                            <span class="ja">カットライン</span>
+                            <span class="vi">Cutline</span>
+                        </div>
+                        <div class="value">
+                            ${e(mold.CutlineX)} × ${e(mold.CutlineY)}
+                        </div>
+                    </div>
+                </section>
+            </div>
+        `;
+    }
 
 
     /**
@@ -948,109 +1283,317 @@ class MobileDetailModal {
 
 
 
-        /**
-     * Section 2: Basic Information - Grid 2 cột
-     */
-    renderBasicInfo(item, type) {
-        const isMold = type === 'mold';
-        
-        // ✅ R7.0.2: Lấy dữ liệu từ các bảng liên quan
-        const design = isMold ? this.getMoldDesignInfo(item) : null;
-        const job = this.getJobInfo(item);
-        const customer = this.getCustomerInfo(item);
-        const company = this.getCompanyInfo(item);
-        
-        // Thông tin cơ bản
-        const moldID = isMold ? (item.MoldID || '-') : (item.CutterID || '-');
-        const name = isMold ? (item.MoldName || item.Name || '-') : (item.CutterName || item.Name || '-');
-        const code = isMold ? (item.MoldCode || '-') : (item.CutterNo || '-');
-        
-        const dimensions = this.getMoldDimensions(item, design);
+    // Section 2: Basic Information - Grid 2 cột
+        renderBasicInfo(item, type) {
+            const isMold = type === 'mold';
 
-        // ✅ R7.0.2: Lấy kích thước dao cắt từ molddesign
-        const cutterDimensions = this.getCutterDimensions(item, design);
+            // ====== NHÁNH KHUÔN: GIỮ NGUYÊN LOGIC HIỆN TẠI ======
+            if (isMold) {
+                // ✅ R7.0.2: Lấy dữ liệu từ các bảng liên quan
+                const design = this.getMoldDesignInfo(item) || null;
+                const job = this.getJobInfo(item);
+                const customer = this.getCustomerInfo(item);
+                const company = this.getCompanyInfo(item);
 
-        
-        // ✅ Trọng lượng từ design
-        const weight = design?.MoldDesignWeight || design?.DesignWeight || item.Weight || '-';
-        
-        // ✅ Thông tin khác từ design và job
-        const trayInfo = design?.TrayInfoForMoldDesign || job?.TrayInfo || item.TrayInfo || '-';
-        const material = design?.DesignForPlasticType || job?.Material || item.Material || item.PlasticType || '-';
-        
-        // ✅ Thông tin công ty
-        const companyDisplay = this.getCustomerDisplay(item);
+                // Thông tin cơ bản
+                const moldID = item.MoldID || '-';
+                const name = item.MoldName || item.Name || '-';
+                const code = item.MoldCode || '-';
+                const dimensions = this.getMoldDimensions(item, design);
 
-        // Debug log
-        console.log('📊 renderBasicInfo:', {
-            itemID: moldID,
-            hasDesign: !!design,
-            hasJob: !!job,
-            dimensions: dimensions,
-            weight: weight,
-            trayInfo: trayInfo,
-            companyDisplay: companyDisplay
-        });
+                // ✅ R7.0.2: Lấy kích thước dao cắt từ molddesign (cho phần Kích thước cắt của khuôn)
+                const cutterDimensions = this.getCutterDimensions(item, design);
 
+                // ✅ Trọng lượng từ design
+                const weight =
+                    design?.MoldDesignWeight ||
+                    design?.DesignWeight ||
+                    item.Weight ||
+                    '-';
 
-        const productionDate = item.ProductionDate || '-';
-        const notes = item.Notes || '';
+                // ✅ Thông tin khác từ design và job
+                const trayInfo =
+                    design?.TrayInfoForMoldDesign ||
+                    job?.TrayInfo ||
+                    item.TrayInfo ||
+                    '-';
+
+                const material =
+                    design?.DesignForPlasticType ||
+                    job?.Material ||
+                    item.Material ||
+                    item.PlasticType ||
+                    '-';
+
+                // ✅ Thông tin công ty
+                const companyDisplay = this.getCustomerDisplay(item);
+
+                // Debug log
+                console.log('📊 renderBasicInfo (MOLD):', {
+                    itemID: moldID,
+                    hasDesign: !!design,
+                    hasJob: !!job,
+                    dimensions: dimensions,
+                    weight: weight,
+                    trayInfo: trayInfo,
+                    companyDisplay: companyDisplay
+                });
+
+                // Ngày SX: khuôn lấy ProductionDate, nếu trống thì lấy DeliveryDeadline từ jobs
+                let productionDate =
+                    item.ProductionDate ||
+                    (job && job.DeliveryDeadline) ||
+                    '-';
+
+                const notes = item.Notes || '';
+
+                return `
+                    <div class="modal-section">
+                        <div class="section-header">
+                            <i class="fas fa-info-circle"></i>
+                            <span>基本情報 / Thông tin cơ bản</span>
+                        </div>
+                        <div class="info-grid-2col">
+                            <div class="info-item">
+                                <div class="info-label">金型ID / MoldID</div>
+                                <div class="info-value">${moldID}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">金型コード / Mã khuôn</div>
+                                <div class="info-value">${code}</div>
+                            </div>
+                            <div class="info-item full-width">
+                                <div class="info-label">名称 / Tên</div>
+                                <div class="info-value">${name}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">寸法 / Kích thước</div>
+                                <div class="info-value">${dimensions}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">金型重量 / Khối lượng khuôn</div>
+                                <div class="info-value">${weight !== '-' ? weight + (design?.MoldDesignWeight ? ' kg' : '') : '-'}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">トレイ情報（指示書より） / Khay</div>
+                                <div class="info-value">${trayInfo}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">カットサイズ / Kích thước cắt</div>
+                                <div class="info-value">${cutterDimensions}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">設計時の材質 / Loại nhựa</div>
+                                <div class="info-value">${material}</div>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">製造日 / Ngày SX</div>
+                            <div class="info-value">${productionDate}</div>
+                        </div>
+                        ${notes ? `
+                            <div class="info-item full-width">
+                                <div class="info-label">備考 / Ghi chú</div>
+                                <div class="info-value">${notes}</div>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }
+
+            // ====== NHÁNH DAO CẮT: MỚI – LẤY DỮ LIỆU TỪ cutters.csv ƯU TIÊN, FALLBACK molddesign.csv ======
+            return this.renderCutterBasicInfo(item);
+        }
+
+        // Hợp nhất thông tin cơ bản cho DAO CẮT từ cutters + molddesign
+        getCutterBasicMergedData(cutter) {
+            const design = this.getMoldDesignInfo(cutter) || {};
+
+            // ID / No / Tên: luôn lấy từ cutters trước
+            const cutterID   = cutter.CutterID || cutter.ID || '-';
+            const cutterNo   = cutter.CutterNo || cutter.CutterDesignCode || cutter.CutterCode || '-';
+            const cutterName = cutter.CutterName || cutter.Name || '-';
+
+            // Kích thước cắt: ưu tiên trường trên cutters, sau đó mới tới molddesign
+            const cutLen = cutter.CutlineLength || cutter.CutLength || design.CutlineX || design.CutLength;
+            const cutWid = cutter.CutlineWidth  || cutter.CutWidth  || design.CutlineY || design.CutWidth;
+            const corner = cutter.CutterCorner  || cutter.CornerR   || design.CornerR;
+            const chamfer = cutter.CutterChamfer || cutter.ChamferC || design.ChamferC;
+
+            let cutSizeDisplay = '-';
+            if (cutLen && cutWid) {
+                cutSizeDisplay = `${cutLen}×${cutWid}`;
+                if (corner)  cutSizeDisplay += `-${corner}`;
+                if (chamfer) cutSizeDisplay += `-${chamfer}`;
+            }
+
+            // Loại nhựa: cutters → design
+            const plasticType =
+                cutter.PlasticCutType ||
         
-        return `
-            <div class="modal-section">
-                <div class="section-header">
-                    <i class="fas fa-info-circle"></i>
-                    <span>基本情報 / Thông tin cơ bản</span>
+                design.DesignForPlasticType ||
+                '-';
+
+            // Số mảnh dao: cutters → design
+            const bladeCount =
+                cutter.BladeCount ||
+                cutter.Blades ||
+                design.BladeCount ||
+                design.PieceCount ||
+                '-';
+
+            // Pitch: cutters → design
+            const pitch =
+                cutter.Pitch ||
+                cutter.BladePitch ||
+                design.Pitch ||
+                '-';
+
+            // Các thông tin khác: lấy trực tiếp từ cutters, có sẵn cũng không phụ thuộc vào thiết kế
+            const cutterManufactureDate = cutter.CutterManufactureDate || '-';
+            const cutterType   = cutter.CutterType   || '-';
+            const cutterHeight = cutter.CutterHeight || '-';
+            const ppCushion    = cutter.PPcushionUse || '-';
+            const usageStatus  = cutter.UsageStatus  || '-';
+            const cutterEntry  = cutter.CutterEntry  || '-';
+
+            // Thiết kế cho khuôn
+            const moldDesignID =
+                cutter.MoldDesignID ||
+                design.MoldDesignID ||
+                '-';
+            const moldDesignCode =
+                design.MoldDesignCode ||
+                cutter.IDMaKhuonThietKe ||
+                '-';
+
+            // Ghi chú: gộp Note + Detail
+            const notesParts = [];
+            if (cutter.CutterNote)   notesParts.push(cutter.CutterNote);
+            if (cutter.CutterDetail) notesParts.push(cutter.CutterDetail);
+            const notes = notesParts.join(' / ');
+
+            return {
+                cutterID,
+                cutterNo,
+                cutterName,
+                cutSizeDisplay,
+                plasticType,
+                bladeCount,
+                pitch,
+                cutterManufactureDate,
+                cutterType,
+                cutterHeight,
+                ppCushion,
+                usageStatus,
+                cutterEntry,
+                moldDesignID,
+                moldDesignCode,
+                notes
+            };
+        }
+
+
+        // Render nhóm THÔNG TIN CƠ BẢN cho DAO CẮT
+        renderCutterBasicInfo(cutter) {
+            const e = (v) => this.escapeHtml(v);
+            const data = this.getCutterBasicMergedData(cutter);
+
+            console.log('📊 renderBasicInfo (CUTTER):', {
+                CutterID: data.cutterID,
+                CutterNo: data.cutterNo,
+                MoldDesignID: data.moldDesignID,
+                MoldDesignCode: data.moldDesignCode,
+                cutSize: data.cutSizeDisplay,
+                plasticType: data.plasticType,
+                bladeCount: data.bladeCount,
+                pitch: data.pitch
+            });
+
+            return `
+                <div class="modal-section">
+                    <div class="section-header">
+                        <i class="fas fa-info-circle"></i>
+                        <span>基本情報 / Thông tin cơ bản</span>
+                    </div>
+                    <div class="info-grid-2col">
+                        <div class="info-item">
+                            <div class="info-label">抜型ID / CutterID</div>
+                            <div class="info-value">${e(data.cutterID)}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">抜型No / Mã dao</div>
+                            <div class="info-value">${e(data.cutterNo)}</div>
+                        </div>
+
+                        <div class="info-item full-width">
+                            <div class="info-label">名称 / Tên dao</div>
+                            <div class="info-value">${e(data.cutterName)}</div>
+                        </div>
+
+                        <div class="info-item">
+                            <div class="info-label">切断寸法 / Kích thước cắt</div>
+                            <div class="info-value">${e(data.cutSizeDisplay)}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">樹脂種 / Thiết kế cho loại nhựa</div>
+                            <div class="info-value">${e(data.plasticType)}</div>
+                        </div>
+
+                        <div class="info-item">
+                            <div class="info-label">刃数 / Số mảnh dao</div>
+                            <div class="info-value">${e(data.bladeCount)}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">ピッチ / Khoảng cách giữa 2 mảnh</div>
+                            <div class="info-value">${e(data.pitch)}</div>
+                        </div>
+
+                        <div class="info-item">
+                            <div class="info-label">刃高 / Chiều cao dao</div>
+                            <div class="info-value">${e(data.cutterHeight)}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">カッタータイプ / Loại dao cắt</div>
+                            <div class="info-value">${e(data.cutterType)}</div>
+                        </div>
+
+                        <div class="info-item">
+                            <div class="info-label">PPクッション / Tấm PP lót</div>
+                            <div class="info-value">${e(data.ppCushion)}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">使用状態 / Tình trạng sử dụng</div>
+                            <div class="info-value">${e(data.usageStatus)}</div>
+                        </div>
+
+                        <div class="info-item">
+                            <div class="info-label">製作日 / Ngày sản xuất</div>
+                            <div class="info-value">${e(data.cutterManufactureDate)}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">登録日 / Ngày nhập dữ liệu</div>
+                            <div class="info-value">${e(data.cutterEntry)}</div>
+                        </div>
+
+                        <div class="info-item full-width">
+                            <div class="info-label">設計（対応金型） / Thiết kế cho khuôn</div>
+                            <div class="info-value">
+                                ID: ${e(data.moldDesignID)} ／ Code: ${e(data.moldDesignCode)}
+                            </div>
+                        </div>
+
+                        ${data.notes ? `
+                        <div class="info-item full-width">
+                            <div class="info-label">備考 / Ghi chú dao cắt</div>
+                            <div class="info-value">${e(data.notes)}</div>
+                        </div>
+                        ` : ''}
+                    </div>
                 </div>
-                
-                <div class="info-grid-2col">
-                    <div class="info-item">
-                        <div class="info-label">${isMold ? '金型ID / MoldID' : '抜型ID / CutterID'}</div>
-                        <div class="info-value">${moldID}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">${isMold ? '金型コード / Mã khuôn' : '抜型No / Mã dao'}</div>
-                        <div class="info-value">${code}</div>
-                    </div>
-                    <div class="info-item full-width">
-                        <div class="info-label">名称 / Tên</div>
-                        <div class="info-value">${name}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">寸法 / Kích thước</div>
-                        <div class="info-value">${dimensions}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">金型重量 / Khối lượng khuôn</div>
-                        <div class="info-value">${weight !== '-' ? weight + (design?.MoldDesignWeight ? ' kg' : '') : '-'}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">トレイ情報（指示書より） / Khay</div>
-                        <div class="info-value">${trayInfo}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">カットサイズ / Kích thước cắt</div>
-                        <div class="info-value">${cutterDimensions}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">設計時の材質 / Loại nhựa</div>
-                        <div class="info-value">${material}</div>
-                    </div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">製造日 / Ngày SX</div>
-                        <div class="info-value">${productionDate}</div>
-                    </div>
-                    ${notes ? `
-                    <div class="info-item full-width">
-                        <div class="info-label">備考 / Ghi chú</div>
-                        <div class="info-value">${notes}</div>
-                    </div>
-                    ` : ''}
-                </div>
-            </div>
-        `;
-    }
+            `;
+        }
+
 
 
         /**
@@ -1194,6 +1737,13 @@ class MobileDetailModal {
 
         // ✅ FIX: Dùng helper functions
         const jobData = this.getJobInfo(item);
+        // Ngày SX cho phần Thông tin sản phẩm:
+        // - Mold: ProductionDate (ưu tiên) → DeliveryDeadline (fallback)
+        // - Cutter: CutterManufactureDate
+        const productionDateForProduct = isMold
+        ? (item.ProductionDate || (jobData && jobData.DeliveryDeadline) || 'N/A')
+        : (item.CutterManufactureDate || 'N/A');
+
         const design = isMold ? this.getMoldDesignInfo(item) : null;
 
         // Format cutline size (V4.31 logic)
@@ -1213,8 +1763,25 @@ class MobileDetailModal {
                 cutlineSize += `-C${item.CutterChamfer}`;
             }
         } else {
-            // Cutter: use CutterNo or CutterSize
-            cutlineSize = item.CutterNo || item.CutterSize || 'N/A';
+            // Cutter: lấy kích thước thực từ cutters.csv
+            // Ưu tiên:
+            // 1) CutlineLength × CutlineWidth  (kích thước cắt)
+            // 2) PostCutLength × PostCutWidth (kích thước sau cắt)
+            // 3) OverallDimensions / CutterDim (kích thước tổng thể ghi sẵn)
+            // 4) CutterSize / CutterNo (fallback)
+            if (item.CutlineLength && item.CutlineWidth) {
+                cutlineSize = `${item.CutlineLength}×${item.CutlineWidth}`;
+            } else if (item.PostCutLength && item.PostCutWidth) {
+                cutlineSize = `${item.PostCutLength}×${item.PostCutWidth}`;
+            } else if (item.OverallDimensions) {
+                cutlineSize = item.OverallDimensions;
+            } else if (item.CutterDim) {
+                cutlineSize = item.CutterDim;
+            } else if (item.CutterSize) {
+                cutlineSize = item.CutterSize;
+            } else {
+                cutlineSize = item.CutterNo || 'N/A';
+            }
         }
 
         console.log('📦 renderProductInfo:', {
@@ -1241,7 +1808,7 @@ class MobileDetailModal {
                     <!-- Production Date -->
                     <div class="info-item">
                         <div class="info-label">製造日 / Ngày SX</div>
-                        <div class="info-value">${jobData?.DeliveryDeadline || 'N/A'}</div>
+                        <div class="info-value">${productionDateForProduct}</div>
                     </div>
 
                     <!-- ✅ FIX: Optional chaining for design fields -->
@@ -2390,45 +2957,106 @@ class MobileDetailModal {
      * ========================================
      */
 
-    /**
-     * R7.0.2: Get mold design info with V4.31 logic
-     * @param {Object} moldItem - Mold item
-     * @returns {Object} Design data with enriched info
-     */
-    getMoldDesignInfo(moldItem) {
-        if (!moldItem) return null;
-        
-        // Priority 1: Check if already enriched
-        if (moldItem.designInfo) {
-            return moldItem.designInfo;
+    // Helper: lấy thông tin thiết kế cho 1 item (khuôn hoặc dao cắt)
+    // Ưu tiên: MoldDesignID trên chính item → bảng moldcutter → molddesign.csv
+    getMoldDesignInfo(item) {
+        if (!item || !Array.isArray(this.data.molddesign)) {
+            return null;
         }
-        
-        // Priority 2: Find by MoldDesignID
-        if (moldItem.MoldDesignID) {
-            const design = this.data.molddesign.find(d => 
-                d.MoldDesignID === moldItem.MoldDesignID
-            );
-            if (design) return design;
+
+        // Phân biệt khuôn / dao cắt theo ID
+        const isCutter = !!item.CutterID && !item.MoldID;
+        let designId = item.MoldDesignID;
+
+        // 1) Nếu item chưa có MoldDesignID, thử tra qua bảng moldcutter
+        if (!designId && Array.isArray(this.data.moldcutter) && this.data.moldcutter.length) {
+            if (isCutter && item.CutterID) {
+                // Dao cắt: tra theo CutterID
+                const rel = this.data.moldcutter.find(rel =>
+                    String(rel.CutterID || '').trim() === String(item.CutterID).trim()
+                );
+                if (rel && rel.MoldDesignID) {
+                    designId = rel.MoldDesignID;
+                }
+            } else if (item.MoldID) {
+                // Khuôn: tra theo MoldID (logic cũ)
+                const rel = this.data.moldcutter.find(rel =>
+                    String(rel.MoldID || '').trim() === String(item.MoldID).trim()
+                );
+                if (rel && rel.MoldDesignID) {
+                    designId = rel.MoldDesignID;
+                }
+            }
         }
-        
-        // Priority 3: Find by MoldCode match
-        if (moldItem.MoldCode) {
-            const design = this.data.molddesign.find(d => 
-                d.MoldCode === moldItem.MoldCode || 
-                d.DesignCode === moldItem.MoldCode
-            );
-            if (design) return design;
+
+        if (!designId) {
+            console.warn('[MobileModal] ⚠️ No MoldDesignID for item:', {
+                MoldID: item.MoldID,
+                CutterID: item.CutterID
+            });
+            return null;
         }
-        
-        // Priority 4: Return empty object with debug
-        console.warn('⚠️ No design info found for mold:', {
-            MoldID: moldItem.MoldID,
-            MoldCode: moldItem.MoldCode,
-            MoldDesignID: moldItem.MoldDesignID
-        });
-        
-        return null;
+
+        // 2) Tìm record trong molddesign.csv
+        const design = this.data.molddesign.find(d =>
+            String(d.MoldDesignID || '').trim() === String(designId).trim()
+        );
+
+        if (!design) {
+            console.warn('[MobileModal] ⚠️ No design info found for item:', {
+                MoldID: item.MoldID,
+                CutterID: item.CutterID,
+                MoldDesignID: designId
+            });
+            return null;
+        }
+
+        return design;
     }
+
+    // Lấy thông tin thiết kế cho DAO CẮT:
+    // Ưu tiên molddesign.csv theo MoldDesignID, thiếu thì rơi về cutters.csv.
+    getCutterDesignInfoMerged(cutter) {
+    if (!cutter) return null;
+
+    const designId = cutter.MoldDesignID;
+    const allDesigns = this.data.molddesign || [];
+    const allCutters = this.data.cutters || [];
+
+    // 1) Tìm dòng thiết kế theo MoldDesignID
+    const design = designId
+        ? allDesigns.find(d =>
+            String(d.MoldDesignID).trim() === String(designId).trim()
+        ) || null
+        : null;
+
+    // 2) Tìm lại bản ghi cutter gốc trong this.data.cutters (để fallback chắc chắn)
+    const cutterRow = allCutters.find(c =>
+        String(c.CutterID).trim() === String(cutter.CutterID).trim()
+    ) || cutter;
+
+    // 3) Gộp các trường quan trọng: ưu tiên thiết kế → fallback cutters.csv
+    return {
+        // Kích thước danh nghĩa
+        cutlineX: design?.CutlineX || cutterRow.CutlineLength || null,
+        cutlineY: design?.CutlineY || cutterRow.CutlineWidth  || null,
+
+        // Bo góc / vát cạnh
+        cornerR: design?.CornerR || cutterRow.CutterCorner || null,
+        chamferC: design?.ChamferC || cutterRow.CutterChamfer || null,
+
+        // Số lưỡi, pitch
+        pieceCount: design?.PieceCount || cutterRow.BladeCount || null,
+        pitch: design?.Pitch || cutterRow.Pitch || null,
+
+        // Loại nhựa cắt
+        plasticType: design?.DesignForPlasticType || cutterRow.PlasticCutType || null,
+
+        // Thông tin trực tiếp từ cutters.csv cần hiển thị thêm
+        cutterRow: cutterRow
+    };
+    }
+
 
     /**
      * R7.0.2: Get customer info (V4.31 logic)

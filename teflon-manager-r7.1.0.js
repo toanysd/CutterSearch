@@ -62,6 +62,24 @@
     return '';
   }
 
+  // Lấy statusKey thống nhất từ nhiều nguồn (CSV cũ & mới)
+  function getTeflonStatusKey(row) {
+    // 1) Ưu tiên TeflonStatus (tiếng Nhật hoặc tiếng Anh)
+    let key = mapCoatingToStatusKey(row.TeflonStatus);
+    if (key) return key;
+
+    // 2) Nếu không có, thử CoatingType (value list Access)
+    key = mapCoatingToStatusKey(row.CoatingType);
+    if (key) return key;
+
+    // 3) Cuối cùng, nếu TeflonStatus đã được lưu tiếng Anh
+    key = logStatusToStatusKey(row.TeflonStatus);
+    if (key) return key;
+
+    return ''; // Không xác định → chỉ xuất hiện ở filter "全て"
+  }
+
+
   // ========= Helpers =========
   function attachSwipeToClose(headerEl, modalEl, hideCallback) {
     if (!headerEl || !modalEl || !('ontouchstart' in window)) return;
@@ -457,7 +475,7 @@
         const coating = mold.TeflonCoating || '';
         if (!coating || coating === 'FALSE' || coating === 'false' || coating === '0') return;
 
-        const statusKey = mapCoatingToStatusKey(coating);
+        const statusKey = getTeflonStatusKey(row);
         if (!statusKey) return;
 
         const moldName = mold.MoldName || mold.MoldCode || ('ID:' + moldId);

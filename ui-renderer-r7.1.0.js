@@ -109,6 +109,29 @@
     return isMobileDevice() || isIPadDevice();
   }
 
+  // Helper: kích thước hiển thị cho DAO CẮT trên card
+  // Ưu tiên: CutlineLength/CutlineWidth từ cutters → CutlineX/CutlineY từ molddesign
+  function getCutterCardSize(item) {
+      if (!item) return '';
+
+      const cutLen = item.CutlineLength || item.CutlineX;
+      const cutWid = item.CutlineWidth  || item.CutlineY;
+      const corner = item.CutterCorner  || item.CornerR;
+      const chamfer = item.CutterChamfer || item.ChamferC;
+
+      if (!cutLen || !cutWid) return '';
+
+      let text = `${cutLen}×${cutWid}`;
+      if (corner) {
+          text += ` R${corner}`;
+      }
+      if (chamfer) {
+          text += ` C${chamfer}`;
+      }
+      return text;
+  }
+
+
 
   const UIRenderer = {
 
@@ -612,16 +635,43 @@
       items.slice(0, 100).forEach((item, idx) => {
         const isMold = item.itemType === 'mold';
         const typeLabel = isMold ? '金型' : '抜型';
-        const code = esc(item.displayCode || item.MoldCode || item.CutterNo || '-');
-        const name = esc(item.displayName || item.MoldName || '-');
-        const dim = esc(item.displayDimensions || item.cutlineSize || 'N/A');
-        const loc = esc(item.rackInfo?.RackLocation || '-');
+
+        let code;
+        let name;
+        let dim;
+
+        // Khuôn: giữ nguyên logic cũ
+        if (isMold) {
+            code = esc(item.displayCode || item.MoldCode || '-');
+            name = esc(item.displayName || item.MoldName || '-');
+            dim  = esc(item.displayDimensions || item.cutlineSize || 'N/A');
+        } else {
+            // Dao cắt: ưu tiên CutterNo + CutterName + kích thước cắt
+            code = esc(item.displayCode || item.CutterNo || item.CutterDesignCode || '-');
+            name = esc(item.displayName || item.CutterName || '-');
+            dim  = esc(
+                item.displayDimensions ||
+                item.cutlineSize ||
+                getCutterCardSize(item) ||
+                'N/A'
+            );
+        }
+
+        // Vị trí: rackInfo → displayRackLocation
+        const loc = esc(
+            item.rackInfo?.RackLocation ||
+            item.displayRackLocation ||
+            '-'
+        );
+
+
         const itemId = isMold
           ? String(item.MoldID || item.MoldCode || '')
           : String(item.CutterID || item.CutterNo || '');
 
         const el = document.createElement('div');
         el.className = 'result-card';
+        el.classList.add(isMold ? 'card-mold' : 'card-cutter'); // NEW
         el.setAttribute('data-index', String(idx));
         el.setAttribute('data-type', isMold ? 'mold' : 'cutter');
         el.setAttribute('data-id', itemId);
