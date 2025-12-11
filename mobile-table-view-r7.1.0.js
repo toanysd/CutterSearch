@@ -77,7 +77,7 @@
             
             // Listen to search results updates
             this.listenToSearchResults();
-            this.listenToCategoryChanges();
+            //this.listenToCategoryChanges();
             this.listenToSelectionMode();
             this.listenToSortChanges(); // R7.1.0: Đồng bộ sort với Filter modal
             // Listen selection events from quick result cards

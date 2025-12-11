@@ -522,7 +522,7 @@
                                         <span class="text-vi">Đóng</span>
                                     </div>
                                 </button>
-                                
+
                                 <button class="modal-action-btn action-reset-filter" data-role="btn-reset-filter">
                                     <div class="btn-icon">
                                         <i class="fas fa-undo"></i>
@@ -1303,15 +1303,27 @@
     // EXPORT & AUTO-INIT
     // ========================================================================
 
+    // Export ra global
     window.FilterModule = FilterModule;
 
+    // Hàm init an toàn
+    function initFilterModule() {
+        if (!window.FilterModule) return;
+        window.FilterModule.initializeFilters();
+    }
+
+    // Đảm bảo chỉ init sau khi DOM sẵn sàng
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => FilterModule.initializeFilters());
+        document.addEventListener('DOMContentLoaded', initFilterModule);
     } else {
-        FilterModule.initializeFilters();
+        initFilterModule();
     }
 
     console.log('✅ filter-module-r7.1.0.js loaded');
-    this.updateBadge();  // Khởi tạo trạng thái badge theo state đã restore
+    // Khởi tạo trạng thái badge nếu hàm tồn tại
+    if (window.FilterModule && typeof window.FilterModule.updateBadge === 'function') {
+        window.FilterModule.updateBadge();
+    }
+
 
 })();
