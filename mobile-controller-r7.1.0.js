@@ -676,6 +676,13 @@ class MobilePanelController {
                   this.toggleFilterPanel();
               }
               break;
+
+              case 'teflon':
+              if (window.TeflonManager && typeof window.TeflonManager.openPanel === 'function') {
+                window.TeflonManager.openPanel();
+              }
+              break;
+
                   
               default:
                   console.warn('⚠ Unknown tab:', tab);

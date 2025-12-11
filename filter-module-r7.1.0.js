@@ -683,10 +683,47 @@
                 });
             }
 
-            // Open from bottom nav Filter button
-            const navFilterBtn = document.getElementById('filter-nav-btn');
+            // Open from bottom nav Filter button (mobile bottom nav)
+            const self = this;
+            const handleNavTap = function (e) {
+            // Đảm bảo không bị các handler khác nuốt mất sự kiện trên iPhone
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            self.showModal();
+            };
+
+            // Gắn trực tiếp nếu nút đã có sẵn trong DOM
+            let navFilterBtn = document.getElementById('filter-nav-btn');
             if (navFilterBtn) {
-                navFilterBtn.addEventListener('click', () => this.showModal());
+            navFilterBtn.addEventListener('click', handleNavTap, { passive: false });
+            navFilterBtn.addEventListener('touchend', handleNavTap, { passive: false });
+            } else {
+            // Fallback: delegation – phòng trường hợp nav tạo động sau khi module init
+            document.addEventListener(
+                'click',
+                function (e) {
+                const btn = e.target && e.target.closest && e.target.closest('#filter-nav-btn');
+                if (btn) {
+                    navFilterBtn = btn;
+                    handleNavTap(e);
+                }
+                },
+                { passive: false }
+            );
+
+            document.addEventListener(
+                'touchend',
+                function (e) {
+                const btn = e.target && e.target.closest && e.target.closest('#filter-nav-btn');
+                if (btn) {
+                    navFilterBtn = btn;
+                    handleNavTap(e);
+                }
+                },
+                { passive: false }
+            );
             }
 
             // Swipe-down to close (giản lược, giống behavior MobileDetailModal)

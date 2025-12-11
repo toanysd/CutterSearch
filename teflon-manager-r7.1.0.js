@@ -14,6 +14,7 @@
   let filteredRows = [];
   let currentSort = { column: 'RequestedDate', order: 'desc' };
   let currentFilter = 'pending';
+  let isRowsBuilt = false;
 
   // ============================
   // Status Mapping
@@ -256,137 +257,147 @@
     },
 
     openPanel: function () {
-      const existing = document.getElementById('teflon-panel');
-      if (existing) existing.remove();
+    const existing = document.getElementById('teflon-panel');
+    if (existing) existing.remove();
 
-      const upper = document.querySelector('.upper-section');
-      if (!upper) {
-        console.error('[TeflonManager] upper-section not found');
-        return;
-      }
+    const upper = document.querySelector('.upper-section');
+    if (!upper) {
+      console.error('[TeflonManager] upper-section not found');
+      return;
+    }
 
-      const isMobile = window.innerWidth <= 767;
-      if (isMobile) document.body.classList.add('modal-open');
+    const isMobile = window.innerWidth <= 767;
+    if (isMobile) document.body.classList.add('modal-open');
 
-      this.buildRows();
+    // 1) Render khung panel trước
+    const html = [
+      '<div id="teflon-panel" class="checkio-panel teflon-panel" style="display:block;">',
+      '  <div class="tef-header" style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;border-radius:6px 6px 0 0;background:linear-gradient(90deg,#2e7d32 0%,#66bb6a 100%);color:#fff;">',
+      '    <div class="tef-title">',
+      '      <div style="font-size:15px;font-weight:600;">テフロン加工履歴</div>',
+      '      <div style="font-size:12px;opacity:0.85;">Lịch sử mạ Teflon</div>',
+      '    </div>',
+      '    <button id="teflon-close-btn" title="閉じる" style="border:none;background:transparent;color:#fff;font-size:20px;cursor:pointer;padding:0 4px;">×</button>',
+      '  </div>',
+      '  <div class="tef-summary" style="font-size:11px;color:#444;text-align:right;padding:4px 6px 2px;">ステータス別にテフロン加工依頼を一覧表示します。</div>',
+      '  <div class="checkio-body panel-body" style="display:flex;flex-direction:column;max-height:calc(100vh - 110px);padding-bottom:56px;">',
+      '    <div class="filter-row" style="padding:8px;background:#f9f9f9;border-bottom:1px solid #ddd;display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:11px;">',
+      '      <div class="tef-help" style="padding:4px 8px 2px;font-size:10px;color:#666;">',
+      '        テーブルのヘッダーをクリックしてソートできます。金型名をクリックすると詳細画面が開きます。',
+      '      </div>',
+      '      <label style="font-weight:600;">ステータス:</label>',
+      '      <select id="teflon-status-filter" style="padding:4px 8px;border:1px solid #ccc;border-radius:4px;font-size:11px;">',
+      '        <option value="all">全て</option>',
+      '        <option value="pending">テフロン加工承認待ち</option>',
+      '        <option value="sent">テフロン加工中</option>',
+      '        <option value="completed">テフロン加工済</option>',
+      '      </select>',
+      '      <input type="text" id="teflon-search-input" placeholder="金型名・コード検索" style="flex:1;min-width:200px;padding:4px 8px;border:1px solid #ccc;border-radius:4px;font-size:11px;">',
+      '    </div>',
+      '    <div class="table-wrapper" style="flex:1;overflow:auto;min-height:160px;">',
+      '      <table id="teflon-table" class="teflon-table">',
+      '        <thead style="position:sticky;top:0;background:#0056b3;color:#fff;z-index:10;font-size:10px;">',
+      '          <tr>',
+      '            <th data-sort="MoldName" style="width:20%;padding:5px 4px;cursor:pointer;text-align:left;border-right:1px solid #fff;white-space:nowrap;">金型名<span class="sort-indicator"></span></th>',
+      '            <th data-sort="TeflonStatusKey" style="width:12%;padding:5px 4px;cursor:pointer;text-align:center;border-right:1px solid #fff;white-space:nowrap;">状態<span class="sort-indicator"></span></th>',
+      '            <th data-sort="RequestedDate" style="width:11%;padding:5px 4px;cursor:pointer;text-align:center;border-right:1px solid #fff;white-space:nowrap;">依頼日<span class="sort-indicator">▼</span></th>',
+      '            <th data-sort="RequestedByName" style="width:10%;padding:5px 4px;cursor:pointer;text-align:left;border-right:1px solid #fff;white-space:nowrap;">依頼者<span class="sort-indicator"></span></th>',
+      '            <th data-sort="SentDate" style="width:11%;padding:5px 4px;cursor:pointer;text-align:center;border-right:1px solid #fff;white-space:nowrap;">出荷日<span class="sort-indicator"></span></th>',
+      '            <th data-sort="ReceivedDate" style="width:11%;padding:5px 4px;cursor:pointer;text-align:center;border-right:1px solid #fff;white-space:nowrap;">受入日<span class="sort-indicator"></span></th>',
+      '            <th data-sort="SentByName" style="width:10%;padding:5px 4px;cursor:pointer;text-align:left;border-right:1px solid #fff;white-space:nowrap;">担当者<span class="sort-indicator"></span></th>',
+      '            <th style="width:15%;padding:5px 4px;text-align:left;white-space:nowrap;">メモ</th>',
+      '          </tr>',
+      '        </thead>',
+      '        <tbody id="teflon-tbody"></tbody>',
+      '      </table>',
+      '    </div>',
+      '    <div class="tef-actions" style="position:fixed;left:0;right:0;bottom:0;z-index:6000;padding:6px 10px;border-top:1px solid #ccc;display:flex;justify-content:space-between;align-items:center;gap:6px;background:#f5f5f5;">',
+      '      <div class="tef-actions-left">',
+      '        <button id="teflon-close-bottom" style="font-size:12px;padding:5px 14px;border-radius:4px;border:1px solid #ccc;background:#ffffff;cursor:pointer;">閉じる</button>',
+      '      </div>',
+      '      <div class="tef-actions-right" style="display:flex;gap:6px;">',
+      '        <button id="teflon-export-btn" style="font-size:12px;padding:5px 14px;border-radius:4px;border:1px solid #ccc;background:#f5f5f5;cursor:pointer;">CSV出力</button>',
+      '        <button id="teflon-print-btn" style="font-size:12px;padding:5px 14px;border-radius:4px;border:1px solid #ccc;background:#f5f5f5;cursor:pointer;">印刷</button>',
+      '        <button id="teflon-mail-btn" style="font-size:12px;padding:5px 14px;border-radius:4px;border:1px solid #2e7d32;background:#2e7d32;color:#fff;cursor:pointer;">メール送信</button>',
+      '      </div>',
+      '    </div>',
+      '  </div>',
+      '</div>'
+    ].join('');
 
-      const html = [
-        '<div id="teflon-panel" class="checkio-panel teflon-panel" style="display:block;">',
-        '  <div class="tef-header" style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;border-radius:6px 6px 0 0;background:linear-gradient(90deg,#2e7d32 0%,#66bb6a 100%);color:#fff;">',
-        '    <div class="tef-title">',
-        '      <div style="font-size:15px;font-weight:600;">テフロン加工履歴</div>',
-        '      <div style="font-size:12px;opacity:0.85;">Lịch sử mạ Teflon</div>',
-        '    </div>',
-        '    <button id="teflon-close-btn" title="閉じる" style="border:none;background:transparent;color:#fff;font-size:20px;cursor:pointer;padding:0 4px;">×</button>',
-        '  </div>',
-        '  <div class="tef-summary" style="font-size:11px;color:#444;text-align:right;padding:4px 6px 2px;">ステータス別にテフロン加工依頼を一覧表示します。</div>',
-        '  <div class="checkio-body panel-body" style="display:flex;flex-direction:column;max-height:calc(100vh - 110px);padding-bottom:56px;">',
-        '    <div class="filter-row" style="padding:8px;background:#f9f9f9;border-bottom:1px solid #ddd;display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:11px;">',
-        '      <div class="tef-help" style="padding:4px 8px 2px;font-size:10px;color:#666;">',
-        '        テーブルのヘッダーをクリックしてソートできます。金型名をクリックすると詳細画面が開きます。',
-        '      </div>',
-        '      <label style="font-weight:600;">ステータス:</label>',
-        '      <select id="teflon-status-filter" style="padding:4px 8px;border:1px solid #ccc;border-radius:4px;font-size:11px;">',
-        '        <option value="all">全て</option>',
-        '        <option value="pending">テフロン加工承認待ち</option>',
-        '        <option value="sent">テフロン加工中</option>',
-        '        <option value="completed">テフロン加工済</option>',
-        '      </select>',
-        '      <input type="text" id="teflon-search-input" placeholder="金型名・コード検索" style="flex:1;min-width:200px;padding:4px 8px;border:1px solid #ccc;border-radius:4px;font-size:11px;">',
-        '    </div>',
-        '    <div class="table-wrapper" style="flex:1;overflow:auto;min-height:160px;">',
-        '      <table id="teflon-table" class="teflon-table">',
-        '        <thead style="position:sticky;top:0;background:#0056b3;color:#fff;z-index:10;font-size:10px;">',
-        '          <tr>',
-        '            <th data-sort="MoldName" style="width:20%;padding:5px 4px;cursor:pointer;text-align:left;border-right:1px solid #fff;white-space:nowrap;">金型名<span class="sort-indicator"></span></th>',
-        '            <th data-sort="TeflonStatusKey" style="width:12%;padding:5px 4px;cursor:pointer;text-align:center;border-right:1px solid #fff;white-space:nowrap;">状態<span class="sort-indicator"></span></th>',
-        '            <th data-sort="RequestedDate" style="width:11%;padding:5px 4px;cursor:pointer;text-align:center;border-right:1px solid #fff;white-space:nowrap;">依頼日<span class="sort-indicator">▼</span></th>',
-        '            <th data-sort="RequestedByName" style="width:10%;padding:5px 4px;cursor:pointer;text-align:left;border-right:1px solid #fff;white-space:nowrap;">依頼者<span class="sort-indicator"></span></th>',
-        '            <th data-sort="SentDate" style="width:11%;padding:5px 4px;cursor:pointer;text-align:center;border-right:1px solid #fff;white-space:nowrap;">出荷日<span class="sort-indicator"></span></th>',
-        '            <th data-sort="ReceivedDate" style="width:11%;padding:5px 4px;cursor:pointer;text-align:center;border-right:1px solid #fff;white-space:nowrap;">受入日<span class="sort-indicator"></span></th>',
-        '            <th data-sort="SentByName" style="width:10%;padding:5px 4px;cursor:pointer;text-align:left;border-right:1px solid #fff;white-space:nowrap;">担当者<span class="sort-indicator"></span></th>',
-        '            <th style="width:15%;padding:5px 4px;text-align:left;white-space:nowrap;">メモ</th>',
-        '          </tr>',
-        '        </thead>',
-        '        <tbody id="teflon-tbody"></tbody>',
-        '      </table>',
-        '    </div>',
-        '    <div class="tef-actions" style="position:fixed;left:0;right:0;bottom:0;z-index:6000;padding:6px 10px;border-top:1px solid #ccc;display:flex;justify-content:space-between;align-items:center;gap:6px;background:#f5f5f5;">',
-        '      <div class="tef-actions-left">',
-        '        <button id="teflon-close-bottom" style="font-size:12px;padding:5px 14px;border-radius:4px;border:1px solid #ccc;background:#ffffff;cursor:pointer;">閉じる</button>',
-        '      </div>',
-        '      <div class="tef-actions-right" style="display:flex;gap:6px;">',
-        '        <button id="teflon-export-btn" style="font-size:12px;padding:5px 14px;border-radius:4px;border:1px solid #ccc;background:#f5f5f5;cursor:pointer;">CSV出力</button>',
-        '        <button id="teflon-print-btn" style="font-size:12px;padding:5px 14px;border-radius:4px;border:1px solid #ccc;background:#f5f5f5;cursor:pointer;">印刷</button>',
-        '        <button id="teflon-mail-btn" style="font-size:12px;padding:5px 14px;border-radius:4px;border:1px solid #2e7d32;background:#2e7d32;color:#fff;cursor:pointer;">メール送信</button>',
-        '      </div>',
-        '    </div>',
-        '  </div>',
-        '</div>'
-      ].join('');
+    upper.insertAdjacentHTML('beforeend', html);
 
-      upper.insertAdjacentHTML('beforeend', html);
+    const panelEl = document.getElementById('teflon-panel');
+    const tbody = document.getElementById('teflon-tbody');
 
-      // === Vuốt từ header để đóng modal (mobile) ===
-      const panelEl = document.getElementById('teflon-panel');
-      if (panelEl) {
-        // Header của panel (thanh tiêu đề, nơi có nút Đóng)
-        const headerEl = panelEl.querySelector('.teflon-header'); // đổi class nếu bạn đang dùng class khác
+    // Hiển thị message "đang tải" tạm thời
+    if (tbody) {
+      tbody.innerHTML =
+        '<tr><td colspan="8" style="padding:16px;text-align:center;color:#888;">読み込み中… / Đang tải dữ liệu…</td></tr>';
+    }
 
-        // Nút đóng đang có sẵn trong header
-        const closeBtn = panelEl.querySelector('.teflon-close');  // đổi selector này cho đúng nút Đóng hiện tại
-
-        if (headerEl && closeBtn) {
-          attachSwipeToClose(headerEl, panelEl, () => {
-            // Tái sử dụng logic đóng sẵn có bằng cách trigger click
-            closeBtn.click();
-          });
-        }
-      }
-
-
-      document.getElementById('teflon-close-btn').addEventListener('click', () => this.closePanel());
-
-      const statusFilterEl = document.getElementById('teflon-status-filter');
-      statusFilterEl.addEventListener('change', (e) => {
-        currentFilter = e.target.value;
-        this.applyFilterAndSort();
-      });
-
-      document.getElementById('teflon-search-input').addEventListener('input', () => {
-        this.applyFilterAndSort();
-      });
-
-      statusFilterEl.value = currentFilter;
-
-      const bottomCloseBtn = document.getElementById('teflon-close-bottom');
-      if (bottomCloseBtn) bottomCloseBtn.addEventListener('click', () => this.closePanel());
-
-      const exportBtn = document.getElementById('teflon-export-btn');
-      if (exportBtn) exportBtn.addEventListener('click', () => this.exportCurrentToCsv());
-
-      const printBtn = document.getElementById('teflon-print-btn');
-      if (printBtn) printBtn.addEventListener('click', () => this.printCurrentView());
-
-      const mailBtn = document.getElementById('teflon-mail-btn');
-      if (mailBtn) mailBtn.addEventListener('click', () => this.mailCurrentView());
-
-      const headers = document.querySelectorAll('#teflon-table thead th[data-sort]');
-      headers.forEach(th => {
-        th.addEventListener('click', () => {
-          const col = th.getAttribute('data-sort');
-          if (currentSort.column === col) {
-            currentSort.order = (currentSort.order === 'asc') ? 'desc' : 'asc';
-          } else {
-            currentSort.column = col;
-            currentSort.order = 'asc';
-          }
-          this.applyFilterAndSort();
+    // Vuốt để đóng (sửa selector khớp với HTML thực tế)
+    if (panelEl) {
+      const headerEl = panelEl.querySelector('.tef-header');
+      const closeBtn = document.getElementById('teflon-close-btn');
+      if (headerEl && closeBtn) {
+        attachSwipeToClose(headerEl, panelEl, () => {
+          closeBtn.click();
         });
+      }
+    }
+
+    // Bind các nút & filter như cũ
+    document.getElementById('teflon-close-btn')
+      .addEventListener('click', () => this.closePanel());
+
+    const statusFilterEl = document.getElementById('teflon-status-filter');
+    statusFilterEl.addEventListener('change', (e) => {
+      currentFilter = e.target.value;
+      this.applyFilterAndSort();
+    });
+
+    document.getElementById('teflon-search-input')
+      .addEventListener('input', () => {
+        this.applyFilterAndSort();
       });
 
+    statusFilterEl.value = currentFilter;
+
+    const bottomCloseBtn = document.getElementById('teflon-close-bottom');
+    if (bottomCloseBtn) bottomCloseBtn.addEventListener('click', () => this.closePanel());
+
+    const exportBtn = document.getElementById('teflon-export-btn');
+    if (exportBtn) exportBtn.addEventListener('click', () => this.exportCurrentToCsv());
+
+    const printBtn = document.getElementById('teflon-print-btn');
+    if (printBtn) printBtn.addEventListener('click', () => this.printCurrentView());
+
+    const mailBtn = document.getElementById('teflon-mail-btn');
+    if (mailBtn) mailBtn.addEventListener('click', () => this.mailCurrentView());
+
+    const headers = document.querySelectorAll('#teflon-table thead th[data-sort]');
+    headers.forEach(th => {
+      th.addEventListener('click', () => {
+        const col = th.getAttribute('data-sort');
+        if (currentSort.column === col) {
+          currentSort.order = (currentSort.order === 'asc') ? 'desc' : 'asc';
+        } else {
+          currentSort.column = col;
+          currentSort.order = 'asc';
+        }
+        this.applyFilterAndSort();
+      });
+    });
+
+    // 2) Build dữ liệu + render sau 1 tick event loop
+    setTimeout(() => {
+      this.buildRows();          // dùng cache nếu đã build
+      currentFilter = 'pending'; // trạng thái mặc định khi mở
       this.applyFilterAndSort();
-    },
+    }, 0);
+  },
+
 
     closePanel: function () {
       const panel = document.getElementById('teflon-panel');
@@ -395,19 +406,24 @@
     },
 
     buildRows: function () {
-      const dm = window.DataManager;
-      if (!dm || !dm.data) {
-        console.error('[TeflonManager] DataManager not ready');
-        allRows = [];
-        return;
-      }
+    // Nếu đã build rồi và dữ liệu vẫn còn, không cần build lại
+    if (isRowsBuilt && allRows && allRows.length > 0) {
+      return;
+    }
 
-      const teflonlog = dm.data.teflonlog || [];
-      const molds = dm.data.molds || [];
-      const employees = dm.data.employees || [];
+    const dm = window.DataManager;
+    if (!dm || !dm.data) {
+      console.error('[TeflonManager] DataManager not ready');
+      allRows = [];
+      isRowsBuilt = false;
+      return;
+    }
 
-      const rows = [];
-      const moldStatusMap = new Map();
+    const teflonlog = dm.data.teflonlog || [];
+    const molds = dm.data.molds || [];
+    const employees = dm.data.employees || [];
+    const rows = [];
+    const moldStatusMap = new Map();
 
       teflonlog.forEach(log => {
         const moldId = String(log.MoldID || '').trim();
@@ -433,12 +449,17 @@
         const moldName = mold
           ? (mold.MoldName || mold.MoldCode || ('ID:' + moldId))
           : ('ID:' + moldId);
-
         const requestedByName = this.getEmployeeName(log.RequestedBy, employees);
         const sentByName = this.getEmployeeName(log.SentBy, employees);
-
-        const statusKey = logStatusToStatusKey(log.TeflonStatus);
-        const statusLabel = statusKeyToCoatingLabel(statusKey) || log.TeflonStatus || '';
+        const statusKey = getTeflonStatusKey({
+          TeflonStatus: log.TeflonStatus,
+          CoatingType: log.CoatingType
+        });
+        const statusLabel =
+          statusKeyToCoatingLabel(statusKey) ||
+          log.CoatingType ||
+          log.TeflonStatus ||
+          '';
 
         rows.push({
           TeflonLogID: log.TeflonLogID || '',
@@ -475,7 +496,7 @@
         const coating = mold.TeflonCoating || '';
         if (!coating || coating === 'FALSE' || coating === 'false' || coating === '0') return;
 
-        const statusKey = getTeflonStatusKey(row);
+        const statusKey = mapCoatingToStatusKey(coating);
         if (!statusKey) return;
 
         const moldName = mold.MoldName || mold.MoldCode || ('ID:' + moldId);
@@ -509,6 +530,7 @@
       });
 
       allRows = rows;
+      isRowsBuilt = true;   // ĐÁNH DẤU ĐÃ BUILD
     },
 
     getEmployeeName: function (empId, employees) {
