@@ -466,5 +466,59 @@
         pointer-events: none;       /* không chặn click button */
     }
 
+     /* ========== MOBILE FILTER PANEL ========== */
+    .mobile-filter-panel {
+        display: block !important;
+        position: sticky;
+        top: 110px; /* Below mobile-header */
+        z-index: 99;
+        background: white;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .mobile-filter-toggle {
+        width: 100%;
+        padding: 10px 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: white;
+        border: none;
+        cursor: pointer;
+    }
+
+    .mobile-filter-toggle i:first-child {
+        color: var(--kiosk-cyan);
+        font-size: 16px;
+    }
+
+    .mobile-filter-toggle span {
+        flex: 1;
+        text-align: left;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .mobile-filter-toggle .toggle-icon {
+        color: #757575;
+        font-size: 12px;
+        transition: transform 0.3s ease;
+    }
+
+    .mobile-filter-panel.collapsed .toggle-icon {
+        transform: rotate(-90deg);
+    }
+
+    .mobile-filter-content {
+        padding: 0;
+        overflow: hidden;
+        max-height: 0;
+        transition: max-height 0.3s ease-out;
+    }
+
+    .mobile-filter-panel:not(.collapsed) .mobile-filter-content {
+        max-height: 400px;
+        padding: 12px;
+    }
 }
 /* ====== END: FILTER FULLSCREEN MOBILE ====== */

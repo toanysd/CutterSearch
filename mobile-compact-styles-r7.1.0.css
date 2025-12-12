@@ -1617,33 +1617,6 @@ border-color: #212121 !important;
   }
 }
 
-/* ========================================
-   HIDE FILTER TOGGLE BUTTON - CONTROLLED BY MENU BAR
-   ======================================== */
-@media (max-width: 767px) {
-  /* Hide the entire filter panel by default */
-  .mobile-filter-panel {
-    display: none !important; /* Completely hidden */
-  }
-  
-  /* Hide toggle button specifically */
-  .mobile-filter-toggle {
-    display: none !important; /* Never show this button */
-  }
-  
-  /* When filter is active (controlled by Settings button in menu bar) */
-      .mobile-filter-panel,
-    .mobile-filter-panel.active {
-        display: none !important; /* iPhone dùng modal mới, ẩn panel cũ */
-    }
-
-
-  /* Filter content - always visible when panel is active */
-  .mobile-filter-content {
-    display: block !important; /* Always show content when panel is active */
-    padding: 0; /* No extra padding */
-  }
-}
 
 @media (max-width: 767px) {
   /* Results panel default position */
