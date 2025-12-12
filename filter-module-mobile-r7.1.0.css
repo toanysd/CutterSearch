@@ -418,5 +418,53 @@
         border-color: #757575;
         color: #424242;
     }
+
+        /* =======================================================
+       MOBILE FILTER BADGE - フィルターバッジ (ON状態)
+       - Dùng cho nút Filter ở bottom nav (id="filter-nav-btn")
+       - Khi JS thêm class .has-active-filter → đổi màu cam + badge ON
+       ======================================================= */
+
+    /* Đảm bảo nút Filter cho phép đặt badge góc */
+    #filter-nav-btn {
+        position: relative;
+        overflow: visible;
+    }
+
+    /* Khi có filter/sort/category: chỉ đổi màu icon + chữ sang cam,
+    KHÔNG thay đổi kích thước / background button */
+    #filter-nav-btn.has-active-filter,
+    #filter-nav-btn.has-active-filter .nav-icon,
+    #filter-nav-btn.has-active-filter .nav-label-ja,
+    #filter-nav-btn.has-active-filter .nav-label-vi,
+    #filter-nav-btn.has-active-filter span,
+    #filter-nav-btn.has-active-filter i {
+        color: #FF9800;
+    }
+
+
+    /* Badge ON nhỏ ở góc trên-phải
+       - Có thể coi như chấm tròn hoặc chữ "ON"
+       - JP/VI đều hiểu được
+    */
+    #filter-nav-btn.has-active-filter::after {
+        content: 'ON';              /* テキスト: ON */
+        position: absolute;
+        top: -4px;
+        right: -2px;
+        min-width: 16px;
+        height: 16px;
+        padding: 0 4px;
+        border-radius: 999px;       /* hình viên thuốc / chấm bo tròn */
+        background: #FF7043;        /* cam đậm hơn để nổi bật */
+        color: #FFFFFF;
+        font-size: 9px;
+        font-weight: 700;
+        line-height: 16px;
+        text-align: center;
+        box-shadow: 0 0 0 2px #FFFFFF; /* viền trắng tách khỏi background */
+        pointer-events: none;       /* không chặn click button */
+    }
+
 }
 /* ====== END: FILTER FULLSCREEN MOBILE ====== */

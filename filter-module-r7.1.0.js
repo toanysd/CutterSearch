@@ -949,23 +949,36 @@
 
         },
 
-            // Cập nhật badge ON trên nút Filter bottom-nav
+        // Cập nhật badge ON trên nút Filter bottom-nav
         updateBadge() {
             const navFilterBtn = document.getElementById('filter-nav-btn');
             if (!navFilterBtn) return;
 
+            // ✅ FIX: Kiểm tra filter
             const hasFilter = !!state.fieldId && !!state.value;
-            const hasSort =
-                state.sortField !== DEFAULT_SORT.field ||
-                state.sortDirection !== DEFAULT_SORT.direction;
+            
+            // ✅ FIX: Kiểm tra sort (so sánh chuỗi để chắc chắn)
+            const isSortModified = (
+                String(state.sortField) !== String(DEFAULT_SORT.field) ||
+                String(state.sortDirection) !== String(DEFAULT_SORT.direction)
+            );
+            const hasSort = isSortModified;
+            
+            // ✅ FIX: Kiểm tra category
             const hasCategory = state.category && state.category !== 'all';
+
+            // ✅ DEBUG log
+            console.log('[updateBadge] hasFilter:', hasFilter, 'hasSort:', hasSort, 'hasCategory:', hasCategory);
 
             if (hasFilter || hasSort || hasCategory) {
                 navFilterBtn.classList.add('has-active-filter');
+                console.log('✅ Badge: ACTIVE');
             } else {
                 navFilterBtn.classList.remove('has-active-filter');
+                console.log('✅ Badge: INACTIVE');
             }
         },
+
 
 
         triggerFilter() {
@@ -1336,8 +1349,7 @@
         return list;
     }
 
-    // ========================================================================
-    // EXPORT & AUTO-INIT
+    // ======================================================================== // EXPORT & AUTO-INIT
     // ========================================================================
 
     // Export ra global
@@ -1357,10 +1369,11 @@
     }
 
     console.log('✅ filter-module-r7.1.0.js loaded');
+
     // Khởi tạo trạng thái badge nếu hàm tồn tại
     if (window.FilterModule && typeof window.FilterModule.updateBadge === 'function') {
         window.FilterModule.updateBadge();
     }
 
-
 })();
+
