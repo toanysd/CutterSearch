@@ -925,19 +925,35 @@
         wrap.style.transform = '';
         wrap.style.opacity = '';
         
-        // ✅ Nếu kéo đủ xa (> 100px) → trigger refresh
+        // Nếu kéo đủ xa thì trigger refresh
         if (pullDistance > 100) {
-          console.log('[UIRenderer] 🔄 Pull-to-refresh triggered');
-          
-          // Focus vào search box
-          searchInput.focus();
-          
-          // Clear search box (để gõ tìm kiếm mới)
+          console.log('UIRenderer Pull-to-refresh triggered');
+
+          // Đảm bảo container về vị trí top trước
+          try {
+            wrap.scrollTop = 0;
+          } catch (e) {
+            // ignore
+          }
+
+          // Clear search box trước
           searchInput.value = '';
-          
-          // Trigger input event để SearchModule xử lý
-          searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+          // Dùng một tick nhỏ để browser kết thúc animation rồi mới focus
+          setTimeout(() => {
+            // Focus vào search box (ưu tiên chọn sẵn text)
+            if (typeof searchInput.focus === 'function') {
+              searchInput.focus();
+            }
+            if (typeof searchInput.select === 'function') {
+              searchInput.select();
+            }
+
+            // Trigger input event để chạy lại search (tìm kiếm mới rỗng)
+            searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+          }, 50);
         }
+
         
         isPulling = false;
         startY = 0;
