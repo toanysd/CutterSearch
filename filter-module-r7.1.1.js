@@ -226,8 +226,10 @@
     const state = {
         fieldId: '',
         value: '',
-        category: 'all',       // NEW: trạng thái nhóm hiển thị (All / Mold / Cutter)
-        reEmitting: false,     // ...
+        category: 'all', // 表示カテゴリ (all / mold / cutter)
+        _categoryTabsBound: false, // chặn bind click nhiều lần
+        reEmitting: false, // ...
+
         // Sort: filter module giữ state chuẩn, phát ra cho modules khác
         sortField: DEFAULT_SORT.field,
         sortDirection: DEFAULT_SORT.direction,
@@ -268,10 +270,15 @@
 
             // 1. Legacy Desktop + Mobile inline controls
             this.initDesktopFilters();
+            // ✅ Clear category states từ các modules khác
+            this.clearExternalCategoryStates();
+
             this.initMobileFilters();
 
             // 2. Full-screen modal for mobile
             this.initFullScreenModal();
+
+            this.bindCategoryTabClicks();   // <-- ADD
 
             // 3. Global listeners (search:updated, filter:reset, ...)
             this.setupGlobalListeners();
@@ -624,18 +631,6 @@
                 backdrop.addEventListener('click', () => this.hideModal());
             }
 
-            // Category tab click
-            if (state.modalCategoryTabs && state.modalCategoryTabs.length) {
-                state.modalCategoryTabs.forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        const category = btn.getAttribute('data-category') || 'all';
-                        this.setCategory(category);
-                        // Update active class trong modal
-                        state.modalCategoryTabs.forEach(b => b.classList.toggle('active', b === btn));
-                    });
-                });
-            }
-
             // Filter field/value change trong modal
             if (state.modalFieldEl) {
                 state.modalFieldEl.addEventListener('change', () => {
@@ -829,6 +824,17 @@
             if (state.modalValueEl) state.modalValueEl.value = state.value || '';
             if (state.modalSortFieldEl) state.modalSortFieldEl.value = state.sortField || DEFAULT_SORT.field;
             if (state.modalSortDirEl) state.modalSortDirEl.value = state.sortDirection || DEFAULT_SORT.direction;
+            // ✅ R7.1.1-FIX: Đồng bộ UI tabs với state hiện tại (KHÔNG force)
+            if (state.modalCategoryTabs && state.modalCategoryTabs.length) {
+            state.modalCategoryTabs.forEach(btn => {
+                const c = (btn.getAttribute('data-category') || 'all').toLowerCase();
+                btn.classList.toggle('active', c === state.category);
+            });
+            }
+            console.log('[FilterModule] showModal: category tabs synced to:', state.category);
+
+
+
         },
 
         hideModal() {
@@ -925,6 +931,61 @@
                 el.addEventListener('touchcancel', handleEnd);
             });
         },
+
+        bindCategoryTabClicks() {
+            if (state._categoryTabsBound) return;
+            state._categoryTabsBound = true;
+
+            document.addEventListener('click', (e) => {
+                const btn = e.target && e.target.closest ? e.target.closest('.category-tab[data-category]') : null;
+                if (!btn) return;
+
+                // Chỉ bắt click đúng khu vực category tabs
+                const inCategoryTabs = btn.closest('.category-tabs, .category-tabs-mobile, .filter-category-tabs');
+                if (!inCategoryTabs) return;
+
+                e.preventDefault();
+                e.stopPropagation();
+
+                const cat = (btn.getAttribute('data-category') || 'all').toLowerCase();
+                this.setCategory(cat, { source: 'user' });
+            }, true);
+        },
+
+        clearExternalCategoryStates() {
+            // Xóa tất cả localStorage keys liên quan đến category từ modules khác
+            const keysToRemove = [
+                'mold-category',
+                'cutter-category',
+                'category',
+                'itemType',
+                'selectedCategory',
+                'currentCategory',
+                'filterCategory',
+                'displayCategory',
+                'v777-category',
+                'mold-cutter-category'
+            ];
+            
+            keysToRemove.forEach(key => {
+                try {
+                    if (localStorage.getItem(key)) {
+                        localStorage.removeItem(key);
+                        console.log(`✅ Cleared localStorage key: ${key}`);
+                    }
+                } catch (err) {
+                    // ignore
+                }
+            });
+            
+            // Phát event để các module khác biết phải reset
+            document.dispatchEvent(new CustomEvent('category:force-reset', { 
+                detail: { category: 'all' } 
+            }));
+            
+            console.log('✅ External category states cleared');
+        },
+
 
         // --------------------------------------------------------------------
         // Global listeners
@@ -1031,22 +1092,25 @@
 
         /**
          * Gửi yêu cầu sort tới UIRenderer + MobileTableView
+         * R7.1.1-FIX: KHÔNG reset category khi sort thay đổi
          */
         applySortConfig(field, direction) {
-            const sortField = field || DEFAULT_SORT.field;
-            const dir = direction === 'asc' ? 'asc' : 'desc';
-
-            console.log('[FilterModule] 🔄 applySortConfig:', sortField, dir);
-
-            document.dispatchEvent(new CustomEvent('results:sortChanged', {
-                detail: {
-                    field: sortField,
-                    direction: dir
-                }
-            }));
-
-            this.updateBadge();   // NEW
-
+        const sortField = field || DEFAULT_SORT.field;
+        const dir = direction === 'asc' ? 'asc' : 'desc';
+        
+        console.log('[FilterModule] 🔄 applySortConfig:', sortField, dir);
+        
+        // ✅ R7.1.1-FIX: CHỈ phát event sort, KHÔNG đụng vào category
+        document.dispatchEvent(new CustomEvent('results:sortChanged', {
+            detail: {
+            field: sortField,
+            direction: dir
+            }
+        }));
+        
+        this.updateBadge();
+        
+        console.log('[FilterModule] ✅ Sort applied without touching category');
         },
 
         // Cập nhật badge ON trên nút Filter bottom-nav
@@ -1140,32 +1204,62 @@
             }
         },
 
-        // --------------------------------------------------------------------
-        // Category handling (All / Mold / Cutter)
-        // --------------------------------------------------------------------
-        setCategory(category) {
-            const cat = category || 'all';
-            state.category = cat;   // NEW: lưu vào state
-
-            // Cập nhật tabs global desktop + mobile + modal
-            const allTabs = document.querySelectorAll(
-                '.category-tabs .category-tab, ' +
-                '.category-tabs-mobile .category-tab, ' +
-                '.filter-category-tabs .category-tab'
-            );
-            if (allTabs && allTabs.length) {
-                allTabs.forEach(btn => {
-                    const c = btn.getAttribute('data-category') || 'all';
-                    btn.classList.toggle('active', c === cat);
-                });
-            }
-
-            // Phát event cho các module khác nếu có nghe
-            document.dispatchEvent(new CustomEvent('category:changed', { detail: { category: cat } }));
-            console.log('FilterModule Category set to', cat);
-
-            this.updateBadge();     // NEW: cập nhật badge khi đổi nhóm
+        /**
+         * Set category và phát event
+         * R7.1.1-FIX: Cho phép thay đổi từ user/reset/restore
+         */
+        setCategory(category, opts = {}) {
+        const cat = (category || 'all').toLowerCase();
+        
+        // allow-list
+        if (!['all', 'mold', 'cutter'].includes(cat)) return;
+        
+        // ✅ Chỉ cho đổi nhóm khi có nguồn rõ ràng
+        // - user: click tab
+        // - reset: resetAll()
+        // - restore: restoreState()
+        const source = opts.source || 'external';
+        const allowed = (source === 'user' || source === 'reset' || source === 'restore');
+        
+        if (!allowed) {
+            console.warn('[FilterModule] ⛔ Ignored external category change:', cat);
+            return;
+        }
+        
+        // ✅ CHỈ cập nhật nếu khác giá trị hiện tại
+        const isChanged = (state.category !== cat);
+        state.category = cat;
+        
+        // Update active tabs everywhere
+        const allTabs = document.querySelectorAll(
+            '.category-tabs .category-tab,' +
+            '.category-tabs-mobile .category-tab,' +
+            '.filter-category-tabs .category-tab'
+        );
+        if (allTabs && allTabs.length) {
+            allTabs.forEach(btn => {
+            const c = (btn.getAttribute('data-category') || 'all').toLowerCase();
+            btn.classList.toggle('active', c === cat);
+            });
+        }
+        
+        // ✅ CHỈ phát event nếu giá trị thực sự thay đổi và không silent
+        if (isChanged && !opts.silent) {
+            document.dispatchEvent(new CustomEvent('category:changed', { 
+            detail: { category: cat } 
+            }));
+            console.log('📢 [FilterModule] Category changed event emitted:', cat);
+        }
+        
+        console.log('FilterModule Category set to', cat, '(source:', source + ')');
+        
+        // Persist (trừ khi skipPersist)
+        if (!opts.skipPersist) this.persistState();
+        
+        this.updateBadge();
         },
+
+
 
         // --------------------------------------------------------------------
         // Reset functions
@@ -1279,7 +1373,7 @@
             this.buildValueOptions(state.modalValueEl, '');
 
             // 3. Reset category về ALL
-            this.setCategory('all');
+            this.setCategory('all', { source: 'reset', skipPersist: true });
             if (state.modalCategoryTabs && state.modalCategoryTabs.length) {
                 state.modalCategoryTabs.forEach(btn => {
                     const cat = btn.getAttribute('data-category') || 'all';
@@ -1350,54 +1444,86 @@
             this.persistState();
         },
 
-        // --------------------------------------------------------------------
-        // Persistence
-        // --------------------------------------------------------------------
+        /**
+         * R7.1.1-FIX: Persist filter + sort, KHÔNG persist category (luôn reset về 'all')
+         */
         persistState() {
-            try {
-                const payload = {
-                    fieldId: state.fieldId,
-                    value: state.value,
-                    sortField: state.sortField,
-                    sortDirection: state.sortDirection
-                };
-                localStorage.setItem('v777_filter_state', JSON.stringify(payload));
-                console.log('💾 Filter state saved:', payload);
-            } catch (err) {
-                console.warn('⚠️ Failed to persist filter state:', err);
-            }
+        try {
+            const payload = {
+            fieldId: state.fieldId,
+            value: state.value,
+            sortField: state.sortField,
+            sortDirection: state.sortDirection
+            // ✅ KHÔNG lưu category - luôn reset về 'all' khi tải lại trang
+            };
+            localStorage.setItem('v777_filter_state', JSON.stringify(payload));
+            console.log('💾 Filter state saved:', payload);
+        } catch (err) {
+            console.warn('⚠️ Failed to persist filter state:', err);
+        }
         },
 
+
+        /**
+         * R7.1.1-FIX: Restore state và LUÔN force category = 'all'
+         */
         restoreState() {
-            try {
-                const raw = localStorage.getItem('v777_filter_state');
-                if (!raw) return;
-                const saved = JSON.parse(raw);
-                console.log('📥 Restoring filter state:', saved);
-
-                state.fieldId = saved.fieldId || '';
-                state.value = saved.value || '';
-                state.sortField = saved.sortField || DEFAULT_SORT.field;
-                state.sortDirection = saved.sortDirection || DEFAULT_SORT.direction;
-
-                // Update UI
-                if (state.desktopFieldEl) state.desktopFieldEl.value = state.fieldId;
-                if (state.desktopValueEl) state.desktopValueEl.value = state.value;
-                if (state.mobileFieldEl) state.mobileFieldEl.value = state.fieldId;
-                if (state.mobileValueEl) state.mobileValueEl.value = state.value;
-                if (state.modalFieldEl) state.modalFieldEl.value = state.fieldId;
-                if (state.modalValueEl) state.modalValueEl.value = state.value;
-                if (state.modalSortFieldEl) state.modalSortFieldEl.value = state.sortField;
-                if (state.modalSortDirEl) state.modalSortDirEl.value = state.sortDirection;
-
-                // Rebuild value options
-                this.buildValueOptions(state.desktopValueEl, state.fieldId);
-                this.buildValueOptions(state.mobileValueEl, state.fieldId);
-                this.buildValueOptions(state.modalValueEl, state.fieldId);
-            } catch (err) {
-                console.warn('⚠️ Failed to restore filter state:', err);
+        try {
+            const raw = localStorage.getItem('v777_filter_state'); // ✅ FIX: typo
+            
+            // ✅ Dù có hay không có state lưu, LUÔN force category = 'all'
+            state.category = 'all';
+            
+            if (!raw) {
+            console.log('[FilterModule] No saved state - category set to "all"');
+            this.setCategory('all', { source: 'restore', skipPersist: true, silent: true });
+            return;
             }
+            
+            const saved = JSON.parse(raw);
+            console.log('Restoring filter state:', saved);
+            
+            state.fieldId = saved.fieldId || '';
+            state.value = saved.value || '';
+            state.sortField = saved.sortField || DEFAULT_SORT.field;
+            state.sortDirection = saved.sortDirection || DEFAULT_SORT.direction;
+            
+            // Update UI
+            if (state.desktopFieldEl) state.desktopFieldEl.value = state.fieldId;
+            if (state.desktopValueEl) state.desktopValueEl.value = state.value;
+            if (state.mobileFieldEl) state.mobileFieldEl.value = state.fieldId;
+            if (state.mobileValueEl) state.mobileValueEl.value = state.value;
+            if (state.modalFieldEl) state.modalFieldEl.value = state.fieldId;
+            if (state.modalValueEl) state.modalValueEl.value = state.value;
+            if (state.modalSortFieldEl) state.modalSortFieldEl.value = state.sortField;
+            if (state.modalSortDirEl) state.modalSortDirEl.value = state.sortDirection;
+            
+            // Rebuild value options
+            this.buildValueOptions(state.desktopValueEl, state.fieldId);
+            this.buildValueOptions(state.mobileValueEl, state.fieldId);
+            this.buildValueOptions(state.modalValueEl, state.fieldId);
+            
+            // ✅ Force set category to 'all' và update tabs UI
+            const allTabs = document.querySelectorAll(
+            '.category-tabs .category-tab,' +
+            '.category-tabs-mobile .category-tab,' +
+            '.filter-category-tabs .category-tab'
+            );
+            if (allTabs && allTabs.length) {
+            allTabs.forEach(btn => {
+                const c = (btn.getAttribute('data-category') || 'all').toLowerCase();
+                btn.classList.toggle('active', c === 'all');
+            });
+            }
+            
+            console.log('✅ Filter state restored (category forced to "all")');
+        } catch (err) {
+            console.warn('Failed to restore filter state:', err);
+            state.category = 'all';
+        }
         },
+
+
 
         clearState() {
             try {
