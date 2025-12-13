@@ -1614,6 +1614,8 @@ border-color: #212121 !important;
     padding-bottom: env(safe-area-inset-bottom, 8px);
   }
 
+
+
   /* Bottom Nav Item */
   .bottom-nav-item {
     display: flex;
@@ -1711,6 +1713,44 @@ border-color: #212121 !important;
     color: #FF9800; /* Orange */
   }
 }
+
+/* =========================================================
+   R7.1.2+: Bottom nav supports 6 items when Search is injected
+   (JP+VI: 検索 / Tìm kiếm)
+   ========================================================= */
+@media (max-width: 767px) {
+
+  /* When JS injects Search button, add class: .bottom-nav-bar.has-search */
+  .bottom-nav-bar.has-search {
+    grid-template-columns: repeat(6, 1fr) !important;
+  }
+
+  /* Tighten spacing a bit to avoid label wrap on small iPhones */
+  .bottom-nav-bar.has-search .bottom-nav-item {
+    padding: 6px 2px !important;
+    gap: 1px !important;
+  }
+
+  .bottom-nav-bar.has-search .bottom-nav-icon {
+    font-size: calc(20px * 0.9) !important;
+  }
+
+  .bottom-nav-bar.has-search .bottom-nav-icon-large {
+    font-size: calc(24px * 0.9) !important;
+  }
+
+  .bottom-nav-bar.has-search .bottom-nav-label small {
+    font-size: calc(7px * 0.9) !important;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 767px) {
+  .bottom-nav-bar.has-search .bottom-nav-item.nav-qr-scan {
+    transform: scale(1.10) !important;
+  }
+}
+
 
 /* ========================================================================
    FLOATING ACTION BAR - CONTEXTUAL (R7.0)
