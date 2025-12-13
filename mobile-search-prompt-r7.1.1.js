@@ -17,7 +17,7 @@
   const CFG = {
     enabledMaxWidth: 767,          // only for phones
     pullThresholdPx: 105,          // pull distance to trigger prompt
-    dismissAfterMs: 1500,          // auto close
+    dismissAfterMs: 2500,          // auto close
     promptMinVisibleMs: 250,       // prevent instant close flicker
     promptSwipeDismissPx: 40,      // swipe down on prompt to close
     promptId: 'mcs-search-prompt',
@@ -129,7 +129,7 @@
       prompt.style.position = 'fixed';
       prompt.style.left = '50%';
       // Thumb-friendly zone: slightly below center
-      prompt.style.top = '46%';
+      prompt.style.top = 'calc(46% + 3cm)';
       prompt.style.transform = 'translate(-50%, -50%)';
       prompt.style.zIndex = '20001';
       prompt.style.display = 'none';
