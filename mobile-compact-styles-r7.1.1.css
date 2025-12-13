@@ -679,6 +679,14 @@
     border-radius: 8px !important;
   }
 
+  /* Optional: highlight khi vừa pull-to-refresh xong */
+.pull-refresh-highlight {
+  outline: 2px solid #42a5f5;
+  outline-offset: 2px;
+  transition: outline 0.6s ease-out;
+}
+
+
   /* Tab containers */
   .lower-section {
     border-radius: 12px !important;

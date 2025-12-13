@@ -1,5 +1,5 @@
 /**
- * ui-renderer-r7.0.2.js
+ * ui-renderer-r7.1.1.js
  * 
  * ✅ KẾ THỪA TOÀN BỘ ui-renderer-r6.9.9.js
  * ✅ CẬP NHẬT MỚI TRONG R7.0.2:
@@ -918,47 +918,38 @@
 
       wrap.addEventListener('touchend', () => {
         if (!isPulling) return;
-        
         const pullDistance = currentY - startY;
-        
-        // ✅ Reset visual
+
+        // Reset visual
         wrap.style.transform = '';
         wrap.style.opacity = '';
-        
+
         // Nếu kéo đủ xa thì trigger refresh
         if (pullDistance > 100) {
           console.log('UIRenderer Pull-to-refresh triggered');
 
-          // Đảm bảo container về vị trí top trước
+          // Đưa danh sách về top
           try {
             wrap.scrollTop = 0;
-          } catch (e) {
-            // ignore
-          }
+          } catch (e) {}
 
-          // Clear search box trước
+          // Clear ô search + bắn lại event để chạy search rỗng
           searchInput.value = '';
+          searchInput.dispatchEvent(new Event('input', { bubbles: true }));
 
-          // Dùng một tick nhỏ để browser kết thúc animation rồi mới focus
+          // Thêm hiệu ứng highlight nhẹ để user biết có thể chạm vào
+          searchInput.classList.add('pull-refresh-highlight');
           setTimeout(() => {
-            // Focus vào search box (ưu tiên chọn sẵn text)
-            if (typeof searchInput.focus === 'function') {
-              searchInput.focus();
-            }
-            if (typeof searchInput.select === 'function') {
-              searchInput.select();
-            }
-
-            // Trigger input event để chạy lại search (tìm kiếm mới rỗng)
-            searchInput.dispatchEvent(new Event('input', { bubbles: true }));
-          }, 50);
+            searchInput.classList.remove('pull-refresh-highlight');
+          }, 600);
+          // Không gọi focus() ở đây để tránh iOS chặn bàn phím.
         }
 
-        
         isPulling = false;
         startY = 0;
         currentY = 0;
       });
+
 
       console.log('[UIRenderer] ✅ Pull-to-refresh setup complete');
     },
