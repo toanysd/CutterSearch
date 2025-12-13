@@ -15,33 +15,29 @@
 @media (max-width: 767px) {
   /* Force 2-column grid on mobile */
   .quick-results-grid.mobile-2col {
-    /* Grid layout */
-    display: grid !important;
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 8px !important;                 /* r7.1.1: 10 -> 8 */ /* [サイズ] */
+  /* Layout grid giữ nguyên */
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
 
-    /* Spacing */
-    padding: 8px !important;             /* r7.1.1: 10 -> 8 */ /* [サイズ] */
-    padding-bottom: 80px !important;     /* keep */
+  /* Khoảng cách gọn vừa phải */
+  gap: 8px !important;
+  padding: 8px !important;
 
-    /* Flexbox behavior */
-    flex: 1 1 auto !important;
+  /* ❌ Không ép grid phải fill toàn bộ chiều cao */
+  flex: 0 0 auto !important;      /* CHỈ cao theo nội dung */
+  height: auto !important;
+  max-height: none !important;
 
-    /* Scroll (size/behavior only) */
-    overflow-y: auto !important;
-    overflow-x: hidden !important;       /* r7.1.1 add: prevent horizontal scroll */
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;        /* r7.1.1 add */
+  /* Scroll để cho panel-body xử lý, không phải chính grid */
+  overflow: visible !important;
 
-    /* Height constraints */
-    height: 100% !important;             /* r7.1.1: auto -> 100% */
-    min-height: 0 !important;
-    max-height: calc(100vh - 180px) !important; /* r7.1.1 add */
+  /* Các thuộc tính khác (overflow-x, contain, will-change...) giữ nguyên */
+  overflow-x: hidden !important;
+  overflow-y: visible !important;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
 
-    /* Performance (no colors) */
-    contain: layout style paint;         /* r7.1.1 add */
-    will-change: scroll-position;        /* r7.1.1 add */
-  }
 
   /* RESULT CARDS - size-only (DO NOT override colors/effects) */
   .quick-results-grid.mobile-2col .result-card {
@@ -197,10 +193,7 @@
     flex: 0 0 auto !important;              /* ✅ Không grow/shrink */
   }
 
-  /* Results grid - fills remaining space */
-  .quick-results-grid.mobile-2col {
-    flex: 1 1 0% !important;                /* ✅ Grow để fill, base 0 */
-  }
+
 }
 
 /* ============================================
