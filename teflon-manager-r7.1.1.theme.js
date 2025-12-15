@@ -185,46 +185,38 @@
 
       ensureBadgeDOM(btn);
 
-      // Ensure rows exist
-      try { if (typeof window.TeflonManager.buildRows === 'function') window.TeflonManager.buildRows(); } catch (e) {}
-
-      // Access rows if core uses internal closure: cannot access directly.
-      // So use safest approach: infer from table if open, otherwise call original and then apply classes.
-      // However core updateNavBadge already checks its own allRows; we will use original if available and then
-      // convert "result" to classes via scanning statuses from DataManager (fast & independent).
-      let hasPending = false;
-      let hasApproved = false;
-      let hasProcessing = false;
-
-      try {
-        const dm = window.DataManager;
-        const teflonlog = dm && dm.data && dm.data.teflonlog ? dm.data.teflonlog : [];
-        const molds = dm && dm.data && dm.data.molds ? dm.data.molds : [];
-
-        // quick scan teflonlog
-        for (let i = 0; i < teflonlog.length; i++) {
-          const s = String(teflonlog[i].TeflonStatus || teflonlog[i].CoatingType || '').toLowerCase();
-          if (!s) continue;
-          if (s.indexOf('承認済') !== -1 || s.indexOf('approved') !== -1) hasApproved = true;
-          else if (s.indexOf('承認待ち') !== -1 || s.indexOf('pending') !== -1) hasPending = true;
-          else if (s.indexOf('加工中') !== -1 || s.indexOf('processing') !== -1 || s.indexOf('sent') !== -1) hasProcessing = true;
-          if (hasApproved && hasPending && hasProcessing) break;
-        }
-
-        // fallback scan molds if no teflonlog indicates
-        if (!hasApproved && !hasPending && !hasProcessing && molds && molds.length) {
-          for (let i = 0; i < molds.length; i++) {
-            const c = String(molds[i].TeflonCoating || '').toLowerCase();
-            if (!c) continue;
-            if (c.indexOf('承認済') !== -1 || c.indexOf('approved') !== -1) hasApproved = true;
-            else if (c.indexOf('承認待ち') !== -1 || c.indexOf('pending') !== -1) hasPending = true;
-            else if (c.indexOf('加工中') !== -1 || c.indexOf('processing') !== -1 || c.indexOf('sent') !== -1) hasProcessing = true;
+        // Use core's processed rows (latest log per mold only)
+        let hasPending = false;
+        let hasApproved = false;
+        let hasProcessing = false;
+        
+        try {
+          let rows = [];
+          
+          // Try to get from core API first (correct approach)
+          if (window.TeflonManager && typeof window.TeflonManager.getProcessedRows === 'function') {
+            rows = window.TeflonManager.getProcessedRows();
+          } else {
+            // Fallback: trigger buildRows and hope allRows is exposed somehow
+            if (window.TeflonManager && typeof window.TeflonManager.buildRows === 'function') {
+              window.TeflonManager.buildRows();
+            }
+          }
+          
+          // Scan processed rows (each mold appears only once with latest status)
+          for (let i = 0; i < rows.length; i++) {
+            const key = rows[i].TeflonStatusKey || '';
+            if (key === 'approved') hasApproved = true;
+            else if (key === 'pending') hasPending = true;
+            else if (key === 'processing') hasProcessing = true;
+            
+            // Early exit optimization
             if (hasApproved && hasPending && hasProcessing) break;
           }
+        } catch (e) {
+          console.warn('[ThemeBadge] Cannot read processed rows:', e);
         }
-      } catch (e) {
-        // if DataManager not ready, just hide dot
-      }
+
 
       if (THEME.badgeMode === 'single') {
         const dot = btn.querySelector('.tef-nav-dot');

@@ -372,13 +372,14 @@
         '    </div>',
         '    <button id="teflon-close-btn" title="閉じる" style="border:none;background:transparent;color:#fff;font-size:22px;cursor:pointer;padding:0 4px;">×</button>',
         '  </div>',
-        '  <div class="tef-summary" style="font-size:11px;color:#444;text-align:right;padding:6px 10px 4px;background:#ffffff;">ステータス別に依頼状況を表示します。</div>',
+        '  <div class="tef-summary" style="font-size:10px;color:#444;text-align:right;padding:4px 10px 2px;background:#ffffff;line-height:1.2;min-height:28px;">'
+        + '<div class="jp">ステータス別に依頼状況を表示します。</div>'
+        + '<div class="vi" style="opacity:0.85;">Hiển thị theo trạng thái xử lý.</div>'
+        + '</div>',
+
         '  <div class="checkio-body panel-body" style="display:flex;flex-direction:column;max-height:calc(100vh - 120px);padding-bottom:70px;">',
-        '    <div class="filter-row" style="padding:10px;background:#f9f9f9;border-bottom:1px solid #ddd;display:flex;gap:10px;flex-wrap:wrap;align-items:center;font-size:11px;">',
-        '      <div class="tef-help" style="padding:2px 0;font-size:10px;color:#666;width:100%;">',
-        '        ヘッダークリックでソート / Bấm tiêu đề để sắp xếp。金型名クリックで更新 / Bấm tên khuôn để cập nhật。状態クリックで詳細 / Bấm trạng thái để xem chi tiết。',
-        '      </div>',
-        '      <label style="font-weight:800;">表示:</label>',
+        '    <div class="filter-row" style="padding:6px 8px;background:#f9f9f9;border-bottom:1px solid #ddd;display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:11px;">',
+        '      <label style="font-weight:800;line-height:1.1;">表示 / Hiển thị:</label>',
         '      <select id="teflon-status-filter" style="padding:6px 10px;border:1px solid #ccc;border-radius:8px;font-size:12px;">',
         '        <option value="active">承認待ち・承認済・加工中</option>',
         '        <option value="pending">テフロン加工承認待ち</option>',
@@ -388,7 +389,11 @@
         '        <option value="all">全て</option>',
         '      </select>',
         '      <input type="text" id="teflon-search-input" placeholder="金型名・コード検索 / Tìm khuôn" style="flex:1;min-width:200px;padding:6px 10px;border:1px solid #ccc;border-radius:8px;font-size:12px;">',
+        '      <div class="tef-help" style="font-size:10px;color:#666;flex:1 1 260px;min-width:240px;line-height:1.15;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">',
+        '        ヘッダークリックでソート / Bấm tiêu đề để sắp xếp。金型名クリックで更新 / Bấm tên khuôn để cập nhật。状態クリックで詳細 / Bấm trạng thái để xem chi tiết。',
+        '      </div>',
         '    </div>',
+
         '    <div class="table-wrapper" style="flex:1;overflow:auto;min-height:160px;">',
         '      <table id="teflon-table" class="teflon-table">',
         '        <thead style="position:sticky;top:0;background:#0056b3;color:#fff;z-index:10;font-size:10px;">',
@@ -537,9 +542,9 @@
       return emp.EmployeeNameShort || emp.EmployeeName || '-';
     },
 
-    buildRows: function () {
-      // prevent rebuild when already built and data exists
-      if (isRowsBuilt && allRows && allRows.length > 0) return;
+    buildRows: function() {
+      // Always rebuild (to catch CSV updates from GitHub/backend)
+      // Remove cache check: if (isRowsBuilt && allRows && allRows.length > 0) return;
 
       const dm = window.DataManager;
       if (!dm || !dm.data) {
@@ -554,21 +559,45 @@
       const molds = dm.data.molds || [];
       const employees = dm.data.employees || [];
 
-      // pick latest log per mold
+      // pick latest log per mold (by TeflonLogID desc, highest = newest)
       const moldLogMap = new Map();
-      teflonlog.forEach((log) => {
+      teflonlog.forEach(log => {
         const moldId = normalizeText(log.MoldID);
         if (!moldId) return;
-
-        const logDate = parseFlexibleDate(log.SentDate || log.RequestedDate || log.CreatedDate);
+        
         const prev = moldLogMap.get(moldId);
         if (!prev) {
           moldLogMap.set(moldId, log);
+          // Debug: log selected status for MoldID 5650
+          if (moldId === '5650') {
+            console.log('[TeflonManager] 🔍 MoldID 5650 selected log:', {
+              TeflonLogID: log.TeflonLogID,
+              TeflonStatus: log.TeflonStatus,
+              RequestedDate: log.RequestedDate,
+              SentDate: log.SentDate,
+              UpdatedDate: log.UpdatedDate
+            });
+          }
+
           return;
         }
-        const prevDate = parseFlexibleDate(prev.SentDate || prev.RequestedDate || prev.CreatedDate);
-        if (logDate && (!prevDate || logDate > prevDate)) moldLogMap.set(moldId, log);
+        
+        // Compare TeflonLogID (higher ID = newer log)
+        const logId = parseInt(log.TeflonLogID || '0', 10);
+        const prevId = parseInt(prev.TeflonLogID || '0', 10);
+        
+        if (logId > prevId) {
+          moldLogMap.set(moldId, log);
+        } else if (logId === prevId || logId === 0) {
+          // Fallback to date comparison if no ID or same ID
+          const logDate = parseFlexibleDate(log.UpdatedDate || log.SentDate || log.RequestedDate || log.CreatedDate);
+          const prevDate = parseFlexibleDate(prev.UpdatedDate || prev.SentDate || prev.RequestedDate || prev.CreatedDate);
+          if (logDate && (!prevDate || logDate > prevDate)) {
+            moldLogMap.set(moldId, log);
+          }
+        }
       });
+
 
       const rows = [];
 
@@ -1084,9 +1113,18 @@
       else if (hasPending) dot.style.background = '#f57c00';
       else if (hasProcessing) dot.style.background = '#1976d2';
       else dot.style.background = 'transparent';
-    }
-  };
+    },
 
+      // API: Get processed rows (for theme/badge)
+    getProcessedRows: function() {
+      if (!isRowsBuilt || !allRows) {
+        this.buildRows();
+      }
+      return allRows || [];
+    },
+    
+  };
+  
   // Export
   window.TeflonManager = TeflonManager;
 

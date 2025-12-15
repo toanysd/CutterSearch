@@ -1107,6 +1107,15 @@
         }
 
         showToast('✅ 承認済(発送待ち)に更新 / Đã chuyển sang “Đã duyệt (chờ gửi)”', 'success');
+        // Notify teflon-manager to refresh (rebuild rows + badge)
+        try {
+          window.dispatchEvent(new CustomEvent('teflon:data-changed', {
+            detail: { source: 'teflon-process-manager', action: 'save' }
+          }));
+        } catch (e) {
+          console.warn('[TeflonProcessManager] dispatch teflon:data-changed error', e);
+        }
+
       } catch (err) {
         console.error('[QuickApprove] error', err);
         showToast('❌ 承認エラー / Lỗi duyệt', 'error');
@@ -1223,6 +1232,16 @@
         }
 
         showToast('✅ クイック出荷完了 / Quick send thành công', 'success');
+
+        // Notify teflon-manager to refresh (rebuild rows + badge)
+        try {
+          window.dispatchEvent(new CustomEvent('teflon:data-changed', {
+            detail: { source: 'teflon-process-manager', action: 'save' }
+          }));
+        } catch (e) {
+          console.warn('[TeflonProcessManager] dispatch teflon:data-changed error', e);
+        }
+
       } catch (err) {
         console.error('[QuickSend] error', err);
         showToast('❌ クイック出荷エラー / Quick send lỗi', 'error');
@@ -1387,6 +1406,15 @@
 
         showToast('✅ クイック受入完了 / Quick receive thành công', 'success');
 
+        // Notify teflon-manager to refresh (rebuild rows + badge)
+        try {
+          window.dispatchEvent(new CustomEvent('teflon:data-changed', {
+            detail: { source: 'teflon-process-manager', action: 'save' }
+          }));
+        } catch (e) {
+          console.warn('[TeflonProcessManager] dispatch teflon:data-changed error', e);
+        }
+
         const wantUpdateLocation = window.confirm('位置を更新しますか？\nCó muốn cập nhật vị trí khuôn không?');
         if (wantUpdateLocation) {
           if (window.LocationManager && typeof window.LocationManager.openModal === 'function') {
@@ -1547,6 +1575,16 @@
         }
 
         showToast('✅ 保存完了 / Lưu thành công', 'success');
+
+        // Notify teflon-manager to refresh (rebuild rows + badge)
+        try {
+          window.dispatchEvent(new CustomEvent('teflon:data-changed', {
+            detail: { source: 'teflon-process-manager', action: 'save' }
+          }));
+        } catch (e) {
+          console.warn('[TeflonProcessManager] dispatch teflon:data-changed error', e);
+        }
+
       } catch (err) {
         console.error('[Send] error', err);
         showToast('❌ 保存エラー / Lỗi khi lưu', 'error');
@@ -1721,6 +1759,15 @@
         }
 
         showToast('✅ 完了登録済み / Đã ghi nhận hoàn tất', 'success');
+
+        // Notify teflon-manager to refresh (rebuild rows + badge)
+        try {
+          window.dispatchEvent(new CustomEvent('teflon:data-changed', {
+            detail: { source: 'teflon-process-manager', action: 'save' }
+          }));
+        } catch (e) {
+          console.warn('[TeflonProcessManager] dispatch teflon:data-changed error', e);
+        }
 
         if (wantUpdateLocation) {
           if (window.LocationManager && typeof window.LocationManager.openModal === 'function') {

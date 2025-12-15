@@ -185,6 +185,23 @@
       openProcessManagerByMoldId(moldId, detail.teflonRow);
     });
 
+      // 1b) Listen for data changes from process-manager (rebuild rows + badge)
+    window.addEventListener('teflon:data-changed', function (e) {
+      console.log('[TeflonBootstrap] teflon:data-changed detected, refreshing...');
+      // Small delay to ensure DataManager.recompute() finished
+      setTimeout(function() {
+        buildRowsIfPossible();
+        refreshBadgeIfAny();
+        
+        // If panel is open, refresh display
+        if (document.getElementById('teflon-panel')) {
+          if (window.TeflonManager && typeof window.TeflonManager.renderTable === 'function') {
+            safeCall(() => window.TeflonManager.renderTable());
+          }
+        }
+      }, 100);
+    });
+
     // 2) Click "mold name" inside teflon panel
     document.addEventListener('click', function (e) {
       const panel = document.getElementById('teflon-panel');

@@ -1190,29 +1190,49 @@
             break;
         }
 
+        // Xử lý đặc biệt cho cột ngày giờ / Special handling for date column
         if (key === 'date') {
-          const da = new Date(va).getTime();
-          const db = new Date(vb).getTime();
-          // if invalid, fallback string compare
-          if (!Number.isNaN(da) && !Number.isNaN(db)) return (db - da) * dir;
+          const hasDateA = va && String(va).trim() !== '';
+          const hasDateB = vb && String(vb).trim() !== '';
+
+          // Nếu cả 2 đều có ngày giờ, sắp xếp theo thời gian
+          // If both have dates, sort by time
+          if (hasDateA && hasDateB) {
+            const da = new Date(va).getTime();
+            const db = new Date(vb).getTime();
+            if (!Number.isNaN(da) && !Number.isNaN(db)) {
+              return (db - da) * dir; // mới nhất trước / newest first
+            }
+          }
+
+          // Nếu chỉ a có ngày giờ -> a lên trước (mới hơn)
+          // If only a has date -> a comes first (newer)
+          if (hasDateA && !hasDateB) return -1;
+
+          // Nếu chỉ b có ngày giờ -> b lên trước (mới hơn)
+          // If only b has date -> b comes first (newer)
+          if (!hasDateA && hasDateB) return 1;
+
+          // Nếu cả 2 đều không có ngày giờ -> sắp xếp theo tên
+          // If both have no date -> sort by name
+          if (!hasDateA && !hasDateB) {
+            const nameA = toLower(a.ItemCode || a.ItemName || '');
+            const nameB = toLower(b.ItemCode || b.ItemName || '');
+            if (nameA < nameB) return -1;
+            if (nameA > nameB) return 1;
+            return 0;
+          }
         }
 
+        // Sắp xếp thông thường cho các cột khác / Normal sorting for other columns
         va = toLower(va);
         vb = toLower(vb);
         if (va < vb) return -1 * dir;
         if (va > vb) return 1 * dir;
         return 0;
       });
-
-      // update UI sort indicators
-      if (this.els.tableHead) {
-        this.els.tableHead.querySelectorAll('th.sortable').forEach(th => {
-          th.classList.remove('sort-asc', 'sort-desc');
-          const k = th.getAttribute('data-sort-key');
-          if (k === key) th.classList.add(dir === 1 ? 'sort-asc' : 'sort-desc');
-        });
-      }
     },
+
 
     applyFiltersAndRender(resetPage) {
       this.syncFiltersFromDom();

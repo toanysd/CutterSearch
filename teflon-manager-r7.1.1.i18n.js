@@ -208,9 +208,16 @@
     // Summary
     const summary = panel.querySelector('.tef-summary');
     if (summary) {
-      summary.innerHTML =
-        `${esc(I18N.ui.panel.summaryJP)}<br><span style="opacity:0.85;">${esc(I18N.ui.panel.summaryVI)}</span>`;
+      const jpEl = summary.querySelector('.jp');
+      const viEl = summary.querySelector('.vi');
+      if (jpEl && viEl) {
+        jpEl.textContent = I18N.ui.panel.summaryJP;
+        viEl.textContent = I18N.ui.panel.summaryVI;
+      } else {
+        summary.textContent = `${I18N.ui.panel.summaryJP} / ${I18N.ui.panel.summaryVI}`;
+      }
     }
+
 
     // Help (if exists)
     const help = panel.querySelector('.tef-help');
@@ -340,8 +347,9 @@
       const originalOpen = window.TeflonManager.openPanel.bind(window.TeflonManager);
       window.TeflonManager.openPanel = function () {
         const r = originalOpen();
-        setTimeout(() => patchPanelTexts(), 0);
-        setTimeout(() => patchPanelTexts(), 200);
+        //setTimeout(() => patchPanelTexts(), 0);
+        //setTimeout(() => patchPanelTexts(), 200);
+        patchPanelTexts();
         return r;
       };
       window.TeflonManager.openPanel.__tefI18nPatched = true;
