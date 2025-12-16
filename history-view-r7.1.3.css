@@ -1,0 +1,856 @@
+/**
+ * history-view-r7.1.4.css
+ * ===========================================================
+ * Unified History View Styles
+ * 
+ * CHANGELOG r7.1.4 (2025-12-16):
+ * ✅ FIX: Badge thống kê 1 hàng, compact cho mobile
+ * ✅ FIX: Cột From/To tách riêng với tiếng Nhật
+ * ✅ FIX: Các cột fit với nội dung hiển thị
+ * ✅ FIX: Ưu tiên hiển thị: 日時, コード・名称, 種類, From, To
+ * ✅ FIX: Notes, Handler có thể scroll ngang
+ * 
+ * Updated: 2025-12-16
+ */
+
+/* ===========================================================
+   ROOT CONTAINER
+   =========================================================== */
+.hist-root {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 9000;
+  display: none;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+}
+
+.hist-root.hist-open {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hist-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9001;
+}
+
+.hist-dialog {
+  position: relative;
+  background: #f9fafb;
+  border-radius: 16px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  z-index: 9002;
+  display: flex;
+  flex-direction: column;
+  width: 95vw;
+  max-width: 1400px;
+  height: 90vh;
+  max-height: 900px;
+  overflow: hidden;
+}
+
+/* Mobile */
+@media (max-width: 767px) {
+  .hist-dialog {
+    width: 100vw;
+    height: 100vh;
+    max-width: 100vw;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+}
+
+/* ===========================================================
+   HEADER
+   =========================================================== */
+.hist-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  color: white;
+  flex-shrink: 0;
+}
+
+.hist-title {
+  font-size: 18px;
+  font-weight: 700;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.hist-title .ja {
+  font-size: 20px;
+}
+
+.hist-title .vi {
+  font-size: 13px;
+  opacity: 0.9;
+  font-weight: 500;
+}
+
+.hist-close {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  font-size: 28px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.hist-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* ===========================================================
+   TOP INFO (Summary + Stats)
+   =========================================================== */
+.hist-topinfo {
+  padding: 12px 16px 8px;
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+  flex-shrink: 0;
+}
+
+.hist-summary {
+  font-size: 13px;
+  color: #4b5563;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+/* ✅ Stats badges: 1 hàng, compact */
+.hist-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.hist-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  min-width: 0;
+}
+
+.hist-stat-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.hist-stat-icon.total {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+}
+
+.hist-stat-icon.audit {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+}
+
+.hist-stat-icon.move {
+  background: linear-gradient(135deg, #8b5cf6, #a855f7);
+  color: white;
+}
+
+.hist-stat-icon.io {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+}
+
+.hist-stat-label {
+  font-size: 10px;
+  color: #6b7280;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hist-stat-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1;
+}
+
+/* Mobile: giữ nguyên 4 cột, thu gọn hơn */
+@media (max-width: 767px) {
+  .hist-topinfo {
+    padding: 10px 12px 6px;
+  }
+
+  .hist-summary {
+    font-size: 11px;
+    margin-bottom: 6px;
+  }
+
+  .hist-stats {
+    gap: 4px;
+  }
+
+  .hist-stat-card {
+    padding: 4px 6px;
+    gap: 4px;
+  }
+
+  .hist-stat-icon {
+    width: 24px;
+    height: 24px;
+    font-size: 12px;
+  }
+
+  .hist-stat-label {
+    font-size: 9px;
+  }
+
+  .hist-stat-value {
+    font-size: 14px;
+  }
+}
+
+/* ===========================================================
+   BODY
+   =========================================================== */
+.hist-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 12px 16px;
+  gap: 12px;
+}
+
+/* ===========================================================
+   FILTERS
+   =========================================================== */
+.hist-filters {
+  flex-shrink: 0;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.hist-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 8px;
+}
+
+.hist-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.hist-field label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #374151;
+  display: flex;
+  gap: 4px;
+}
+
+.hist-input,
+.hist-select {
+  width: 100%;
+  padding: 6px 8px;
+  font-size: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: white;
+  color: #111827;
+  transition: border-color 0.2s;
+}
+
+.hist-input:focus,
+.hist-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.hist-filter-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.hist-btn {
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: white;
+  color: #374151;
+}
+
+.hist-btn:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.hist-btn-primary {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  border-color: #2563eb;
+}
+
+.hist-btn-primary:hover {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+}
+
+.hist-btn-secondary {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+.hist-btn-success {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border-color: #059669;
+}
+
+.hist-btn-success:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+}
+
+@media (max-width: 767px) {
+  .hist-filters {
+    padding: 10px;
+  }
+
+  .hist-filter-grid {
+    gap: 6px;
+  }
+
+  .hist-field label {
+    font-size: 10px;
+  }
+
+  .hist-input,
+  .hist-select {
+    padding: 5px 6px;
+    font-size: 11px;
+  }
+
+  .hist-btn {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+}
+
+/* ===========================================================
+   TABLE WRAPPER - ✅ SCROLL HORIZONTAL TRÊN MOBILE
+   =========================================================== */
+/* ✅ Table wrapper: scroll lock toggle */
+.hist-table-wrap {
+  flex: 1;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  position: relative;
+}
+
+/* ✅ Mặc định: KHÔNG scroll ngang */
+.hist-table-wrap:not(.scroll-unlocked) {
+  overflow-x: hidden;
+}
+
+/* ✅ Khi unlock: scroll ngang */
+.hist-table-wrap.scroll-unlocked {
+  overflow-x: auto;
+}
+
+
+/* ✅ Table: Fit nội dung, ưu tiên cột quan trọng */
+.hist-table {
+  width: 100%;
+  border-collapse: collapse;
+  /*font-size: 12px;*/
+  table-layout: auto; /* ✅ Tự động tính width theo nội dung */
+}
+
+.hist-table thead {
+  position: sticky;
+  top: 0;
+  background: #f9fafb;
+  z-index: 10;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.hist-table th {
+  padding: 8px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #374151;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.2s;
+}
+
+.hist-table th:hover {
+  background: #f3f4f6;
+}
+
+.hist-table th.sortable::after {
+  content: ' ↕';
+  opacity: 0.3;
+  font-size: 10px;
+}
+
+.hist-table th.sorted-asc::after {
+  content: ' ↑';
+  opacity: 1;
+  color: #3b82f6;
+}
+
+.hist-table th.sorted-desc::after {
+  content: ' ↓';
+  opacity: 1;
+  color: #3b82f6;
+}
+
+.hist-table tbody tr {
+  border-bottom: 1px solid #f3f4f6;
+  transition: background 0.15s;
+}
+
+.hist-table tbody tr:hover {
+  background: #fafbfc;
+}
+
+.hist-table tbody tr[data-eventid] {
+  cursor: pointer;
+}
+
+.hist-table tbody tr[data-eventid]:hover {
+  background: #eff6ff;
+}
+
+.hist-table td {
+  padding: 8px 6px;
+  font-size: 12px;
+  color: #1f2937;
+  vertical-align: top;
+}
+
+/* ✅ COLUMNS: Compact, ưu tiên 5 cột: 日時, コード・名称, 種類, 出荷元, 出荷先 */
+
+/* 日時 - Giảm xuống 75px */
+.hist-col-date {
+  width: 75px;
+  min-width: 75px;
+  white-space: nowrap;
+}
+
+.hist-date-part {
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: #111827;
+}
+
+.hist-time-part {
+  font-size: 9px;
+  color: #6b7280;
+  line-height: 1.2;
+  margin-top: 1px;
+}
+
+/* コード・名称 - Giảm xuống 90px */
+.hist-col-item {
+  width: 90px;
+  min-width: 90px;
+  max-width: 90px;
+  overflow: hidden;
+}
+
+.hist-item-code {
+  font-weight: 700;
+  font-size: 11px;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ✅ Màu xanh cho mold, cam cho cutter */
+.hist-row-mold .hist-item-code {
+  color: #2563eb; /* Blue for mold */
+}
+
+.hist-row-cutter .hist-item-code {
+  color: #ea580c; /* Orange for cutter */
+}
+
+.hist-item-name {
+  font-size: 9px;
+  color: #6b7280;
+  line-height: 1.2;
+  margin-top: 1px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 種類 - Giảm xuống 70px */
+.hist-col-action {
+  width: 70px;
+  min-width: 70px;
+  white-space: nowrap;
+}
+
+.hist-badge {
+  display: inline-flex;
+  flex-direction: column;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.hist-badge .ja {
+  font-size: 9px;
+}
+
+.hist-badge .vi {
+  font-size: 8px;
+  opacity: 0.85;
+}
+
+.hist-badge-audit {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.hist-badge-checkin {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.hist-badge-checkout {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.hist-badge-location {
+  background: #e9d5ff;
+  color: #6b21a8;
+}
+
+.hist-badge-shipout {
+  background: #fed7aa;
+  color: #92400e;
+}
+
+.hist-badge-shipin {
+  background: #bfdbfe;
+  color: #1e3a8a;
+}
+
+.hist-badge-shipmove {
+  background: #fde68a;
+  color: #78350f;
+}
+
+.hist-badge-other {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+/* ✅ 出荷元 (From) - 100px, màu đỏ */
+.hist-col-from {
+  width: 80px;
+  min-width: 80px;
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #dc2626; /* Red */
+  font-weight: 600;
+  font-size: 10px;
+}
+
+/* ✅ 出荷先 (To) - 100px, màu xanh lá */
+.hist-col-to {
+  width: 80px;
+  min-width: 80px;
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #16a34a; /* Green */
+  font-weight: 600;
+  font-size: 11px;
+}
+
+/* 備考 - Hidden by default, show when scroll unlocked */
+.hist-col-notes {
+  min-width: 120px;
+  max-width: 180px;
+  font-size: 10px;
+  line-height: 1.3;
+  color: #4b5563;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 担当 - Hidden by default */
+.hist-col-handler {
+  min-width: 90px;
+  max-width: 120px;
+  font-size: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Mobile: giảm thêm */
+@media (max-width: 767px) {
+  .hist-col-date {
+    width: 65px;
+    min-width: 65px;
+  }
+
+  .hist-date-part {
+    font-size: 9px;
+  }
+
+  .hist-time-part {
+    font-size: 8px;
+  }
+
+  .hist-col-item {
+    width: 80px;
+    min-width: 80px;
+    max-width: 80px;
+  }
+
+  .hist-item-code {
+    font-size: 10px;
+  }
+
+  .hist-item-name {
+    font-size: 8px;
+  }
+
+  .hist-col-action {
+    width: 60px;
+    min-width: 60px;
+  }
+
+  .hist-badge {
+    font-size: 8px;
+    padding: 2px 3px;
+  }
+
+  .hist-badge .ja {
+    font-size: 8px;
+  }
+
+  .hist-badge .vi {
+    font-size: 7px;
+  }
+
+  .hist-col-from,
+  .hist-col-to {
+    width: 55px;
+    min-width: 55px;
+    max-width: 65px;
+    font-size: 10px;
+  }
+
+  .hist-col-notes {
+    min-width: 100px;
+    font-size: 9px;
+  }
+
+  .hist-col-handler {
+    min-width: 75px;
+    font-size: 9px;
+  }
+}
+
+
+/* ===========================================================
+   PAGINATION
+   =========================================================== */
+.hist-pagination {
+  flex-shrink: 0;
+  padding: 12px 0;
+  display: flex;
+  justify-content: center;
+}
+
+.hist-pagination-inner {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hist-page-btn {
+  padding: 6px 10px;
+  min-width: 32px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: white;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.hist-page-btn:hover:not(:disabled) {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.hist-page-btn.active {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  border-color: #2563eb;
+}
+
+.hist-page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.hist-page-ellipsis {
+  padding: 0 4px;
+  color: #9ca3af;
+  font-size: 12px;
+}
+
+/* ✅ Footer: 4 buttons 1 row style mobile action buttons */
+.hist-footer {
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  padding: 12px 16px;
+  background: white;
+  border-top: 1px solid #e5e7eb;
+}
+
+.hist-footer-left,
+.hist-footer-right {
+  display: contents; /* Grid items trực tiếp */
+}
+
+.hist-footer .hist-btn {
+  padding: 12px 8px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
+  text-align: center;
+  white-space: nowrap;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border: 1px solid #d1d5db;
+  background: white;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.hist-footer .hist-btn:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.hist-footer .hist-btn-primary {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border-color: #059669;
+}
+
+.hist-footer .hist-btn-primary:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+}
+
+@media (max-width: 767px) {
+  .hist-footer {
+    gap: 6px;
+    padding: 10px 12px;
+  }
+
+  .hist-footer .hist-btn {
+    padding: 10px 6px;
+    font-size: 11px;
+  }
+}
+
+
+/* ===========================================================
+   UTILITIES
+   =========================================================== */
+.hist-row-mold {
+  /* Mold rows - no special styling by default */
+}
+
+.hist-row-cutter {
+  /* Cutter rows - no special styling by default */
+}
+
+/* ✅ Toggle scroll button (in filter actions) */
+#history-scroll-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+#history-scroll-toggle.unlocked {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border-color: #059669;
+}
+
+#history-scroll-toggle.unlocked:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+}

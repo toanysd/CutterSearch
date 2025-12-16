@@ -1,0 +1,685 @@
+/**
+ * ========================================================================
+ * teflon-process-manager-r7.1.3.css
+ * テフロン加工パネル UI スタイル / CSS cho panel mạ Teflon
+ * 
+ * CHANGELOG r7.1.3 (2025-12-16 18:35)
+ * ✅ Đồng nhất phong cách với history-view và mobile-detail-modal
+ * ✅ Sticky header cho bảng lịch sử
+ * ✅ Scroll lock/unlock toggle button
+ * ✅ Delete button cho từng dòng lịch sử
+ * ✅ Responsive design tối ưu cho mobile
+ * ✅ Empty state cho dropdown trạng thái mạ
+ * 
+ * Updated: 2025-12-16 18:35 JST
+ * ========================================================================
+ */
+
+/* ========================================================================
+   ROOT PANEL LAYOUT - Nhất quán với history-view
+   ======================================================================== */
+
+.tefproc-panel.checkio-panel {
+  width: 100%;
+  max-width: 980px;
+  margin: 14px auto 18px auto;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 6px 22px rgba(15, 23, 42, 0.10);
+}
+
+.tefproc-panel .checkio-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+  border-bottom: 1px solid #eef2f7;
+}
+
+.tefproc-panel .checkio-body {
+  padding: 12px;
+}
+
+/* Prevent background scroll when modal open (mobile) */
+body.modal-open {
+  overflow: hidden;
+}
+
+/* ========================================================================
+   HEADER / TABS - Nhất quán với mobile-detail-modal
+   ======================================================================== */
+
+.tefproc-panel .checkio-mode {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+  flex: 1;
+}
+
+.tefproc-panel .mode-btn {
+  appearance: none;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #374151;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.1;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+  min-width: 150px;
+  white-space: nowrap;
+}
+
+.tefproc-panel .mode-btn:hover {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+}
+
+.tefproc-panel .mode-btn.active {
+  border-color: #3b82f6;
+  background: #eff6ff;
+  color: #1e40af;
+}
+
+.tefproc-panel .btn-close-compact {
+  appearance: none;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #111827;
+  border-radius: 10px;
+  width: 38px;
+  height: 38px;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.tefproc-panel .btn-close-compact:hover {
+  background: #f9fafb;
+  border-color: #cbd5e1;
+}
+
+/* ========================================================================
+   SECTIONS
+   ======================================================================== */
+
+.tefproc-panel section {
+  margin-bottom: 14px;
+}
+
+.tefproc-panel h4 {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.tefproc-panel .workflow-hint {
+  border-radius: 10px !important;
+}
+
+/* ========================================================================
+   FORMS - Nhất quán với history-view filter inputs
+   ======================================================================== */
+
+.tefproc-panel .cio-inputs {
+  background: #ffffff;
+  border: 1px solid #eef2f7;
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.tefproc-panel .form-group {
+  margin-bottom: 10px;
+}
+
+.tefproc-panel .form-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #374151;
+}
+
+.tefproc-panel .form-control {
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  padding: 10px 10px;
+  font-size: 13px;
+  line-height: 1.2;
+  color: #111827;
+  outline: none;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.tefproc-panel .form-control:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.tefproc-panel textarea.form-control {
+  resize: vertical;
+  min-height: 66px;
+}
+
+/* ========================================================================
+   STATUS PILL - Empty state support
+   ======================================================================== */
+
+.tefproc-status-pill {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  color: #374151;
+  font-weight: 800;
+  font-size: 12px;
+}
+
+/* Status colors */
+.tefproc-status-pill[data-status="empty"] {
+  border-color: #d1d5db;
+  background: #f3f4f6;
+  color: #9ca3af;
+  font-style: italic;
+}
+
+.tefproc-status-pill[data-status="pending"] {
+  border-color: #fbbf24;
+  background: #fffbeb;
+  color: #92400e;
+}
+
+.tefproc-status-pill[data-status="approved"] {
+  border-color: #60a5fa;
+  background: #eff6ff;
+  color: #1e40af;
+}
+
+.tefproc-status-pill[data-status="sent"] {
+  border-color: #3b82f6;
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.tefproc-status-pill[data-status="completed"] {
+  border-color: #10b981;
+  background: #d1fae5;
+  color: #065f46;
+}
+
+/* ========================================================================
+   BUTTONS - Nhất quán với mobile-compact-styles
+   ======================================================================== */
+
+.tefproc-panel .btn-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.tefproc-panel .btn-cancel,
+.tefproc-panel .btn-secondary,
+.tefproc-panel .btn-confirm,
+.tefproc-panel .btn-danger {
+  appearance: none;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: transform 80ms ease, filter 120ms ease, background 120ms ease;
+}
+
+.tefproc-panel .btn-cancel {
+  background: #ffffff;
+  border-color: #e5e7eb;
+  color: #111827;
+}
+
+.tefproc-panel .btn-cancel:hover {
+  background: #f9fafb;
+}
+
+.tefproc-panel .btn-secondary {
+  background: #f3f4f6;
+  border-color: #e5e7eb;
+  color: #111827;
+}
+
+.tefproc-panel .btn-secondary:hover {
+  filter: brightness(0.98);
+}
+
+.tefproc-panel .btn-confirm {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.tefproc-panel .btn-confirm:hover {
+  filter: brightness(0.98);
+}
+
+/* ✅ NEW: Danger button for delete actions */
+.tefproc-panel .btn-danger {
+  background: #dc2626;
+  color: #ffffff;
+  border-color: #b91c1c;
+}
+
+.tefproc-panel .btn-danger:hover {
+  background: #b91c1c;
+  filter: brightness(0.95);
+}
+
+.tefproc-panel .btn-cancel:active,
+.tefproc-panel .btn-secondary:active,
+.tefproc-panel .btn-confirm:active,
+.tefproc-panel .btn-danger:active {
+  transform: translateY(1px);
+}
+
+/* ========================================================================
+   CURRENT STATUS / QUICK ACTIONS BLOCKS
+   ======================================================================== */
+
+.tefproc-current-status,
+.tefproc-quick-actions {
+  border-radius: 12px;
+}
+
+.tefproc-current-status .status-badge {
+  border-radius: 12px;
+}
+
+.tefproc-panel .note-small {
+  margin: 10px 0 0 0;
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+/* ========================================================================
+   MOLD INFO BADGES
+   ======================================================================== */
+
+.tefproc-panel .cio-status {
+  background: #ffffff;
+  border: 1px solid #eef2f7;
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.tefproc-panel .status-badges .badge-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.tefproc-panel .status-badges .badge-row:last-child {
+  margin-bottom: 0;
+}
+
+.tefproc-panel .badge-label {
+  width: 120px;
+  min-width: 120px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #6b7280;
+}
+
+.tefproc-panel .badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  color: #111827;
+  font-size: 12px;
+  font-weight: 800;
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
+}
+
+/* ========================================================================
+   ✅ HISTORY TABLE - Styled like history-view
+   ======================================================================== */
+
+.tefproc-panel .cio-history {
+  background: #ffffff;
+  border: 1px solid #eef2f7;
+  border-radius: 12px;
+  padding: 12px;
+}
+
+/* ✅ History header with Lock button */
+.tefproc-history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.tefproc-history-header h4 {
+  margin: 0;
+  flex: 1;
+}
+
+.tefproc-history-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* ✅ Scroll lock toggle button - styled like history-view */
+.tefproc-scroll-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: white;
+  color: #374151;
+}
+
+.tefproc-scroll-toggle:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.tefproc-scroll-toggle.unlocked {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border-color: #059669;
+}
+
+.tefproc-scroll-toggle.unlocked:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+}
+
+/* ✅ Table wrapper with scroll control */
+.tefproc-panel .history-wrap {
+  width: 100%;
+  overflow: auto;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  position: relative;
+}
+
+/* Default: NO horizontal scroll */
+.tefproc-panel .history-wrap:not(.scroll-unlocked) {
+  overflow-x: hidden;
+}
+
+/* When unlocked: allow horizontal scroll */
+.tefproc-panel .history-wrap.scroll-unlocked {
+  overflow-x: auto;
+}
+
+/* ✅ Table styling - sticky header like history-view */
+.tefproc-panel .history-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 920px;
+  background: #ffffff;
+  font-size: 12px;
+}
+
+.tefproc-panel .history-table thead {
+  position: sticky;
+  top: 0;
+  background: #f8fafc;
+  z-index: 10;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.tefproc-panel .history-table thead th {
+  font-size: 12px;
+  font-weight: 900;
+  color: #111827;
+  padding: 10px 10px;
+  text-align: left;
+  white-space: nowrap;
+  background: #f8fafc;
+}
+
+.tefproc-panel .history-table td {
+  border-bottom: 1px solid #eef2f7;
+  font-size: 12px;
+  color: #111827;
+  padding: 10px 10px;
+  vertical-align: top;
+}
+
+.tefproc-panel .history-table tbody tr:hover td {
+  background: #f9fafb;
+}
+
+/* ✅ Delete button column */
+.tefproc-panel .history-table .col-actions {
+  width: 60px;
+  min-width: 60px;
+  text-align: center;
+}
+
+.tefproc-panel .history-table .btn-delete-history {
+  padding: 4px 8px;
+  font-size: 11px;
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 600;
+}
+
+.tefproc-panel .history-table .btn-delete-history:hover {
+  background: #fecaca;
+  border-color: #f87171;
+  transform: translateY(-1px);
+}
+
+.tefproc-panel .history-table .btn-delete-history:active {
+  transform: translateY(0);
+}
+
+.tefproc-panel .history-table .note-cell {
+  max-width: 360px;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.tefproc-panel .no-history {
+  padding: 12px;
+  color: #6b7280;
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+/* ========================================================================
+   BOTTOM BAR (Mobile friendly)
+   ======================================================================== */
+
+.tefproc-bottom-bar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 10px 12px;
+  border-top: 1px solid #eef2f7;
+  background: #ffffff;
+}
+
+.tefproc-bottom-bar .btn-cancel {
+  min-width: 120px;
+}
+
+/* ========================================================================
+   TOAST NOTIFICATION
+   ======================================================================== */
+
+.tefproc-toast {
+  user-select: none;
+}
+
+/* ========================================================================
+   ✅ MOBILE: Bottom sheet style (like history-view)
+   ======================================================================== */
+
+@media (max-width: 767px) {
+  .tefproc-panel.checkio-panel {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: auto;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    border-radius: 14px 14px 0 0;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    box-shadow: 0 -8px 28px rgba(15, 23, 42, 0.18);
+    z-index: 10040;
+  }
+
+  .tefproc-panel.dragging {
+    transition: none !important;
+  }
+
+  .tefproc-panel .checkio-body {
+    max-height: calc(100vh - 70px);
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tefproc-panel .mode-btn {
+    min-width: 0;
+    width: 100%;
+    white-space: normal;
+  }
+
+  .tefproc-panel .status-badges .badge-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+
+  .tefproc-panel .badge-label {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .tefproc-panel .btn-row {
+    flex-direction: column;
+  }
+
+  .tefproc-panel .btn-cancel,
+  .tefproc-panel .btn-secondary,
+  .tefproc-panel .btn-confirm,
+  .tefproc-panel .btn-danger {
+    width: 100%;
+  }
+
+  .tefproc-bottom-bar {
+    position: sticky;
+    bottom: 0;
+    background: #ffffff;
+  }
+
+  /* ✅ Mobile: Stack history controls vertically */
+  .tefproc-history-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .tefproc-history-controls {
+    justify-content: flex-end;
+  }
+
+  /* Mobile: Smaller table fonts */
+  .tefproc-panel .history-table {
+    font-size: 10px;
+    min-width: 800px;
+  }
+
+  .tefproc-panel .history-table thead th {
+    padding: 8px 6px;
+    font-size: 10px;
+  }
+
+  .tefproc-panel .history-table td {
+    padding: 8px 6px;
+    font-size: 10px;
+  }
+
+  .tefproc-panel .history-table .btn-delete-history {
+    padding: 3px 6px;
+    font-size: 9px;
+  }
+}
+
+/* ========================================================================
+   PRINT STYLES
+   ======================================================================== */
+
+@media print {
+  .tefproc-panel .checkio-header,
+  .tefproc-bottom-bar,
+  .btn-row,
+  .btn-close-compact,
+  .tefproc-history-controls {
+    display: none !important;
+  }
+
+  .tefproc-panel.checkio-panel {
+    box-shadow: none;
+    border: 1px solid #d1d5db;
+  }
+
+  .tefproc-panel .history-wrap {
+    overflow: visible;
+    border: none;
+  }
+
+  .tefproc-panel .history-table {
+    min-width: 0;
+  }
+
+  .tefproc-panel .history-table thead th {
+    position: static;
+  }
+
+  .tefproc-panel .history-table .col-actions {
+    display: none;
+  }
+}
+
+/* ========================================================================
+   END OF FILE
+   ======================================================================== */

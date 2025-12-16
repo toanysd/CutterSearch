@@ -1,0 +1,1254 @@
+/**
+ * =============================================================================
+ * history-view-r7.1.5-fixed.css
+ *
+ * Unified History View Styles - Fixed Version
+ *
+ * CHANGELOG r7.1.5-fixed (2025-12-16):
+ * ✅ LAYOUT: 2-row filter layout
+ *    - Row 1: 4 cột đều (Date From | Date To | Action | Employee)
+ *    - Row 2: 3 cột (Search | Field Select | Value Input)
+ * ✅ REMOVED: Rack/Company input fields
+ * ✅ REMOVED: Apply button (auto-filter)
+ * ✅ KEEP: All r7.1.4 features (stats badges, from/to colors, scroll lock...)
+ *
+ * Updated: 2025-12-16 15:49 JST
+ * =============================================================================
+ */
+
+/* =============================================================================
+   ROOT CONTAINER
+   ============================================================================= */
+.hist-root {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 9000;
+  display: none;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+}
+
+.hist-root.hist-open {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hist-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9001;
+}
+
+.hist-dialog {
+  position: relative;
+  background: #f9fafb;
+  border-radius: 16px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  z-index: 9002;
+  display: flex;
+  flex-direction: column;
+  width: 95vw;
+  max-width: 1400px;
+  height: 90vh;
+  max-height: 900px;
+  overflow: hidden;
+}
+
+@media (max-width: 767px) {
+  .hist-dialog {
+    width: 100vw;
+    height: 100vh;
+    max-width: 100vw;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+}
+
+/* =============================================================================
+   HEADER
+   ============================================================================= */
+.hist-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px; /* ✅ Giảm từ 16px → 10px */
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  color: white;
+  flex-shrink: 0;
+}
+
+.hist-title {
+  font-size: 16px; /* ✅ Giảm từ 18px → 16px */
+  font-weight: 700;
+  display: flex;
+  flex-direction: column;
+  gap: 1px; /* ✅ Giảm từ 2px → 1px */
+}
+
+.hist-title .ja {
+  font-size: 17px; /* ✅ Giảm từ 20px → 17px */
+}
+
+.hist-title .vi {
+  font-size: 11px; /* ✅ Giảm từ 13px → 11px */
+  opacity: 0.9;
+  font-weight: 500;
+}
+
+.hist-close {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  font-size: 24px; /* ✅ Giảm từ 28px → 24px */
+  width: 32px; /* ✅ Giảm từ 36px → 32px */
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+
+.hist-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* =============================================================================
+   TOP INFO (Summary + Stats)
+   ============================================================================= */
+.hist-topinfo {
+  padding: 8px 12px 6px; /* ✅ Giảm padding */
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+  flex-shrink: 0;
+}
+
+.hist-summary {
+  font-size: 11px; /* ✅ Giảm từ 13px → 11px */
+  color: #4b5563;
+  margin-bottom: 6px; /* ✅ Giảm từ 8px → 6px */
+  font-weight: 500;
+}
+
+.hist-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px; /* ✅ Giảm từ 6px → 4px */
+}
+
+.hist-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 4px; /* ✅ Giảm từ 6px → 4px */
+  padding: 4px 6px; /* ✅ Giảm từ 6px 8px → 4px 6px */
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px; /* ✅ Giảm từ 8px → 6px */
+  min-width: 0;
+}
+
+
+.hist-stat-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.hist-stat-icon.total {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+}
+
+.hist-stat-icon.audit {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+}
+
+.hist-stat-icon.move {
+  background: linear-gradient(135deg, #8b5cf6, #a855f7);
+  color: white;
+}
+
+.hist-stat-icon.io {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+}
+
+.hist-stat-label {
+  font-size: 10px;
+  color: #6b7280;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hist-stat-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1;
+}
+
+@media (max-width: 767px) {
+  .hist-topinfo {
+    padding: 10px 12px 6px;
+  }
+
+  .hist-summary {
+    font-size: 11px;
+    margin-bottom: 6px;
+  }
+
+  .hist-stats {
+    gap: 4px;
+  }
+
+  .hist-stat-card {
+    padding: 4px 6px;
+    gap: 4px;
+  }
+
+  .hist-stat-icon {
+    width: 24px;
+    height: 24px;
+    font-size: 12px;
+  }
+
+  .hist-stat-label {
+    font-size: 9px;
+  }
+
+  .hist-stat-value {
+    font-size: 14px;
+  }
+}
+
+/* =============================================================================
+   BODY
+   ============================================================================= */
+.hist-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 12px 16px;
+  gap: 12px;
+}
+
+/* =============================================================================
+   ✅ FILTERS - NEW 2-ROW LAYOUT (FIXED)
+   ============================================================================= */
+.hist-filters {
+  flex-shrink: 0;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px; /* ✅ Giảm từ 12px → 8px */
+  padding: 8px; /* ✅ Giảm từ 12px → 8px */
+}
+
+.hist-filter-row-1 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px; /* ✅ Giảm từ 10px → 6px */
+  margin-bottom: 8px; /* ✅ Giảm từ 12px → 8px */
+}
+
+.hist-filter-row-2 {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 1.5fr;
+  gap: 6px; /* ✅ Giảm từ 10px → 6px */
+  margin-bottom: 6px; /* ✅ Giảm từ 10px → 6px */
+}
+
+.hist-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px; /* ✅ Giảm từ 5px → 3px */
+  min-width: 0;
+}
+
+.hist-input,
+.hist-select {
+  width: 100%;
+  padding: 5px 8px; /* ✅ Giảm từ 7px 10px → 5px 8px */
+  font-size: 11px; /* ✅ Giảm từ 12px → 11px */
+  border: 1px solid #d1d5db;
+  border-radius: 4px; /* ✅ Giảm từ 6px → 4px */
+  background: white;
+  color: #111827;
+  transition: border-color 0.2s;
+  min-width: 0;
+}
+
+
+.hist-input:focus,
+.hist-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.hist-input:disabled,
+.hist-select:disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+
+.hist-input:focus,
+.hist-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.hist-input:disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* Filter actions: scroll toggle + refresh + clear (no apply button) */
+.hist-filter-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 2px; /* ✅ Khoảng cách từ row 2 */
+}
+
+
+.hist-btn {
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: white;
+  color: #374151;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.hist-btn:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.hist-btn-primary {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  border-color: #2563eb;
+}
+
+.hist-btn-primary:hover {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+}
+
+.hist-btn-secondary {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+.hist-btn-success {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border-color: #059669;
+}
+
+.hist-btn-success:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+}
+
+/* Toggle scroll button style */
+#history-scroll-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+#history-scroll-toggle.unlocked {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border-color: #059669;
+}
+
+#history-scroll-toggle.unlocked:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+}
+
+/* ✅ Sub-row cho Field + Value (chỉ dùng trên mobile) */
+.hist-filter-row-2-sub {
+  display: contents; /* Desktop: không tạo grid riêng */
+}
+
+/* Mobile sẽ override trong @media (max-width: 767px) */
+
+/* ✅ iPad (768px - 1024px) - 3 DÒNG: Stats | Date Filters | Search + Buttons */
+@media (max-width: 1024px) and (min-width: 768px) {
+  .hist-header {
+    padding: 8px 12px;
+  }
+
+  .hist-title {
+    font-size: 15px;
+  }
+
+  .hist-title .ja {
+    font-size: 16px;
+  }
+
+  .hist-topinfo {
+    padding: 6px 10px 4px;
+  }
+
+  .hist-summary {
+    font-size: 10px;
+    margin-bottom: 4px;
+  }
+
+  .hist-filters {
+    padding: 6px;
+  }
+
+  /* ROW 1: giữ nguyên 4 cột */
+  .hist-filter-row-1 {
+    gap: 4px;
+    margin-bottom: 6px;
+  }
+
+  /* ROW 2: Thu gọn Search + Field + Value, để trống cho buttons */
+  .hist-filter-row-2 {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr auto; /* ✅ Thêm cột auto cho buttons */
+    gap: 4px;
+    margin-bottom: 0; /* ✅ Bỏ margin-bottom */
+    align-items: end; /* ✅ Căn buttons xuống dưới */
+  }
+
+  .hist-filter-actions {
+    display: flex;
+    gap: 3px;
+    margin-left: 6px;
+  }
+  .hist-field {
+    gap: 2px;
+  }
+
+  .hist-field label {
+    font-size: 9px;
+  }
+
+  .hist-input,
+  .hist-select {
+    padding: 4px 6px;
+    font-size: 10px;
+  }
+
+  .hist-btn {
+    padding: 4px 8px;
+    font-size: 9px;
+    white-space: nowrap;
+  }
+
+  /* ✅ Text buttons: chỉ icon hoặc text ngắn */
+  .hist-btn-text-desktop {
+    display: none;
+  }
+
+  .hist-btn-text-mobile {
+    display: inline;
+  }
+
+  .hist-field label {
+    font-size: 9px;
+  }
+
+  .hist-input,
+  .hist-select {
+    padding: 4px 6px;
+    font-size: 10px;
+  }
+  /* ✅ Cột table: mở rộng vừa nội dung */
+  .hist-col-date {
+    width: auto;
+    min-width: 70px;
+  }
+
+  .hist-col-item {
+    width: auto;
+    min-width: 85px;
+    max-width: 120px;
+  }
+
+  .hist-col-action {
+    width: auto;
+    min-width: 65px;
+  }
+
+  .hist-col-notes {
+    min-width: 100px;
+    max-width: 200px;
+  }
+
+  .hist-col-handler {
+    min-width: 80px;
+    max-width: 130px;
+  }
+}
+
+
+/* ✅ iPhone và mobile nhỏ (<767px) */
+@media (max-width: 767px) {
+  .hist-header {
+    padding: 6px 10px;
+  }
+
+  .hist-title {
+    font-size: 14px;
+  }
+
+  .hist-title .ja {
+    font-size: 15px;
+  }
+
+  .hist-title .vi {
+    font-size: 10px;
+  }
+
+  .hist-close {
+    width: 28px;
+    height: 28px;
+    font-size: 20px;
+  }
+
+  .hist-topinfo {
+    padding: 5px 8px 3px;
+  }
+
+  .hist-summary {
+    font-size: 9px;
+    margin-bottom: 3px;
+  }
+
+  .hist-stats {
+    gap: 3px;
+  }
+
+  .hist-stat-card {
+    padding: 3px 4px;
+    gap: 3px;
+  }
+
+  .hist-stat-icon {
+    width: 20px;
+    height: 20px;
+    font-size: 10px;
+  }
+
+  .hist-stat-label {
+    font-size: 8px;
+  }
+
+  .hist-stat-value {
+    font-size: 12px;
+  }
+
+ 
+    padding: 6px 8px;
+    gap: 6px;
+  }
+
+  .hist-filters {
+    padding: 6px;
+    border-radius: 6px;
+  }
+
+  /* ✅ ROW 1: 4 cột (Date filters) - giữ nguyên */
+  .hist-filter-row-1 {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 3px;
+    margin-bottom: 6px;
+  }
+
+  /* ✅ ROW 2: Field + Value (2 cột) */
+  /* Search và Buttons KHÔNG nằm trong row 2 */
+  .hist-filter-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Chỉ 2 cột: Field + Value */
+    gap: 3px;
+    margin-bottom: 6px;
+    align-items: start;
+  }
+
+  /* ✅ Search field: Xuống dòng riêng, dùng order để sắp xếp */
+  .hist-search-field {
+    grid-column: 1 / -1; /* Full width */
+    order: 2; /* Xuống dưới Field + Value */
+  }
+
+  /* ✅ Field và Value: order 0 và 1 (lên trên) */
+  .hist-filter-row-2 > .hist-field:nth-child(2) {
+    order: 0;
+  }
+
+  .hist-filter-row-2 > .hist-field:nth-child(3) {
+    order: 1;
+  }
+
+  /* ✅ Buttons: order 3, nằm cùng dòng với Search */
+  .hist-filter-actions {
+    grid-column: 1 / -1; /* Full width */
+    order: 2; /* Cùng dòng với Search */
+    display: grid;
+    grid-template-columns: 2fr auto auto auto; /* Search (2fr) + 3 buttons */
+    gap: 3px;
+    margin: 0;
+  }
+
+  /* ✅ Tìm kiếm background xanh */
+  .hist-search-field .hist-input {
+    background: #f0f9ff;
+    border: 1px solid #3b82f6;
+    font-weight: 500;
+  }
+
+  /* ✅ Buttons thu nhỏ */
+  .hist-btn {
+    padding: 4px 5px;
+    font-size: 9px;
+    white-space: nowrap;
+  }
+
+  .hist-btn-text-desktop {
+    display: none;
+  }
+
+  .hist-btn-text-mobile {
+    display: inline;
+  }
+
+  .hist-field {
+    gap: 2px;
+  }
+
+  .hist-field label {
+    font-size: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .hist-input,
+  .hist-select {
+    padding: 4px 5px;
+    font-size: 10px;
+    border-radius: 3px;
+  }
+
+  .hist-btn {
+    padding: 5px 6px; /* ✅ Thu nhỏ để vừa */
+    font-size: 9px;
+    white-space: nowrap;
+  }
+
+  /* ✅ Table: giảm padding */
+  .hist-table th,
+  .hist-table td {
+    padding: 4px 3px;
+    font-size: 9px;
+  }
+
+  .hist-date-part {
+    font-size: 8px;
+  }
+
+  .hist-time-part {
+    font-size: 7px;
+  }
+
+  .hist-item-code {
+    font-size: 9px;
+  }
+
+  .hist-item-name {
+    font-size: 7px;
+  }
+
+  .hist-badge {
+    padding: 1px 3px;
+    font-size: 7px;
+  }
+
+  .hist-badge .ja {
+    font-size: 7px;
+  }
+
+  .hist-badge .vi {
+    font-size: 6px;
+  }
+
+  /* ✅ Pagination: nhỏ gọn hơn */
+  .hist-pagination {
+    padding: 6px 0;
+  }
+
+  .hist-page-btn {
+    padding: 4px 6px;
+    min-width: 24px;
+    font-size: 10px;
+  }
+
+  /* ✅ Footer: nhỏ gọn */
+  .hist-footer {
+    padding: 6px 8px;
+    gap: 4px;
+  }
+
+  .hist-footer .hist-btn {
+    padding: 8px 6px;
+    font-size: 10px;
+  }
+}
+
+
+
+/* =============================================================================
+   TABLE WRAPPER - Scroll lock toggle
+   ============================================================================= */
+.hist-table-wrap {
+  flex: 1;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  position: relative;
+}
+
+/* Mặc định: KHÔNG scroll ngang */
+.hist-table-wrap:not(.scroll-unlocked) {
+  overflow-x: hidden;
+}
+
+/* Khi unlock: scroll ngang */
+.hist-table-wrap.scroll-unlocked {
+  overflow-x: auto;
+}
+
+/* =============================================================================
+   TABLE
+   ============================================================================= */
+.hist-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  table-layout: auto;
+}
+
+.hist-table thead {
+  position: sticky;
+  top: 0;
+  background: #f9fafb;
+  z-index: 10;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.hist-table th {
+  padding: 8px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #374151;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.2s;
+}
+
+.hist-table th:hover {
+  background: #f3f4f6;
+}
+
+.hist-table th.sortable::after {
+  content: ' ↕';
+  opacity: 0.3;
+  font-size: 10px;
+}
+
+.hist-table th.sorted-asc::after {
+  content: ' ↑';
+  opacity: 1;
+  color: #3b82f6;
+}
+
+.hist-table th.sorted-desc::after {
+  content: ' ↓';
+  opacity: 1;
+  color: #3b82f6;
+}
+
+.hist-table tbody tr {
+  border-bottom: 1px solid #f3f4f6;
+  transition: background 0.15s;
+}
+
+.hist-table tbody tr:hover {
+  background: #fafbfc;
+}
+
+.hist-table tbody tr[data-eventid] {
+  cursor: pointer;
+}
+
+.hist-table tbody tr[data-eventid]:hover {
+  background: #eff6ff;
+}
+
+.hist-table td {
+  padding: 8px 6px;
+  font-size: 12px;
+  color: #1f2937;
+  vertical-align: top;
+}
+
+/* =============================================================================
+   COLUMNS: Compact, ưu tiên 5 cột chính
+   ============================================================================= */
+
+/* 日時 (Date) - 75px */
+.hist-col-date {
+  width: 75px;
+  min-width: 75px;
+  white-space: nowrap;
+}
+
+.hist-date-part {
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: #111827;
+}
+
+.hist-time-part {
+  font-size: 9px;
+  color: #6b7280;
+  line-height: 1.2;
+  margin-top: 1px;
+}
+
+/* コード・名称 (Code & Name) - 90px */
+.hist-col-item {
+  width: 90px;
+  min-width: 90px;
+  max-width: 90px;
+  overflow: hidden;
+}
+
+.hist-item-name {
+  font-weight: 700;
+  font-size: 11px;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Màu xanh cho mold, cam cho cutter */
+.hist-row-mold .hist-item-name {
+  color: #2563eb;
+}
+
+.hist-row-cutter .hist-item-name {
+  color: #ea580c;
+}
+
+.hist-item-code {
+  font-size: 9px;
+  color: #6b7280;
+  line-height: 1.2;
+  margin-top: 1px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 種類 (Action) - 70px */
+.hist-col-action {
+  width: 70px;
+  min-width: 70px;
+  white-space: nowrap;
+}
+
+.hist-badge {
+  display: inline-flex;
+  flex-direction: column;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.hist-badge .ja {
+  font-size: 9px;
+}
+
+.hist-badge .vi {
+  font-size: 8px;
+  opacity: 0.85;
+}
+
+.hist-badge-audit {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.hist-badge-checkin {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.hist-badge-checkout {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.hist-badge-location {
+  background: #e9d5ff;
+  color: #6b21a8;
+}
+
+.hist-badge-shipout {
+  background: #fed7aa;
+  color: #92400e;
+}
+
+.hist-badge-shipin {
+  background: #bfdbfe;
+  color: #1e3a8a;
+}
+
+.hist-badge-shipmove {
+  background: #fde68a;
+  color: #78350f;
+}
+
+.hist-badge-other {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+/* ✅ 旧 (Old / Cũ) - Màu CAM */
+.hist-col-from {
+  width: 80px;
+  min-width: 80px;
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #ea580c !important; /* ✅ Cam đậm - !important để override */
+  font-weight: 500; /* ✅ Bỏ đậm: 700 → 500 */
+  font-size: 11px;
+}
+
+/* ✅ 新 (New / Mới) - Màu XANH LÁ */
+.hist-col-to {
+  width: 100px;
+  min-width: 100px;
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #059669 !important; /* ✅ Xanh lá đậm - !important để override */
+  font-weight: 500; /* ✅ Bỏ đậm: 700 → 500 */
+  font-size: 11px;
+}
+
+/* ✅ iPad (768px - 1024px): Mở rộng cột vừa nội dung */
+@media (max-width: 1024px) and (min-width: 768px) {
+  .hist-col-from {
+    width: auto;
+    min-width: 90px;
+    max-width: 150px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  .hist-col-to {
+    width: auto;
+    min-width: 100px;
+    max-width: 180px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+}
+
+/* ✅ iPhone (<767px): Giữ nguyên size, khi unlock cho phép mở rộng */
+@media (max-width: 767px) {
+  .hist-col-from {
+    width: 60px;
+    min-width: 60px;
+    max-width: 60px;
+    font-size: 9px;
+    font-weight: 500; /* ✅ Bỏ đậm */
+  }
+
+  .hist-col-to {
+    width: 70px;
+    min-width: 70px;
+    max-width: 70px;
+    font-size: 9px;
+    font-weight: 500; /* ✅ Bỏ đậm */
+  }
+
+  /* ✅ Khi unlock scroll → cho phép cột rộng hơn */
+  .hist-table-wrap.scroll-unlocked .hist-col-from {
+    width: auto;
+    min-width: 80px;
+    max-width: none;
+    white-space: normal;
+  }
+
+  .hist-table-wrap.scroll-unlocked .hist-col-to {
+    width: auto;
+    min-width: 90px;
+    max-width: none;
+    white-space: normal;
+  }
+}
+
+
+
+/* 備考 (Notes) */
+.hist-col-notes {
+  min-width: 120px;
+  max-width: 180px;
+  font-size: 10px;
+  line-height: 1.3;
+  color: #4b5563;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 担当 (Handler) */
+.hist-col-handler {
+  min-width: 90px;
+  max-width: 120px;
+  font-size: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Mobile: thu gọn hơn */
+@media (max-width: 767px) {
+  .hist-table {
+    font-size: 10px;
+  }
+
+  .hist-table th,
+  .hist-table td {
+    padding: 6px 4px;
+    font-size: 11px;
+  }
+
+  .hist-col-date {
+    width: 65px;
+    min-width: 65px;
+  }
+
+  .hist-date-part {
+    font-size: 10px;
+  }
+
+  .hist-time-part {
+    font-size: 10px;
+  }
+
+  .hist-col-item {
+    width: 80px;
+    min-width: 80px;
+    max-width: 80px;
+  }
+
+  .hist-item-code {
+    font-size: 10px;
+  }
+
+  .hist-item-name {
+    font-size: 8px;
+  }
+
+  .hist-col-action {
+    width: 60px;
+    min-width: 60px;
+  }
+
+  .hist-badge {
+    font-size: 8px;
+    padding: 2px 3px;
+  }
+
+  .hist-badge .ja {
+    font-size: 8px;
+  }
+
+  .hist-badge .vi {
+    font-size: 7px;
+  }
+
+  .hist-col-from {
+    width: 70px;
+    min-width: 70px;
+    max-width: 70px;
+    font-size: 10px;
+  }
+
+  .hist-col-to {
+    width: 85px;
+    min-width: 85px;
+    max-width: 85px;
+    font-size: 10px;
+  }
+
+  .hist-col-notes {
+    min-width: 100px;
+    font-size: 9px;
+  }
+
+  .hist-col-handler {
+    min-width: 75px;
+    font-size: 9px;
+  }
+}
+
+/* =============================================================================
+   PAGINATION
+   ============================================================================= */
+.hist-pagination {
+  flex-shrink: 0;
+  padding: 12px 0;
+  display: flex;
+  justify-content: center;
+}
+
+.hist-pagination-inner {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hist-page-btn {
+  padding: 6px 10px;
+  min-width: 32px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: white;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.hist-page-btn:hover:not(:disabled) {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.hist-page-btn.active {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  border-color: #2563eb;
+}
+
+.hist-page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.hist-page-ellipsis {
+  padding: 0 4px;
+  color: #9ca3af;
+  font-size: 12px;
+}
+
+/* =============================================================================
+   FOOTER - 4 buttons grid
+   ============================================================================= */
+.hist-footer {
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  padding: 12px 16px;
+  background: white;
+  border-top: 1px solid #e5e7eb;
+}
+
+.hist-footer .hist-btn {
+  padding: 12px 8px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
+  text-align: center;
+  white-space: nowrap;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.hist-footer .hist-btn-primary {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border-color: #059669;
+}
+
+.hist-footer .hist-btn-primary:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+}
+
+@media (max-width: 767px) {
+  .hist-footer {
+    gap: 6px;
+    padding: 10px 12px;
+  }
+
+  .hist-footer .hist-btn {
+    padding: 10px 6px;
+    font-size: 11px;
+  }
+}
+
+/* =============================================================================
+   UTILITY CLASSES
+   ============================================================================= */
+.vi {
+  font-size: 0.9em;
+  opacity: 0.85;
+}

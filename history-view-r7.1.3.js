@@ -40,6 +40,9 @@
   // ===========================================================
   const GITHUB_DATA_BASE_URL = 'https://raw.githubusercontent.com/toanysd/MoldCutterSearch/main/Data/';
   const USE_GITHUB_SOURCE_FOR_HISTORY = true;
+    // ✅ THÊM: URL destinations.csv
+  const DESTINATIONS_CSV_URL = GITHUB_DATA_BASE_URL + 'destinations.csv';
+
 
   const ITEMS_PER_PAGE_DEFAULT = 50;
   const MAX_PRINT_ROWS = 500; // avoid extremely large print windows
@@ -308,7 +311,7 @@
         return { ja: '会社間移動', vi: 'Chuyển công ty', badgeClass: 'hist-badge-shipmove' };
       case ACTION.STATUS_OTHER:
       default:
-        return { ja: 'ステータス', vi: 'Trạng thái', badgeClass: 'hist-badge-status' };
+        return { ja: 'その他', vi: 'Khác', badgeClass: 'hist-badge-other' };  // ✅ ĐỔI: status→other
     }
   }
 
@@ -520,11 +523,11 @@
       表示 0 / 全0 件（期間: -） / Đang hiển thị 0 / tổng 0
     </div>
 
-    <div class="hist-stats" id="history-stats">
+        <div class="hist-stats" id="history-stats">
       <div class="hist-stat-card">
         <div class="hist-stat-icon total">Σ</div>
         <div>
-          <div class="hist-stat-label">総 / Tổng</div>
+          <div class="hist-stat-label">総数<br/>Tổng</div>
           <div class="hist-stat-value" id="hist-stat-total">0</div>
         </div>
       </div>
@@ -532,7 +535,7 @@
       <div class="hist-stat-card">
         <div class="hist-stat-icon audit">✓</div>
         <div>
-          <div class="hist-stat-label">棚卸 / Kiểm kê</div>
+          <div class="hist-stat-label">棚卸<br/>Kiểm kê</div>
           <div class="hist-stat-value" id="hist-stat-audit">0</div>
         </div>
       </div>
@@ -540,7 +543,7 @@
       <div class="hist-stat-card">
         <div class="hist-stat-icon move">↔</div>
         <div>
-          <div class="hist-stat-label">移動 Di chuyển</div>
+          <div class="hist-stat-label">移動<br/>Di chuyển</div>
           <div class="hist-stat-value" id="hist-stat-move">0</div>
         </div>
       </div>
@@ -548,11 +551,12 @@
       <div class="hist-stat-card">
         <div class="hist-stat-icon io">⇅</div>
         <div>
-          <div class="hist-stat-label">入出庫 / In-Out</div>
+          <div class="hist-stat-label">入出庫<br/>In-Out</div>
           <div class="hist-stat-value" id="hist-stat-io">0</div>
         </div>
       </div>
     </div>
+
   </div>
 
   <div class="hist-body">
@@ -579,7 +583,7 @@
             <option value="SHIP_OUT">出荷 / Xuất kho</option>
             <option value="SHIP_IN">返却入庫 / Trả về</option>
             <option value="SHIP_MOVE">会社間移動 / Chuyển công ty</option>
-            <option value="STATUS_OTHER">ステータス / Trạng thái</option>
+            <option value="STATUS_OTHER">その他 / Khác</option>
           </select>
         </div>
 
@@ -606,27 +610,34 @@
         </div>
 
         <div class="hist-field" style="grid-column: span 12;">
-          <div class="hist-filter-actions">
-            <button type="button" id="history-refresh-btn" class="hist-btn hist-btn-secondary">更新 / Refresh</button>
-            <button type="button" id="history-clear-btn" class="hist-btn hist-btn-secondary">クリア / Xóa lọc</button>
-            <button type="button" id="history-apply-btn" class="hist-btn hist-btn-primary">適用 / Áp dụng</button>
+                    <div class="hist-filter-actions">
+            <button class="hist-btn hist-btn-secondary" id="history-scroll-toggle" title="横スクロール / Scroll ngang">
+              <span id="history-scroll-icon">🔒</span> Lock
+            </button>
+            <button class="hist-btn hist-btn-success" id="history-refresh-btn">更新 / Refresh</button>
+            <button class="hist-btn" id="history-clear-btn">クリア / Xóa lọc</button>
+            <button class="hist-btn hist-btn-primary" id="history-apply-btn">適用 / Áp dụng</button>
           </div>
+
         </div>
       </div>
     </div>
 
     <div class="hist-table-wrap">
+  
       <table class="hist-table" id="history-table">
         <thead>
           <tr>
-            <th class="sortable" data-sort-key="date" style="width: 130px;">日時</th>
-            <th class="sortable" data-sort-key="item" style="min-width: 140px;">コード・名称</th>
-            <th class="sortable" data-sort-key="action" style="width: 130px;">種類</th>
-            <th class="sortable" data-sort-key="fromto" style="min-width: 170px;">From → To</th>
-            <th class="sortable" data-sort-key="notes" style="min-width: auto;">備考</th>
-            <th class="sortable" data-sort-key="handler" style="width: 170px;">担当</th>
+            <th class="sortable" data-sort-key="date">日時</th>
+            <th class="sortable" data-sort-key="item">コード・名称</th>
+            <th class="sortable" data-sort-key="action">種類</th>
+            <th class="sortable" data-sort-key="from">出荷元</th>
+            <th class="sortable" data-sort-key="to">出荷先</th>
+            <th class="sortable" data-sort-key="notes">備考</th>
+            <th class="sortable" data-sort-key="handler">担当</th>
           </tr>
         </thead>
+
         <tbody>
           <tr>
             <td colspan="6" style="text-align:center; padding: 12px; color:#777;">
@@ -642,16 +653,14 @@
     </div>
   </div>
 
-  <div class="hist-footer">
-    <div class="hist-footer-left">
-      <button type="button" id="history-cancel" class="hist-btn hist-btn-secondary">閉じる</button>
+        <div class="hist-footer">
+      <button class="hist-btn" id="history-cancel-btn">閉じる</button>
+      <button class="hist-btn" id="history-export-btn">CSV出力</button>
+      <button class="hist-btn" id="history-print-btn">印刷</button>
+      <button class="hist-btn hist-btn-primary" id="history-mail-btn">メール送信</button>
     </div>
-    <div class="hist-footer-right">
-      <button type="button" id="history-export-csv" class="hist-btn">CSV出力</button>
-      <button type="button" id="history-print" class="hist-btn">印刷</button>
-      <button type="button" id="history-send-mail" class="hist-btn hist-btn-success">メール送信</button>
-    </div>
-  </div>
+
+
 </div>
       `.trim();
 
@@ -737,7 +746,8 @@
         molds: base + 'molds.csv',
         cutters: base + 'cutters.csv',
         companies: base + 'companies.csv',
-        employees: base + 'employees.csv'
+        employees: base + 'employees.csv',
+        destinations: base + 'destinations.csv'  // ✅ THÊM destinations
       };
 
       try {
@@ -748,7 +758,8 @@
           moldsText,
           cuttersText,
           companiesText,
-          employeesText
+          employeesText,
+          destinationsText  // ✅ THÊM
         ] = await Promise.all([
           fetchText(urls.location),
           fetchText(urls.ship),
@@ -756,7 +767,8 @@
           fetchText(urls.molds),
           fetchText(urls.cutters),
           fetchText(urls.companies),
-          fetchText(urls.employees)
+          fetchText(urls.employees),
+          fetchText(urls.destinations)  // ✅ THÊM
         ]);
 
         const locationlog = parseCsv(locationText);
@@ -766,8 +778,9 @@
         const cutters = parseCsv(cuttersText);
         const companies = parseCsv(companiesText);
         const employees = parseCsv(employeesText);
+        const destinations = parseCsv(destinationsText);  // ✅ THÊM
 
-        this.buildHistoryEvents(locationlog, shiplog, statuslogs, molds, cutters, companies, employees);
+        this.buildHistoryEvents(locationlog, shiplog, statuslogs, molds, cutters, companies, employees, destinations);
 
         // after reload, keep current filter dates if already set; otherwise set default
         if (!this.els.dateFrom.value || !this.els.dateTo.value) this.applyDefaultDateRange();
@@ -783,7 +796,7 @@
       }
     },
 
-    buildHistoryEvents(locationlog, shiplog, statuslogs, molds, cutters, companies, employees) {
+    buildHistoryEvents(locationlog, shiplog, statuslogs, molds, cutters, companies, employees, destinations) {
       // master maps
       const moldsById = new Map();
       (molds || []).forEach(m => {
@@ -805,6 +818,13 @@
       (employees || []).forEach(e => {
         const id = String(e.EmployeeID || '').trim();
         if (id) employeesById.set(id, e);
+      });
+
+      // ✅ THÊM: Destinations map
+      const destinationsById = new Map();
+      (destinations || []).forEach(d => {
+        const id = String(d.DestinationID || '').trim();
+        if (id) destinationsById.set(id, d);
       });
 
       // store for fallback detail open
@@ -987,7 +1007,13 @@
         const handler = emp ? (emp.EmployeeNameShort || emp.EmployeeName || empId) : (empId || '');
 
         const destId = safeStr(row.DestinationID || row.DestinationId || '').trim();
-        const destLabel = destId ? ('DestID:' + destId) : '';
+        
+        // ✅ FIX: Lấy DestinationName từ destinations.csv thay vì hiển thị ID
+        let destLabel = '';
+        if (destId) {
+          const dest = destinationsById.get(destId);
+          destLabel = dest ? (dest.DestinationName || destId) : destId;
+        }
 
         events.push({
           EventID: 'ST' + safeStr(row.StatusLogID || ''),
@@ -1011,7 +1037,7 @@
           FromCompanyID: '',
           ToCompanyID: destId,
           FromCompanyName: '',
-          ToCompanyName: destLabel,
+          ToCompanyName: destLabel,  // ✅ Hiển thị DestinationName
 
           Notes: normalizeSpaces(safeStr(row.Notes || '').trim()),
 
@@ -1129,10 +1155,54 @@
         });
       }
 
+      // ✅ FIX: Click vào row để mở detail modal
+      if (this.els.tableBody) {
+        this.els.tableBody.addEventListener('click', e => {
+          const row = e.target.closest('tr[data-eventid]');
+          if (!row) return;
+          
+          const eventId = row.getAttribute('data-eventid');
+          if (eventId) {
+            console.log('[HistoryView] Row clicked, eventId:', eventId);
+            this.openDetailForEventId(eventId);
+          }
+        });
+      }
       // footer buttons
       if (this.els.exportBtn) this.els.exportBtn.addEventListener('click', () => this.exportCsv());
       if (this.els.printBtn) this.els.printBtn.addEventListener('click', () => this.print());
       if (this.els.mailBtn) this.els.mailBtn.addEventListener('click', () => this.sendMail());
+
+            // footer buttons
+      if (this.els.exportBtn) this.els.exportBtn.addEventListener('click', () => this.exportCsv());
+      if (this.els.printBtn) this.els.printBtn.addEventListener('click', () => this.print());
+      if (this.els.mailBtn) this.els.mailBtn.addEventListener('click', () => this.sendMail());
+
+            // ✅ Toggle scroll lock
+      const scrollToggle = document.getElementById('history-scroll-toggle');
+      const tableWrap = this.els.tableWrap;
+      if (scrollToggle && tableWrap) {
+        scrollToggle.addEventListener('click', (e) => {
+          e.preventDefault();
+          const isLocked = !tableWrap.classList.contains('scroll-unlocked');
+          const icon = document.getElementById('history-scroll-icon');
+          
+          if (isLocked) {
+            // Unlock
+            tableWrap.classList.add('scroll-unlocked');
+            if (icon) icon.textContent = '🔓';
+            scrollToggle.classList.add('unlocked');
+            scrollToggle.innerHTML = '<span id="history-scroll-icon">🔓</span> Unlock';
+          } else {
+            // Lock
+            tableWrap.classList.remove('scroll-unlocked');
+            if (icon) icon.textContent = '🔒';
+            scrollToggle.classList.remove('unlocked');
+            scrollToggle.innerHTML = '<span id="history-scroll-icon">🔒</span> Lock';
+          }
+        });
+      }
+
 
       // swipe down to close (mobile)
       const swipeTarget = this.els.filtersWrap || this.els.header || this.els.dialog;
@@ -1382,7 +1452,7 @@
       events.sort((a, b) => {
         let valA, valB;
 
-        switch (key) {
+                switch (key) {
           case 'date': {
             const ta = new Date(a.EventDate || a.EventDateKey || 0).getTime();
             const tb = new Date(b.EventDate || b.EventDateKey || 0).getTime();
@@ -1399,9 +1469,15 @@
             valB = mb.ja;
             break;
           }
-          case 'fromto':
-            valA = toLower((a.FromRackLayer || a.FromCompanyName) + (a.ToRackLayer || a.ToCompanyName));
-            valB = toLower((b.FromRackLayer || b.FromCompanyName) + (b.ToRackLayer || b.ToCompanyName));
+          // ✅ THÊM: Sort riêng cho From
+          case 'from':
+            valA = toLower(a.FromRackLayer || a.FromCompanyName || '');
+            valB = toLower(b.FromRackLayer || b.FromCompanyName || '');
+            break;
+          // ✅ THÊM: Sort riêng cho To
+          case 'to':
+            valA = toLower(a.ToRackLayer || a.ToCompanyName || '');
+            valB = toLower(b.ToRackLayer || b.ToCompanyName || '');
             break;
           case 'notes':
             valA = toLower(a.Notes);
@@ -1414,6 +1490,7 @@
           default:
             return 0;
         }
+
 
         if (valA < valB) return -1 * mul;
         if (valA > valB) return 1 * mul;
@@ -1455,18 +1532,20 @@
         const itemCodeHTML = ev.ItemCode ? `<div class="hist-item-code">${escapeHtml(ev.ItemCode)}</div>` : '';
         const itemNameHTML = ev.ItemName ? `<div class="hist-item-name">${escapeHtml(ev.ItemName)}</div>` : '';
 
-        let fromToHtml = '';
+                // ✅ FIX: Tách From và To thành 2 biến riêng
+        let fromHTML = '-';
+        let toHTML = '-';
+
         if (ev.ActionKey === ACTION.LOCATION_CHANGE) {
-          const fromRL = escapeHtml(ev.FromRackLayer || '-');
-          const toRL = escapeHtml(ev.ToRackLayer || '-');
-          fromToHtml = `<span class="hist-from">${fromRL}</span> → <span class="hist-to">${toRL}</span>`;
+          fromHTML = escapeHtml(ev.FromRackLayer || '-');
+          toHTML = escapeHtml(ev.ToRackLayer || '-');
         } else if (isMove(ev.ActionKey) || isInOut(ev.ActionKey)) {
-          const fromC = escapeHtml(ev.FromCompanyName || '-');
-          const toC = escapeHtml(ev.ToCompanyName || '-');
-          fromToHtml = `<span class="hist-from">${fromC}</span> → <span class="hist-to">${toC}</span>`;
+          fromHTML = escapeHtml(ev.FromCompanyName || '-');
+          toHTML = escapeHtml(ev.ToCompanyName || '-');
         } else {
-          const dest = escapeHtml(ev.ToCompanyName || '-');
-          fromToHtml = dest;
+          // Trường hợp khác (AUDIT, STATUS_OTHER): chỉ có To
+          fromHTML = '-';
+          toHTML = escapeHtml(ev.ToCompanyName || '-');
         }
 
         const notesHTML = escapeHtml(ev.Notes || '');
@@ -1491,11 +1570,13 @@
                 <span class="vi">${escapeHtml(meta.vi)}</span>
               </span>
             </td>
-            <td class="hist-col-fromto">${fromToHtml}</td>
+            <td class="hist-col-from">${fromHTML}</td>
+            <td class="hist-col-to">${toHTML}</td>
             <td class="hist-col-notes">${notesHTML}</td>
             <td class="hist-col-handler">${handlerHTML}</td>
           </tr>
         `;
+
       }).join('');
 
       this.els.tableBody.innerHTML = rows;
@@ -1610,9 +1691,18 @@
     // -----------------------------------------------------------
     // DETAIL OPEN
     // -----------------------------------------------------------
-    openDetailForEventId(eventId) {
+        openDetailForEventId(eventId) {
+      console.log('[HistoryView] openDetailForEventId called:', eventId);
+      console.log('[HistoryView] filteredEvents:', this.state.filteredEvents.length);
+      
       const ev = this.state.filteredEvents.find(e => e.EventID === eventId);
-      if (!ev) return;
+      if (!ev) {
+        console.warn('[HistoryView] Event not found:', eventId);
+        return;
+      }
+      
+      console.log('[HistoryView] Event found:', ev);
+
 
       const isMold = ev.ItemType === 'mold' || !!ev.MoldID;
       const itemId = isMold ? ev.MoldID : ev.CutterID;
@@ -1645,19 +1735,38 @@
         return;
       }
 
-      // close history, open detail
-      this.close();
+            // ✅ FIX: KHÔNG đóng history modal, chỉ mở detail modal overlay
+      console.log('[HistoryView] Opening detail modal for:', {
+        itemId: itemId,
+        type: isMold ? 'mold' : 'cutter',
+        item: item
+      });
 
-      setTimeout(() => {
-        if (typeof window.showDetail === 'function') {
-          window.showDetail(item, isMold ? 'mold' : 'cutter');
-        } else if (window.MobileDetailModal && typeof window.MobileDetailModal.open === 'function') {
-          window.MobileDetailModal.open(item, isMold ? 'mold' : 'cutter');
-        } else {
-          console.warn('[HistoryView] No detail viewer found');
-        }
-      }, 100);
+      // Check available viewers
+      console.log('[HistoryView] Available viewers:', {
+        MobileDetailModal: typeof window.MobileDetailModal,
+        MobileDetailModalOpen: window.MobileDetailModal ? typeof window.MobileDetailModal.open : 'N/A',
+        showDetail: typeof window.showDetail
+      });
+
+      // ✅ Ưu tiên MobileDetailModal (mobile)
+      if (window.MobileDetailModal && typeof window.MobileDetailModal.open === 'function') {
+        console.log('[HistoryView] Calling MobileDetailModal.open...');
+        window.MobileDetailModal.open(item, isMold ? 'mold' : 'cutter');
+      } 
+      // Fallback showDetail (desktop)
+      else if (typeof window.showDetail === 'function') {
+        console.log('[HistoryView] Calling showDetail...');
+        window.showDetail(item, isMold ? 'mold' : 'cutter');
+      } 
+      else {
+        console.error('[HistoryView] ❌ No detail viewer found!');
+        alert('Detail viewer not available. MobileDetailModal: ' + (typeof window.MobileDetailModal) + ', showDetail: ' + (typeof window.showDetail));
+      }
     },
+
+
+
 
     // -----------------------------------------------------------
     // EXPORT
