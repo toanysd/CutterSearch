@@ -299,7 +299,8 @@
       if (!this.state.opened) return;
 
       this._stopProcessingLoop();
-      await this._stopCamera();
+      this._stopCamera();
+
 
       this.state.opened = false;
       this.els.overlay.classList.add('tsc-hidden');
@@ -411,6 +412,13 @@
         muted: true,
         playsInline: true
       });
+
+      // iOS Safari requires playsinline attribute (and sometimes webkit-playsinline)
+      video.setAttribute('playsinline', '');
+      video.setAttribute('webkit-playsinline', '');
+      video.setAttribute('muted', '');
+      video.setAttribute('autoplay', '');
+
 
       const canvas = createEl('canvas', { class: 'tsc-hidden', id: 'tsc-canvas-hidden' });
       const debugCanvas = createEl('canvas', { class: 'tsc-canvas tsc-hidden', id: 'tsc-debug-canvas' });
@@ -805,7 +813,20 @@
       }
 
       // Attach to video
+      video.setAttribute('playsinline', '');
+      video.setAttribute('webkit-playsinline', '');
+      video.muted = true;
+      video.autoplay = true;
+
       video.srcObject = this.state.stream;
+
+      // Try to start ASAP (important for iOS user-gesture timing)
+      try {
+        const p1 = video.play();
+        if (p1 && typeof p1.catch === 'function') p1.catch(() => {});
+      } catch (_) {}
+
+      // Wait metadata then retry play
       await new Promise((resolve) => {
         const onReady = () => {
           video.removeEventListener('loadedmetadata', onReady);
@@ -815,10 +836,15 @@
       });
 
       try {
-        await video.play();
-      } catch (_) {
-        // iOS may require user gesture; but open() is user gesture so usually OK.
-      }
+        const p2 = video.play();
+        if (p2 && typeof p2.catch === 'function') {
+          p2.catch((err) => {
+            console.warn('[TrayStackCounter] video.play() blocked:', err);
+            if (typeof this._toast === 'function') this._toast('再生ブロック', 'Video bị chặn');
+          });
+        }
+      } catch (_) {}
+
 
       const track = this.state.stream.getVideoTracks()[0] || null;
       this.state.track = track;
