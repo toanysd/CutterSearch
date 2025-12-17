@@ -128,14 +128,27 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
+  /* Giữ layout ổn, panel phía dưới sẽ scroll khi nội dung dài */
+  overflow: hidden;
 }
 
+/* Vùng camera chiếm khoảng 40–45% màn hình, luôn có chiều cao nhìn thấy được */
 .tsc-video-wrap {
   position: relative;
-  flex: 1;
-  min-height: 0;
+  flex: 0 0 42vh;        /* cao ~42% chiều cao viewport */
+  min-height: 220px;     /* tối thiểu 220px để iPhone vẫn thấy rõ */
   background: #000;
 }
+
+/* Panel kết quả + sliders: cho phép cuộn khi thiếu chỗ */
+.tsc-panel {
+  border-top: 1px solid var(--tsc-border);
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  flex: 1 1 auto;
+  overflow-y: auto;
+}
+
 
 .tsc-video {
   position: absolute;
@@ -335,4 +348,9 @@
     width: 100%;
     justify-content: space-between;
   }
+    .tsc-video-wrap {
+    flex-basis: 45vh;
+    min-height: 210px;
+  }
+
 }

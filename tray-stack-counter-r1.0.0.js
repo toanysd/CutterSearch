@@ -771,7 +771,9 @@
     // ---------- Camera ----------
     async _startCamera({ preferEnvironment }) {
       // Stop existing
-      await this._stopCamera();
+        // Stop existing (không await để không làm mất user-gesture trên iOS)
+      this._stopCamera();
+
 
       const video = this.els.video;
 
