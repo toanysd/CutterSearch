@@ -1,0 +1,685 @@
+/**
+ * ========================================================================
+ * teflon-manager-r7.2.0.css - テフロン加工管理 (Teflon Manager Styles)
+ * ========================================================================
+ *
+ * Updated: 2025-12-17 JST
+ *
+ * NEW in r7.2.0:
+ * ✅ Desktopで縦スクロールが効かない問題を修正（flex + overflow）
+ * ✅ 表示フィルター/検索の左揃えを統一、iPhoneでフィルターを全幅化
+ * ✅ Navbarバッジを「ボタン右上（外側）」に固定
+ * ✅ Lock/Unlock（横スクロールON/OFF）仕様は維持
+ *
+ * Note:
+ * - JS側は .table-wrapper に table-locked を付与/解除して切替する想定
+ * ========================================================================
+ */
+
+/* ========================================================================
+   PANEL CONTAINER
+   ===================================================================== */
+.teflon-panel {
+  position: relative;
+  z-index: 5000;
+  background: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-height: 95vh;
+}
+
+/* ========================================================================
+   HEADER
+   ===================================================================== */
+.tef-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: linear-gradient(90deg, #2e7d32 0%, #66bb6a 100%);
+  color: #fff;
+  cursor: grab;
+  user-select: none;
+  flex-shrink: 0;
+}
+.tef-header:active { cursor: grabbing; }
+
+.tef-title {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.tef-title > div:first-child {
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: 0.2px;
+}
+.tef-title > div:last-child {
+  font-size: 11px;
+  opacity: 0.9;
+  line-height: 1.15;
+}
+
+#teflon-close-btn {
+  border: none;
+  background: transparent;
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0 6px;
+  line-height: 1;
+  transition: transform 0.15s ease;
+}
+#teflon-close-btn:hover { transform: scale(1.12); }
+#teflon-close-btn:active { transform: scale(0.95); }
+
+/* ========================================================================
+   SUMMARY BAR
+   ===================================================================== */
+.tef-summary {
+  font-size: 10.5px;
+  color: #555;
+  text-align: center;
+  padding: 6px 10px;
+  background: #f0f7f1;
+  border-bottom: 1px solid #d0e8d3;
+  flex-shrink: 0;
+  font-weight: 500;
+}
+
+/* ========================================================================
+   BODY CONTAINER (IMPORTANT: flex overflow fix)
+   ===================================================================== */
+.checkio-body.panel-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+
+  /* r7.2.0: flex子要素(.table-wrapper)でoverflow-yが効くようにする */
+  min-height: 0;
+
+  padding-bottom: 58px;
+  background: #fafafa;
+}
+
+/* ========================================================================
+   FILTER ROW
+   ===================================================================== */
+.filter-row {
+  padding: 8px 12px;
+  background: #ffffff;
+  border-bottom: 1px solid #e6e6e6;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.tef-help {
+  padding: 6px 10px;
+  font-size: 10px;
+  color: #666;
+  background: #f5f5f5;
+  border-left: 3px solid #2e7d32;
+  border-radius: 4px;
+  line-height: 1.35;
+  width: 100%;
+}
+
+/* Layout B: filter-line (main) */
+.filter-line {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  width: 100%;
+}
+
+/* r7.2.0: Line1 control cũng grow để canh trái đồng bộ với line2 */
+.filter-line-1 .filter-control {
+  flex: 1;
+  min-width: 0;
+}
+
+.filter-label.filter-label-inline {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 86px;
+  color: #2e7d32;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.filter-control {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.filter-control-grow {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Shared JP/VI label */
+.filter-label {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  font-weight: 800;
+  color: #2e7d32;
+  white-space: nowrap;
+}
+.filter-label .label-jp {
+  font-size: 12px;
+  line-height: 1.15;
+  font-weight: 800;
+}
+.filter-label .label-vi {
+  font-size: 9px;
+  line-height: 1.15;
+  opacity: 0.75;
+  font-weight: 600;
+}
+
+/* Select */
+#teflon-status-filter {
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 12px;
+  background: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+#teflon-status-filter:focus {
+  outline: none;
+  border-color: #2e7d32;
+  box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.15);
+}
+#teflon-status-filter:hover { border-color: #66bb6a; }
+
+/* Search */
+#teflon-search-input {
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 12px;
+  transition: all 0.2s ease;
+  width: 100%;
+  min-width: 0;
+}
+#teflon-search-input:focus {
+  outline: none;
+  border-color: #2e7d32;
+  box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.15);
+}
+#teflon-search-input:hover { border-color: #66bb6a; }
+#teflon-search-input::placeholder {
+  color: #999;
+  font-style: italic;
+}
+
+/* ========================================================================
+   BUTTONS
+   ===================================================================== */
+.tef-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid #cfcfcf;
+  cursor: pointer;
+  user-select: none;
+  background: #ffffff;
+  color: #444;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  white-space: nowrap;
+}
+.tef-btn .jp {
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+.tef-btn .vi {
+  font-size: 9px;
+  opacity: 0.86;
+  line-height: 1.1;
+  margin-top: 2px;
+}
+.tef-btn:hover:not(:disabled) {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  transform: translateY(-1px);
+}
+.tef-btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+}
+.tef-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.tef-btn-gray { background: #fff; color: #444; border-color: #bbb; }
+.tef-btn-gray:hover:not(:disabled) { background: #f5f5f5; }
+
+.tef-btn-blue { background: #e3f2fd; border-color: #90caf9; color: #0d47a1; }
+.tef-btn-blue:hover:not(:disabled) { background: #bbdefb; border-color: #64b5f6; }
+
+.tef-btn-green { background: #2e7d32; border-color: #2e7d32; color: #fff; }
+.tef-btn-green:hover:not(:disabled) { background: #1b5e20; border-color: #1b5e20; }
+
+.tef-btn-lock {
+  background: #ffc107;
+  border-color: #ffa000;
+  color: #000;
+  padding: 6px 10px;
+  font-weight: 900;
+}
+.tef-btn-lock:hover:not(:disabled) { background: #ffb300; border-color: #ff8f00; }
+
+.tef-btn-lock.unlocked {
+  background: #4caf50;
+  border-color: #388e3c;
+  color: #fff;
+}
+.tef-btn-lock.unlocked:hover:not(:disabled) { background: #388e3c; border-color: #2e7d32; }
+
+/* ========================================================================
+   TABLE WRAPPER (Desktop vertical scroll fix)
+   ===================================================================== */
+.table-wrapper {
+  flex: 1;
+  background: #fff;
+  position: relative;
+
+  /* r7.2.0: IMPORTANT for flex scroll */
+  min-height: 0;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  overscroll-behavior: contain;
+
+  /* desktop: keep scrollbar space where supported */
+  scrollbar-gutter: stable both-edges;
+}
+
+.table-wrapper.table-locked {
+  overflow-x: hidden;
+  touch-action: pan-y;
+}
+.table-wrapper.table-locked .teflon-table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+.table-wrapper:not(.table-locked) {
+  overflow-x: auto;
+  overflow-y: auto;
+  touch-action: pan-x pan-y;
+}
+.table-wrapper:not(.table-locked) .teflon-table {
+  width: max-content;
+  min-width: 100%;
+  table-layout: auto;
+}
+
+.table-locked .col-hidden-locked { display: none !important; }
+.table-wrapper:not(.table-locked) .col-hidden-locked { display: table-cell !important; }
+
+/* ========================================================================
+   TABLE STYLES
+   ===================================================================== */
+.teflon-table {
+  border-collapse: collapse;
+  font-size: 10.5px;
+  background: #fff;
+}
+.teflon-table th,
+.teflon-table td {
+  border-bottom: 1px solid #e0e0e0;
+  padding: 6px 8px;
+  vertical-align: middle;
+  text-align: left;
+}
+
+.teflon-table thead {
+  position: sticky;
+  top: 0;
+  background: #0056b3;
+  color: #fff;
+  z-index: 10;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.teflon-table thead th {
+  font-weight: 800;
+  font-size: 10.5px;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  border-right: 1px solid rgba(255,255,255,0.28);
+  transition: background-color 0.2s ease;
+  position: relative;
+  padding-right: 20px;
+}
+.teflon-table thead th:last-child { border-right: none; }
+.teflon-table thead th:hover { background: rgba(255,255,255,0.15); }
+
+.sort-indicator {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 10px;
+  opacity: 0.95;
+}
+
+.teflon-table tbody tr { cursor: pointer; transition: background-color 0.15s ease; }
+.teflon-table tbody tr:nth-child(odd) { background: #fafafa; }
+.teflon-table tbody tr:hover {
+  background: #e3f2fd !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+/* Locked widths */
+.table-locked .teflon-table th:nth-child(1),
+.table-locked .teflon-table td:nth-child(1) { width: 44%; min-width: 120px; }
+.table-locked .teflon-table th:nth-child(2),
+.table-locked .teflon-table td:nth-child(2) { width: 18%; text-align: center; }
+.table-locked .teflon-table th:nth-child(3),
+.table-locked .teflon-table td:nth-child(3) { width: 20%; text-align: center; }
+.table-locked .teflon-table th:nth-child(4),
+.table-locked .teflon-table td:nth-child(4) { width: 18%; }
+
+/* Unlocked widths */
+.table-wrapper:not(.table-locked) .teflon-table th,
+.table-wrapper:not(.table-locked) .teflon-table td { white-space: nowrap; padding: 6px 10px; }
+
+.table-wrapper:not(.table-locked) .teflon-table th:nth-child(1),
+.table-wrapper:not(.table-locked) .teflon-table td:nth-child(1) {
+  min-width: 160px; max-width: 260px;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.table-wrapper:not(.table-locked) .teflon-table th:nth-child(2),
+.table-wrapper:not(.table-locked) .teflon-table td:nth-child(2) { min-width: 84px; text-align: center; }
+.table-wrapper:not(.table-locked) .teflon-table th:nth-child(3),
+.table-wrapper:not(.table-locked) .teflon-table td:nth-child(3) { min-width: 96px; text-align: center; }
+.table-wrapper:not(.table-locked) .teflon-table th:nth-child(4),
+.table-wrapper:not(.table-locked) .teflon-table td:nth-child(4) { min-width: 90px; }
+.table-wrapper:not(.table-locked) .teflon-table th:nth-child(5),
+.table-wrapper:not(.table-locked) .teflon-table td:nth-child(5) { min-width: 96px; text-align: center; }
+.table-wrapper:not(.table-locked) .teflon-table th:nth-child(6),
+.table-wrapper:not(.table-locked) .teflon-table td:nth-child(6) { min-width: 96px; text-align: center; }
+.table-wrapper:not(.table-locked) .teflon-table th:nth-child(7),
+.table-wrapper:not(.table-locked) .teflon-table td:nth-child(7) { min-width: 90px; }
+.table-wrapper:not(.table-locked) .teflon-table th:nth-child(8),
+.table-wrapper:not(.table-locked) .teflon-table td:nth-child(8) {
+  min-width: 180px; max-width: 300px;
+  white-space: normal;
+  word-break: break-word;
+}
+
+/* ========================================================================
+   STATUS BADGES (row)
+   ===================================================================== */
+.status-badge {
+  padding: 3px 6px;
+  border-radius: 5px;
+  font-size: 10px;
+  font-weight: 800;
+  white-space: nowrap;
+  display: inline-block;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  min-width: 62px;
+}
+.status-badge:hover { transform: scale(1.05); box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
+
+.status-unprocessed { background: #e0e0e0; color: #424242; border: 1px solid #bdbdbd; }
+.status-pending { background: #ffcc80; color: #e65100; border: 1px solid #ff9800; }
+.status-approved { background: #ffcdd2; color: #c62828; border: 1px solid #e57373; }
+.status-processing { background: #bbdefb; color: #0d47a1; border: 1px solid #64b5f6; }
+.status-completed { background: #c8e6c9; color: #2e7d32; border: 1px solid #81c784; }
+.status-default { background: #e0e0e0; color: #424242; border: 1px solid #bdbdbd; }
+
+/* Row background */
+.tef-row-unprocessed { background: #fafafa !important; }
+.tef-row-pending { background: #fff8e1 !important; }
+.tef-row-approved { background: #ffebee !important; }
+.tef-row-processing { background: #e1f5fe !important; }
+.tef-row-completed { background: #f1f8e9 !important; }
+
+/* RequestedDate warning */
+.tef-req-overdue-7 { background: #ffe0b2 !important; color: #3e2723 !important; border-radius: 5px; padding: 3px 6px !important; font-weight: 700; display: inline-block; }
+.tef-req-overdue-9 { background: #ffcc80 !important; color: #3e2723 !important; border-radius: 5px; padding: 3px 6px !important; font-weight: 800; display: inline-block; }
+.tef-req-overdue-11 { background: #ffb74d !important; color: #3e2723 !important; border-radius: 5px; padding: 3px 6px !important; font-weight: 900; display: inline-block; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+.tef-req-overdue-14 { background: #ef5350 !important; color: #ffffff !important; border-radius: 5px; padding: 3px 6px !important; font-weight: 900; display: inline-block; box-shadow: 0 2px 5px rgba(239, 83, 80, 0.4); animation: pulse-warning 2s ease-in-out infinite; }
+@keyframes pulse-warning {
+  0%, 100% { box-shadow: 0 2px 5px rgba(239, 83, 80, 0.4); }
+  50% { box-shadow: 0 2px 10px rgba(239, 83, 80, 0.7); }
+}
+
+/* Mold name */
+.mold-name-cell { position: relative; }
+.mold-name-cell a { color: #0056b3; text-decoration: none; font-weight: 700; transition: color 0.2s ease; display: inline-block; }
+.mold-name-cell a:hover { color: #003d82; text-decoration: underline; }
+.mold-name-cell a:active { color: #001f3f; }
+.table-locked .mold-name-cell { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ========================================================================
+   NAV BADGE (承/発/中) - position fixed to top-right OUTSIDE button
+   ===================================================================== */
+#nav-teflon-btn { position: relative; }
+
+.tef-nav-badge {
+  position: absolute;
+  top: -6px;      /* r7.2.0: outside top */
+  right: -6px;    /* r7.2.0: outside right */
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 900;
+  color: #fff;
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.9), 0 2px 6px rgba(0,0,0,0.3);
+  z-index: 9999;  /* ensure above navbar */
+  animation: badge-pulse 2s ease-in-out infinite;
+  font-family: 'MS Gothic', 'Hiragino Kaku Gothic Pro', sans-serif;
+  line-height: 1;
+}
+@keyframes badge-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+.tef-nav-badge-hidden { display: none !important; }
+.tef-nav-badge-approved { background: #d32f2f; box-shadow: 0 0 0 2px rgba(255,255,255,0.9), 0 0 12px rgba(211,47,47,0.6); }
+.tef-nav-badge-pending { background: #ef6c00; box-shadow: 0 0 0 2px rgba(255,255,255,0.9), 0 0 12px rgba(239,108,0,0.6); }
+.tef-nav-badge-processing { background: #1976d2; box-shadow: 0 0 0 2px rgba(255,255,255,0.9), 0 0 12px rgba(25,118,210,0.6); }
+
+/* ========================================================================
+   ACTIONS BAR
+   ===================================================================== */
+.tef-actions {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 6000;
+  padding: 8px 12px;
+  border-top: 1px solid #ddd;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(to top, #f7f7f7 0%, #ffffff 100%);
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.08);
+  flex-wrap: wrap;
+}
+.tef-actions > button { min-width: 86px; }
+
+/* ========================================================================
+   MODAL
+   ===================================================================== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 12000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.modal-content {
+  background: #fff;
+  width: 90%;
+  max-width: 750px;
+  border-radius: 10px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s ease;
+  will-change: transform, opacity;
+}
+@keyframes slideUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.modal-header {
+  padding: 10px 12px;
+  background: linear-gradient(90deg, #2e7d32 0%, #66bb6a 100%);
+  color: #fff;
+  border-radius: 10px 10px 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: grab;
+  user-select: none;
+}
+.modal-header:active { cursor: grabbing; }
+.modal-close-x {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 6px;
+  transition: transform 0.15s ease;
+}
+.modal-close-x:hover { transform: scale(1.12) rotate(90deg); }
+
+.modal-body {
+  padding: 12px 14px;
+  overflow-y: auto;
+  flex: 1;
+  background: #fafafa;
+}
+.modal-body table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  background: #fff;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.modal-body table tr { border-bottom: 1px solid #e0e0e0; }
+.modal-body table tr:last-child { border-bottom: none; }
+.modal-body table th {
+  padding: 8px 10px;
+  text-align: left;
+  background: #f5f5f5;
+  font-weight: 800;
+  color: #333;
+  width: 40%;
+  vertical-align: top;
+  font-size: 11px;
+}
+.modal-body table td {
+  padding: 8px 10px;
+  font-size: 12px;
+  color: #444;
+}
+.modal-footer {
+  padding: 10px 12px;
+  border-top: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  background: #fff;
+  border-radius: 0 0 10px 10px;
+}
+
+/* Scrollbar (desktop) */
+.table-wrapper::-webkit-scrollbar { width: 10px; height: 10px; }
+.table-wrapper::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 5px; }
+.table-wrapper::-webkit-scrollbar-thumb { background: #888; border-radius: 5px; }
+.table-wrapper::-webkit-scrollbar-thumb:hover { background: #555; }
+
+/* Utility */
+.dragging { transition: transform 0.1s ease, opacity 0.1s ease; }
+body.modal-open { overflow: hidden; }
+
+/* ========================================================================
+   RESPONSIVE (mobile)
+   ===================================================================== */
+@media (max-width: 767px) {
+  .teflon-panel {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    max-height: 100vh !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* line1: label on top, select full width */
+  .filter-line-1 {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+  .filter-line-1 .filter-label-inline { width: 100%; min-width: 0; }
+  .filter-line-1 .filter-control { width: 100%; }
+
+  /* line2 keep wrap but align */
+  .filter-line { flex-wrap: wrap; align-items: center; gap: 6px; }
+  .filter-label.filter-label-inline { min-width: 74px; }
+
+  .tef-actions { padding: 8px 10px; gap: 8px; }
+  .tef-actions > button { flex: 1; min-width: 0; }
+
+  .tef-nav-badge { width: 18px; height: 18px; font-size: 11px; top: -6px; right: -6px; }
+}
+
+/* Print */
+@media print {
+  .tef-header, .tef-summary, .filter-row, .tef-actions, .tef-nav-badge { display: none !important; }
+  .teflon-panel { box-shadow: none !important; border: 1px solid #000 !important; }
+  .table-wrapper { overflow: visible !important; }
+  .table-wrapper.table-locked .col-hidden-locked { display: table-cell !important; }
+  .teflon-table thead { display: table-header-group; }
+}

@@ -1,0 +1,1191 @@
+/**
+ * ========================================================================
+ * teflon-manager-r7.1.5.css - Teflon Manager Styles
+ * ========================================================================
+ *
+ * Updated: 2025-12-17 12:47 JST
+ *
+ * NEW in r7.1.5:
+ * ✅ Badge warning positioned at top-right corner of nav button
+ * ✅ Filter label and filter control on same row
+ * ✅ Search label, search input, Lock/Unlock and Refresh buttons on same row
+ * ✅ Fixed table lock/unlock - proper scroll handling
+ * ✅ Modal width expanded - not limited by upper-section column
+ * ========================================================================
+ */
+
+/* ========================================================================
+   PANEL CONTAINER
+   ======================================================================== */
+.teflon-panel {
+  position: relative;
+  z-index: 5000;
+  background: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-height: 95vh;
+}
+
+/* ========================================================================
+   HEADER
+   ======================================================================== */
+.tef-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  background: linear-gradient(90deg, #2e7d32 0%, #66bb6a 100%);
+  color: #fff;
+  cursor: grab;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.tef-header:active {
+  cursor: grabbing;
+}
+
+.tef-title {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tef-title > div:first-child {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.3px;
+}
+
+.tef-title > div:last-child {
+  font-size: 12px;
+  opacity: 0.9;
+  line-height: 1.2;
+}
+
+#teflon-close-btn {
+  border: none;
+  background: transparent;
+  color: #fff;
+  font-size: 26px;
+  cursor: pointer;
+  padding: 0 6px;
+  line-height: 1;
+  transition: transform 0.15s ease;
+}
+
+#teflon-close-btn:hover {
+  transform: scale(1.15);
+}
+
+#teflon-close-btn:active {
+  transform: scale(0.95);
+}
+
+/* ========================================================================
+   SUMMARY BAR
+   ======================================================================== */
+.tef-summary {
+  font-size: 11px;
+  color: #555;
+  text-align: center;
+  padding: 8px 12px;
+  background: #f0f7f1;
+  border-bottom: 1px solid #d0e8d3;
+  flex-shrink: 0;
+  font-weight: 500;
+}
+
+/* ========================================================================
+   BODY CONTAINER
+   ======================================================================== */
+.checkio-body.panel-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+  padding-bottom: 70px;
+  background: #fafafa;
+}
+
+/* ========================================================================
+   FILTER ROW (r7.1.5: NEW HORIZONTAL LAYOUT)
+   ======================================================================== */
+.filter-row {
+  padding: 12px 16px;
+  background: #ffffff;
+  border-bottom: 2px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+/* Help text */
+.tef-help {
+  padding: 8px 12px;
+  font-size: 11px;
+  color: #666;
+  background: #f5f5f5;
+  border-left: 3px solid #2e7d32;
+  border-radius: 4px;
+  line-height: 1.5;
+  width: 100%;
+}
+
+/* r7.1.5: Filter line 1 - Label + Select (horizontal) */
+.filter-line-1 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* r7.1.5: Filter line 2 - Label + Search + Lock + Refresh (horizontal) */
+.filter-line-2 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* r7.1.5: Inline labels */
+.filter-label-inline {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex-shrink: 0;
+  min-width: 80px;
+}
+
+.filter-label-inline .label-jp {
+  font-size: 13px;
+  line-height: 1.2;
+  font-weight: 700;
+  color: #2e7d32;
+}
+
+.filter-label-inline .label-vi {
+  font-size: 10px;
+  line-height: 1.2;
+  opacity: 0.7;
+  font-weight: 500;
+  color: #2e7d32;
+}
+
+/* r7.1.5: Filter control */
+.filter-control {
+  flex-shrink: 0;
+}
+
+.filter-control-grow {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Select dropdown */
+#teflon-status-filter {
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 12px;
+  background: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 200px;
+}
+
+#teflon-status-filter:focus {
+  outline: none;
+  border-color: #2e7d32;
+  box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.15);
+}
+
+#teflon-status-filter:hover {
+  border-color: #66bb6a;
+}
+
+/* Search input */
+#teflon-search-input {
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 12px;
+  transition: all 0.2s ease;
+  width: 100%;
+  min-width: 0;
+}
+
+#teflon-search-input:focus {
+  outline: none;
+  border-color: #2e7d32;
+  box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.15);
+}
+
+#teflon-search-input:hover {
+  border-color: #66bb6a;
+}
+
+#teflon-search-input::placeholder {
+  color: #999;
+  font-style: italic;
+}
+
+/* ========================================================================
+   BUTTONS
+   ======================================================================== */
+.tef-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #cfcfcf;
+  cursor: pointer;
+  user-select: none;
+  background: #ffffff;
+  color: #444;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.tef-btn .jp {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.tef-btn .vi {
+  font-size: 10px;
+  opacity: 0.85;
+  line-height: 1.1;
+  margin-top: 2px;
+}
+
+.tef-btn:hover:not(:disabled) {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+}
+
+.tef-btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.tef-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.tef-btn-gray {
+  background: #ffffff;
+  color: #444;
+  border-color: #bbb;
+}
+
+.tef-btn-gray:hover:not(:disabled) {
+  background: #f5f5f5;
+}
+
+.tef-btn-blue {
+  background: #e3f2fd;
+  border-color: #90caf9;
+  color: #0d47a1;
+}
+
+.tef-btn-blue:hover:not(:disabled) {
+  background: #bbdefb;
+  border-color: #64b5f6;
+}
+
+.tef-btn-green {
+  background: #2e7d32;
+  border-color: #2e7d32;
+  color: #fff;
+}
+
+.tef-btn-green:hover:not(:disabled) {
+  background: #1b5e20;
+  border-color: #1b5e20;
+}
+
+/* r7.1.5: Lock/Unlock Button */
+.tef-btn-lock {
+  background: #ffc107;
+  border-color: #ffa000;
+  color: #000;
+  padding: 7px 10px;
+  font-weight: 700;
+  min-width: 80px;
+}
+
+.tef-btn-lock:hover:not(:disabled) {
+  background: #ffb300;
+  border-color: #ff8f00;
+}
+
+.tef-btn-lock.unlocked {
+  background: #4caf50;
+  border-color: #388e3c;
+  color: #fff;
+}
+
+.tef-btn-lock.unlocked:hover:not(:disabled) {
+  background: #388e3c;
+  border-color: #2e7d32;
+}
+
+/* ========================================================================
+   TABLE WRAPPER (r7.1.5: FIXED OVERFLOW)
+   ======================================================================== */
+.table-wrapper {
+  flex: 1;
+  overflow: auto;
+  min-height: 200px;
+  background: #fff;
+  position: relative;
+}
+
+/* r7.1.5: Locked mode - fixed layout, no horizontal scroll */
+.table-wrapper.table-locked {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.table-wrapper.table-locked .teflon-table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+/* r7.1.5: Unlocked mode - auto layout, allow horizontal scroll */
+.table-wrapper:not(.table-locked) {
+  overflow-x: auto;
+  overflow-y: auto;
+}
+
+.table-wrapper:not(.table-locked) .teflon-table {
+  width: auto;
+  min-width: 100%;
+  table-layout: auto;
+}
+
+/* r7.1.5: Hide columns when locked */
+.table-locked .col-hidden-locked {
+  display: none !important;
+}
+
+/* r7.1.5: Show columns when unlocked */
+.table-wrapper:not(.table-locked) .col-hidden-locked {
+  display: table-cell !important;
+}
+
+/* ========================================================================
+   TABLE STYLES
+   ======================================================================== */
+.teflon-table {
+  border-collapse: collapse;
+  font-size: 11px;
+  background: #fff;
+}
+
+.teflon-table th,
+.teflon-table td {
+  border-bottom: 1px solid #e0e0e0;
+  padding: 8px 10px;
+  vertical-align: middle;
+  text-align: left;
+}
+
+/* Header */
+.teflon-table thead {
+  position: sticky;
+  top: 0;
+  background: #0056b3;
+  color: #fff;
+  z-index: 10;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.teflon-table thead th {
+  font-weight: 700;
+  font-size: 11px;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  border-right: 1px solid rgba(255, 255, 255, 0.3);
+  transition: background-color 0.2s ease;
+  position: relative;
+  padding-right: 24px;
+}
+
+.teflon-table thead th:last-child {
+  border-right: none;
+}
+
+.teflon-table thead th:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.teflon-table thead th[data-sort] {
+  cursor: pointer;
+}
+
+.sort-indicator {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 10px;
+  opacity: 0.9;
+}
+
+/* Body rows */
+.teflon-table tbody tr {
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.teflon-table tbody tr:nth-child(odd) {
+  background: #fafafa;
+}
+
+.teflon-table tbody tr:hover {
+  background: #e3f2fd !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* r7.1.5: Column widths when LOCKED */
+.table-locked .teflon-table th:nth-child(1),
+.table-locked .teflon-table td:nth-child(1) {
+  width: 45%;
+  min-width: 150px;
+}
+
+.table-locked .teflon-table th:nth-child(2),
+.table-locked .teflon-table td:nth-child(2) {
+  width: 18%;
+  text-align: center;
+}
+
+.table-locked .teflon-table th:nth-child(3),
+.table-locked .teflon-table td:nth-child(3) {
+  width: 20%;
+  text-align: center;
+}
+
+.table-locked .teflon-table th:nth-child(4),
+.table-locked .teflon-table td:nth-child(4) {
+  width: 17%;
+}
+
+/* r7.1.5: Column widths when UNLOCKED */
+.table-wrapper:not(.table-locked) .teflon-table th,
+.table-wrapper:not(.table-locked) .teflon-table td {
+  white-space: nowrap;
+  padding: 8px 12px;
+}
+
+.table-wrapper:not(.table-locked) .teflon-table th:nth-child(1),
+.table-wrapper:not(.table-locked) .teflon-table td:nth-child(1) {
+  min-width: 180px;
+  max-width: 300px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.table-wrapper:not(.table-locked) .teflon-table th:nth-child(2),
+.table-wrapper:not(.table-locked) .teflon-table td:nth-child(2) {
+  min-width: 100px;
+  text-align: center;
+}
+
+.table-wrapper:not(.table-locked) .teflon-table th:nth-child(3),
+.table-wrapper:not(.table-locked) .teflon-table td:nth-child(3) {
+  min-width: 110px;
+  text-align: center;
+}
+
+.table-wrapper:not(.table-locked) .teflon-table th:nth-child(4),
+.table-wrapper:not(.table-locked) .teflon-table td:nth-child(4) {
+  min-width: 100px;
+}
+
+.table-wrapper:not(.table-locked) .teflon-table th:nth-child(5),
+.table-wrapper:not(.table-locked) .teflon-table td:nth-child(5) {
+  min-width: 110px;
+  text-align: center;
+}
+
+.table-wrapper:not(.table-locked) .teflon-table th:nth-child(6),
+.table-wrapper:not(.table-locked) .teflon-table td:nth-child(6) {
+  min-width: 110px;
+  text-align: center;
+}
+
+.table-wrapper:not(.table-locked) .teflon-table th:nth-child(7),
+.table-wrapper:not(.table-locked) .teflon-table td:nth-child(7) {
+  min-width: 100px;
+}
+
+.table-wrapper:not(.table-locked) .teflon-table th:nth-child(8),
+.table-wrapper:not(.table-locked) .teflon-table td:nth-child(8) {
+  min-width: 200px;
+  max-width: 350px;
+  white-space: normal;
+  word-wrap: break-word;
+}
+
+/* ========================================================================
+   STATUS BADGES
+   ======================================================================== */
+.status-badge {
+  padding: 4px 8px;
+  border-radius: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+  display: inline-block;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  min-width: 70px;
+}
+
+.status-badge:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.status-unprocessed {
+  background: #e0e0e0;
+  color: #424242;
+  border: 1px solid #bdbdbd;
+}
+
+.status-pending {
+  background: #ffcc80;
+  color: #e65100;
+  border: 1px solid #ff9800;
+}
+
+.status-approved {
+  background: #ffcdd2;
+  color: #c62828;
+  border: 1px solid #e57373;
+}
+
+.status-processing {
+  background: #bbdefb;
+  color: #0d47a1;
+  border: 1px solid #64b5f6;
+}
+
+.status-completed {
+  background: #c8e6c9;
+  color: #2e7d32;
+  border: 1px solid #81c784;
+}
+
+.status-default {
+  background: #e0e0e0;
+  color: #424242;
+  border: 1px solid #bdbdbd;
+}
+
+/* ========================================================================
+   ROW STATUS COLORS
+   ======================================================================== */
+.tef-row-unprocessed {
+  background: #fafafa !important;
+}
+
+.tef-row-pending {
+  background: #fff8e1 !important;
+}
+
+.tef-row-approved {
+  background: #ffebee !important;
+}
+
+.tef-row-processing {
+  background: #e1f5fe !important;
+}
+
+.tef-row-completed {
+  background: #f1f8e9 !important;
+}
+
+/* ========================================================================
+   GRADIENT WARNING for RequestedDate
+   ======================================================================== */
+.tef-req-overdue-7 {
+  background: #ffe0b2 !important;
+  color: #3e2723 !important;
+  border-radius: 5px;
+  padding: 4px 8px !important;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.tef-req-overdue-9 {
+  background: #ffcc80 !important;
+  color: #3e2723 !important;
+  border-radius: 5px;
+  padding: 4px 8px !important;
+  font-weight: 700;
+  display: inline-block;
+}
+
+.tef-req-overdue-11 {
+  background: #ffb74d !important;
+  color: #3e2723 !important;
+  border-radius: 5px;
+  padding: 4px 8px !important;
+  font-weight: 800;
+  display: inline-block;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.tef-req-overdue-14 {
+  background: #ef5350 !important;
+  color: #ffffff !important;
+  border-radius: 5px;
+  padding: 4px 8px !important;
+  font-weight: 900;
+  display: inline-block;
+  box-shadow: 0 2px 5px rgba(239, 83, 80, 0.4);
+  animation: pulse-warning 2s ease-in-out infinite;
+}
+
+@keyframes pulse-warning {
+  0%, 100% {
+    box-shadow: 0 2px 5px rgba(239, 83, 80, 0.4);
+  }
+  50% {
+    box-shadow: 0 2px 10px rgba(239, 83, 80, 0.7);
+  }
+}
+
+/* ========================================================================
+   MOLD NAME CELL
+   ======================================================================== */
+.mold-name-cell {
+  position: relative;
+}
+
+.mold-name-cell a {
+  color: #0056b3;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s ease;
+  display: inline-block;
+}
+
+.mold-name-cell a:hover {
+  color: #003d82;
+  text-decoration: underline;
+}
+
+.mold-name-cell a:active {
+  color: #001f3f;
+}
+
+/* Text overflow handling */
+.table-locked .mold-name-cell {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ========================================================================
+   NAV BADGE (r7.1.5: TOP-RIGHT CORNER POSITION)
+   ======================================================================== */
+#nav-teflon-btn {
+  position: relative;
+}
+
+.tef-nav-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 900;
+  color: #fff;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9), 0 2px 6px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+  animation: badge-pulse 2s ease-in-out infinite;
+  font-family: 'MS Gothic', 'Hiragino Kaku Gothic Pro', sans-serif;
+  line-height: 1;
+}
+
+@keyframes badge-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.tef-nav-badge-hidden {
+  display: none !important;
+}
+
+/* r7.1.5: 発 (Approved - 発送待ち) */
+.tef-nav-badge-approved {
+  background: #d32f2f;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9), 0 0 12px rgba(211, 47, 47, 0.6);
+}
+
+/* r7.1.5: 承 (Pending - 承認待ち) */
+.tef-nav-badge-pending {
+  background: #ef6c00;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9), 0 0 12px rgba(239, 108, 0, 0.6);
+}
+
+/* r7.1.5: 中 (Processing - 加工中) */
+.tef-nav-badge-processing {
+  background: #1976d2;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9), 0 0 12px rgba(25, 118, 210, 0.6);
+}
+
+/* ========================================================================
+   ACTIONS BAR (r7.1.5: SINGLE ROW)
+   ======================================================================== */
+.tef-actions {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 6000;
+  padding: 10px 16px;
+  border-top: 2px solid #ddd;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(to top, #f7f7f7 0%, #ffffff 100%);
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08);
+  flex-wrap: wrap;
+}
+
+.tef-actions > button {
+  min-width: 90px;
+}
+
+/* ========================================================================
+   MODAL STYLES (r7.1.5: WIDER DISPLAY)
+   ======================================================================== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 12000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal-content {
+  background: #fff;
+  width: 90%;
+  max-width: 850px;
+  border-radius: 10px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-header {
+  padding: 12px 16px;
+  background: linear-gradient(90deg, #2e7d32 0%, #66bb6a 100%);
+  color: #fff;
+  border-radius: 10px 10px 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: grab;
+  user-select: none;
+}
+
+.modal-header:active {
+  cursor: grabbing;
+}
+
+.modal-close-x {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 26px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 6px;
+  transition: transform 0.15s ease;
+}
+
+.modal-close-x:hover {
+  transform: scale(1.15) rotate(90deg);
+}
+
+.modal-body {
+  padding: 16px 20px;
+  overflow-y: auto;
+  flex: 1;
+  background: #fafafa;
+}
+
+.modal-body table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  background: #fff;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.modal-body table tr {
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.modal-body table tr:last-child {
+  border-bottom: none;
+}
+
+.modal-body table th {
+  padding: 10px 12px;
+  text-align: left;
+  background: #f5f5f5;
+  font-weight: 700;
+  color: #333;
+  width: 40%;
+  vertical-align: top;
+  font-size: 12px;
+}
+
+.modal-body table td {
+  padding: 10px 12px;
+  font-size: 13px;
+  color: #444;
+}
+
+.modal-footer {
+  padding: 12px 16px;
+  border-top: 2px solid #e0e0e0;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  background: #fff;
+  border-radius: 0 0 10px 10px;
+}
+
+/* ========================================================================
+   SCROLLBAR STYLING
+   ======================================================================== */
+.table-wrapper::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.table-wrapper::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 5px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 5px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* ========================================================================
+   RESPONSIVE DESIGN
+   ======================================================================== */
+@media (max-width: 767px) {
+  .teflon-panel {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    max-height: 100vh !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+  }
+
+  .tef-header {
+    padding: 12px 14px;
+  }
+
+  .tef-title > div:first-child {
+    font-size: 15px;
+  }
+
+  .tef-title > div:last-child {
+    font-size: 11px;
+  }
+
+  .filter-row {
+    padding: 10px 12px;
+    gap: 10px;
+  }
+
+  .tef-help {
+    font-size: 10px;
+    padding: 6px 10px;
+  }
+
+  /* r7.1.5: Mobile - stack vertically */
+  .filter-line-1,
+  .filter-line-2 {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .filter-label-inline {
+    min-width: auto;
+  }
+
+  .filter-label-inline .label-jp {
+    font-size: 12px;
+  }
+
+  .filter-label-inline .label-vi {
+    font-size: 9px;
+  }
+
+  #teflon-status-filter,
+  #teflon-search-input {
+    width: 100%;
+    min-width: auto;
+  }
+
+  .filter-control,
+  .filter-control-grow {
+    width: 100%;
+  }
+
+  /* Mobile: Lock and Refresh buttons side by side */
+  .filter-line-2 {
+    flex-direction: column;
+  }
+
+  .filter-line-2 > label,
+  .filter-line-2 > .filter-control-grow {
+    width: 100%;
+  }
+
+  /* Button group horizontal */
+  .filter-line-2 > button {
+    width: 48%;
+  }
+
+  .tef-btn {
+    padding: 7px 10px;
+  }
+
+  .tef-btn .jp {
+    font-size: 11px;
+  }
+
+  .tef-btn .vi {
+    font-size: 9px;
+  }
+
+  .teflon-table {
+    font-size: 10px;
+  }
+
+  .teflon-table th,
+  .teflon-table td {
+    padding: 6px 8px;
+  }
+
+  .teflon-table thead th {
+    font-size: 10px;
+    padding: 6px 8px;
+  }
+
+  .status-badge {
+    font-size: 9px;
+    padding: 3px 6px;
+    min-width: 60px;
+  }
+
+  /* r7.1.5: Mobile footer - 2 rows */
+  .tef-actions {
+    padding: 8px 12px;
+    gap: 8px;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .tef-actions > button {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .modal-content {
+    width: 95%;
+    max-width: none;
+    border-radius: 8px;
+  }
+
+  .modal-body table {
+    font-size: 12px;
+  }
+
+  .modal-body table th {
+    font-size: 11px;
+    padding: 8px 10px;
+  }
+
+  .modal-body table td {
+    font-size: 12px;
+    padding: 8px 10px;
+  }
+
+  /* Nav badge - smaller on mobile */
+  .tef-nav-badge {
+    width: 18px;
+    height: 18px;
+    font-size: 10px;
+    top: 1px;
+    right: 1px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  /* Tablet adjustments */
+  .filter-line-1,
+  .filter-line-2 {
+    gap: 10px;
+  }
+
+  #teflon-status-filter {
+    min-width: 180px;
+  }
+
+  .tef-btn-lock {
+    min-width: 75px;
+  }
+}
+
+/* ========================================================================
+   UTILITY CLASSES
+   ======================================================================== */
+.text-center {
+  text-align: center !important;
+}
+
+.text-left {
+  text-align: left !important;
+}
+
+.text-right {
+  text-align: right !important;
+}
+
+.font-bold {
+  font-weight: 700 !important;
+}
+
+.no-wrap {
+  white-space: nowrap !important;
+}
+
+/* Dragging state */
+.dragging {
+  transition: transform 0.1s ease, opacity 0.1s ease;
+}
+
+/* Modal open - prevent body scroll */
+body.modal-open {
+  overflow: hidden;
+}
+
+/* ========================================================================
+   PRINT STYLES
+   ======================================================================== */
+@media print {
+  .tef-header,
+  .tef-summary,
+  .filter-row,
+  .tef-actions,
+  .tef-nav-badge {
+    display: none !important;
+  }
+
+  .teflon-panel {
+    box-shadow: none !important;
+    border: 1px solid #000 !important;
+  }
+
+  .table-wrapper {
+    overflow: visible !important;
+  }
+
+  .table-wrapper.table-locked .col-hidden-locked {
+    display: table-cell !important;
+  }
+
+  .teflon-table {
+    page-break-inside: auto;
+  }
+
+  .teflon-table tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+
+  .teflon-table thead {
+    display: table-header-group;
+  }
+}
+
+/* ========================================================================
+   END OF FILE
+   ======================================================================== */

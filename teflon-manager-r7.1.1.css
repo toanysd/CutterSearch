@@ -1,0 +1,956 @@
+/**
+ * ========================================================================
+ * teflon-manager-r7.1.2.css - Quản lý mạ Teflon Styles
+ * ========================================================================
+ * 
+ * History View Style - Giao diện theo phong cách history-view-r7.1.5
+ * - Modal fullscreen responsive
+ * - Filter 2 hàng (Date/Status/Employee + Search/Field/Value)
+ * - Bảng lịch sử với scroll lock/unlock
+ * - Stats badges
+ * - Mobile responsive (iPhone/iPad)
+ * 
+ * Updated: 2025-12-16 19:25 JST
+ * ========================================================================
+ */
+
+/* ===================================================================== */
+/* ROOT CONTAINER */
+/* ===================================================================== */
+
+.tef-root {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 9000;
+  display: none;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+}
+
+.tef-root.tef-open {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tef-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9001;
+}
+
+.tef-dialog {
+  position: relative;
+  background: #f9fafb;
+  border-radius: 16px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  z-index: 9002;
+  display: flex;
+  flex-direction: column;
+  width: 95vw;
+  max-width: 1400px;
+  height: 90vh;
+  max-height: 900px;
+  overflow: hidden;
+}
+
+/* ===================================================================== */
+/* HEADER */
+/* ===================================================================== */
+
+.tef-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  color: white;
+  flex-shrink: 0;
+}
+
+.tef-title {
+  font-size: 16px;
+  font-weight: 700;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.tef-title .ja {
+  font-size: 17px;
+}
+
+.tef-title .vi {
+  font-size: 11px;
+  opacity: 0.9;
+  font-weight: 500;
+}
+
+.tef-close {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  font-size: 24px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.tef-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* ===================================================================== */
+/* TOP INFO - Summary & Stats */
+/* ===================================================================== */
+
+.tef-topinfo {
+  padding: 8px 12px 6px;
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+  flex-shrink: 0;
+}
+
+.tef-summary {
+  font-size: 11px;
+  color: #4b5563;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.tef-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+}
+
+.tef-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  min-width: 0;
+}
+
+.tef-stat-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.tef-stat-icon.total {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+}
+
+.tef-stat-icon.pending {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+}
+
+.tef-stat-icon.processing {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+}
+
+.tef-stat-icon.completed {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+}
+
+.tef-stat-label {
+  font-size: 10px;
+  color: #6b7280;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tef-stat-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1;
+}
+
+/* ===================================================================== */
+/* BODY */
+/* ===================================================================== */
+
+.tef-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 12px 16px;
+  gap: 12px;
+}
+
+/* ===================================================================== */
+/* FILTERS - 2 ROW LAYOUT */
+/* ===================================================================== */
+
+.tef-filters {
+  flex-shrink: 0;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.tef-filter-row-1 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.tef-filter-row-2 {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 1.5fr;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.tef-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.tef-field label {
+  font-size: 9px;
+  font-weight: 700;
+  color: #374151;
+  white-space: nowrap;
+}
+
+.tef-input,
+.tef-select {
+  width: 100%;
+  padding: 5px 8px;
+  font-size: 11px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  background: white;
+  color: #111827;
+  transition: border-color 0.2s;
+  min-width: 0;
+}
+
+.tef-input:focus,
+.tef-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.tef-input:disabled,
+.tef-select:disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* Filter Actions */
+.tef-filter-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 2px;
+}
+
+.tef-btn {
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: white;
+  color: #374151;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tef-btn:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.tef-btn-primary {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  border-color: #2563eb;
+}
+
+.tef-btn-primary:hover {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+}
+
+.tef-btn-success {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border-color: #059669;
+}
+
+.tef-btn-success:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+}
+
+.tef-btn-secondary {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+/* Scroll toggle button */
+#teflon-scroll-toggle.unlocked {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border-color: #059669;
+}
+
+#teflon-scroll-toggle.unlocked:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+}
+
+/* ===================================================================== */
+/* TABLE WRAPPER */
+/* ===================================================================== */
+
+.tef-table-wrap {
+  flex: 1;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  position: relative;
+}
+
+/* Default: no horizontal scroll */
+.tef-table-wrap:not(.scroll-unlocked) {
+  overflow-x: hidden;
+}
+
+/* Unlocked: allow horizontal scroll */
+.tef-table-wrap.scroll-unlocked {
+  overflow-x: auto;
+}
+
+/* ===================================================================== */
+/* TABLE */
+/* ===================================================================== */
+
+.tef-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  table-layout: auto;
+}
+
+.tef-table thead {
+  position: sticky;
+  top: 0;
+  background: #f9fafb;
+  z-index: 10;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.tef-table th {
+  padding: 8px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #374151;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.2s;
+}
+
+.tef-table th:hover {
+  background: #f3f4f6;
+}
+
+.tef-table th.sortable::after {
+  content: '⇅';
+  opacity: 0.3;
+  font-size: 10px;
+  margin-left: 4px;
+}
+
+.tef-table th.sorted-asc::after {
+  content: '▲';
+  opacity: 1;
+  color: #3b82f6;
+}
+
+.tef-table th.sorted-desc::after {
+  content: '▼';
+  opacity: 1;
+  color: #3b82f6;
+}
+
+.tef-table tbody tr {
+  border-bottom: 1px solid #f3f4f6;
+  transition: background 0.15s;
+}
+
+.tef-table tbody tr:hover {
+  background: #fafbfc;
+}
+
+.tef-table tbody tr[data-mold-id] {
+  cursor: pointer;
+}
+
+.tef-table tbody tr[data-mold-id]:hover {
+  background: #eff6ff;
+}
+
+.tef-table td {
+  padding: 8px 6px;
+  font-size: 12px;
+  color: #1f2937;
+  vertical-align: top;
+}
+
+/* ===================================================================== */
+/* COLUMNS */
+/* ===================================================================== */
+
+.tef-col-mold {
+  width: 180px;
+  min-width: 180px;
+}
+
+.tef-mold-name {
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 1.2;
+  color: #2563eb;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.tef-mold-name:hover {
+  text-decoration: underline;
+}
+
+.tef-col-status {
+  width: 100px;
+  min-width: 100px;
+  text-align: center;
+}
+
+.tef-badge {
+  display: inline-flex;
+  flex-direction: column;
+  padding: 4px 6px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+.tef-badge:hover {
+  transform: scale(1.05);
+}
+
+.tef-badge .ja {
+  font-size: 11px;
+}
+
+.tef-badge .vi {
+  font-size: 9px;
+  opacity: 0.85;
+}
+
+.tef-badge-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.tef-badge-approved {
+  background: #fce7f3;
+  color: #831843;
+}
+
+.tef-badge-processing {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.tef-badge-completed {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.tef-badge-default {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.tef-col-date {
+  width: 90px;
+  min-width: 90px;
+  text-align: center;
+  font-size: 11px;
+}
+
+.tef-col-person {
+  width: 100px;
+  min-width: 100px;
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tef-col-notes {
+  min-width: 120px;
+  max-width: 200px;
+  font-size: 10px;
+  line-height: 1.3;
+  color: #4b5563;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ===================================================================== */
+/* OVERDUE HIGHLIGHT */
+/* ===================================================================== */
+
+.tef-row-overdue-7 {
+  background: #fff3e0 !important;
+}
+
+.tef-row-overdue-14 {
+  background: #ffebee !important;
+}
+
+.tef-row-overdue-14 .tef-mold-name {
+  color: #c62828 !important;
+  font-weight: 800 !important;
+}
+
+/* ===================================================================== */
+/* PAGINATION */
+/* ===================================================================== */
+
+.tef-pagination {
+  flex-shrink: 0;
+  padding: 12px 0;
+  display: flex;
+  justify-content: center;
+}
+
+.tef-pagination-inner {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tef-page-btn {
+  padding: 6px 10px;
+  min-width: 32px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: white;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tef-page-btn:hover:not(:disabled) {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.tef-page-btn.active {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  border-color: #2563eb;
+}
+
+.tef-page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.tef-page-ellipsis {
+  padding: 0 4px;
+  color: #9ca3af;
+  font-size: 12px;
+}
+
+/* ===================================================================== */
+/* FOOTER - 4 buttons grid */
+/* ===================================================================== */
+
+.tef-footer {
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  padding: 12px 16px;
+  background: white;
+  border-top: 1px solid #e5e7eb;
+}
+
+.tef-footer .tef-btn {
+  padding: 12px 8px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
+  text-align: center;
+  white-space: nowrap;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.tef-footer .tef-btn .ja {
+  font-size: 13px;
+}
+
+.tef-footer .tef-btn .vi {
+  font-size: 11px;
+  opacity: 0.85;
+}
+
+/* ===================================================================== */
+/* NAV BADGE (single dot) */
+/* ===================================================================== */
+
+.tef-nav-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-left: 6px;
+  vertical-align: middle;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9);
+}
+
+/* ===================================================================== */
+/* MOBILE RESPONSIVE */
+/* ===================================================================== */
+
+@media (max-width: 767px) {
+  .tef-dialog {
+    width: 100vw;
+    height: 100vh;
+    max-width: 100vw;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .tef-header {
+    padding: 6px 10px;
+  }
+
+  .tef-title {
+    font-size: 14px;
+  }
+
+  .tef-title .ja {
+    font-size: 15px;
+  }
+
+  .tef-title .vi {
+    font-size: 10px;
+  }
+
+  .tef-close {
+    width: 28px;
+    height: 28px;
+    font-size: 20px;
+  }
+
+  .tef-topinfo {
+    padding: 5px 8px 3px;
+  }
+
+  .tef-summary {
+    font-size: 9px;
+    margin-bottom: 3px;
+  }
+
+  .tef-stats {
+    gap: 3px;
+  }
+
+  .tef-stat-card {
+    padding: 3px 4px;
+    gap: 3px;
+  }
+
+  .tef-stat-icon {
+    width: 20px;
+    height: 20px;
+    font-size: 10px;
+  }
+
+  .tef-stat-label {
+    font-size: 8px;
+  }
+
+  .tef-stat-value {
+    font-size: 12px;
+  }
+
+  .tef-body {
+    padding: 6px 8px;
+    gap: 6px;
+  }
+
+  .tef-filters {
+    padding: 6px;
+    border-radius: 6px;
+  }
+
+  /* Row 1: 4 columns (Date filters) */
+  .tef-filter-row-1 {
+    gap: 3px;
+    margin-bottom: 6px;
+  }
+
+  /* Row 2: 2 columns (Field + Value) */
+  .tef-filter-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3px;
+    margin-bottom: 6px;
+    align-items: start;
+  }
+
+  /* Search field: Full width, order: 2 */
+  .tef-search-field {
+    grid-column: 1 / -1;
+    order: 2;
+  }
+
+  /* Field & Value: order 0 & 1 */
+  .tef-filter-row-2 .tef-field:nth-child(2) {
+    order: 0;
+  }
+
+  .tef-filter-row-2 .tef-field:nth-child(3) {
+    order: 1;
+  }
+
+  /* Buttons: Full width, order 3 */
+  .tef-filter-actions {
+    grid-column: 1 / -1;
+    order: 2;
+    display: grid;
+    grid-template-columns: 2fr auto auto auto;
+    gap: 3px;
+    margin: 0;
+  }
+
+  .tef-field label {
+    font-size: 8px;
+  }
+
+  .tef-input,
+  .tef-select {
+    padding: 4px 5px;
+    font-size: 10px;
+    border-radius: 3px;
+  }
+
+  .tef-btn {
+    padding: 5px 6px;
+    font-size: 9px;
+    white-space: nowrap;
+  }
+
+  .tef-table {
+    font-size: 10px;
+  }
+
+  .tef-table th,
+  .tef-table td {
+    padding: 6px 4px;
+    font-size: 11px;
+  }
+
+  .tef-col-mold {
+    width: 140px;
+    min-width: 140px;
+  }
+
+  .tef-mold-name {
+    font-size: 10px;
+  }
+
+  .tef-col-status {
+    width: 80px;
+    min-width: 80px;
+  }
+
+  .tef-badge {
+    font-size: 8px;
+    padding: 2px 3px;
+  }
+
+  .tef-badge .ja {
+    font-size: 9px;
+  }
+
+  .tef-badge .vi {
+    font-size: 7px;
+  }
+
+  .tef-col-date {
+    width: 70px;
+    min-width: 70px;
+    font-size: 9px;
+  }
+
+  .tef-col-person {
+    width: 80px;
+    min-width: 80px;
+    font-size: 9px;
+  }
+
+  .tef-col-notes {
+    min-width: 100px;
+    font-size: 9px;
+  }
+
+  .tef-pagination {
+    padding: 6px 0;
+  }
+
+  .tef-page-btn {
+    padding: 4px 6px;
+    min-width: 24px;
+    font-size: 10px;
+  }
+
+  .tef-footer {
+    gap: 6px;
+    padding: 10px 12px;
+  }
+
+  .tef-footer .tef-btn {
+    padding: 10px 6px;
+    font-size: 11px;
+  }
+}
+
+/* ===================================================================== */
+/* UTILITY */
+/* ===================================================================== */
+
+.vi {
+  font-size: 0.9em;
+  opacity: 0.85;
+}
+
+/* ===================================================================== */
+/* DETAIL MODAL (inline styles in JS, keep for reference) */
+/* ===================================================================== */
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 12000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  background: #fff;
+  width: 90%;
+  max-width: 720px;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  padding: 8px 12px;
+  background: #2e7d32;
+  color: #fff;
+  border-radius: 8px 8px 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: grab;
+}
+
+.modal-close-x {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 22px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.modal-body {
+  padding: 12px 16px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modal-footer {
+  padding: 10px 12px;
+  border-top: 1px solid #ddd;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+}
+
+/* ===================================================================== */
+/* END OF FILE */
+/* ===================================================================== */
