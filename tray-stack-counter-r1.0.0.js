@@ -63,6 +63,37 @@
     }
   }
 
+  function clusterPeaks1D(peaksY, clusterGap) {
+    const arr = (peaksY || []).slice().sort((a, b) => a - b);
+    if (arr.length === 0) return [];
+    const gap = Math.max(1, clusterGap | 0);
+
+    const clusters = [];
+    let start = arr[0];
+    let last = arr[0];
+    let maxY = arr[0];
+    let count = 1;
+
+    for (let i = 1; i < arr.length; i++) {
+      const y = arr[i];
+      if (y - last <= gap) {
+        // same cluster
+        last = y;
+        count++;
+        // keep representative at center-ish: update maxY to latest (simple)
+        maxY = y;
+      } else {
+        clusters.push(Math.round((start + last) / 2));
+        start = y;
+        last = y;
+        maxY = y;
+        count = 1;
+      }
+    }
+    clusters.push(Math.round((start + last) / 2));
+    return clusters;
+  }
+
   // ---------- Core algorithm (no OpenCV) ----------
   function computeProfileAndPeaks(imageData, w, h, params) {
     // params:
@@ -111,30 +142,58 @@
       profile[y] = c ? (s / c) : profileRaw[y];
     }
 
-    // Stats: mean + std
+    // 1) Smooth profile (đã có): profile[]
+    // 2) High-pass: trừ nền (baseline) để giảm bóng/ánh sáng lớn
+    const baseWin = Math.max(21, (params.smoothWindow * 5) | 0);
+    const baseHalf = (baseWin / 2) | 0;
+    const hp = new Float32Array(h);
+
+    for (let y = 0; y < h; y++) {
+      let s = 0, c = 0;
+      const y0 = Math.max(0, y - baseHalf);
+      const y1 = Math.min(h - 1, y + baseHalf);
+      for (let yy = y0; yy <= y1; yy++) { s += profile[yy]; c++; }
+      const baseline = c ? (s / c) : profile[y];
+      const v = profile[y] - baseline;
+      hp[y] = v > 0 ? v : 0;
+    }
+
+    // Robust-ish stats on hp
     let mean = 0;
-    for (let i = 0; i < h; i++) mean += profile[i];
+    for (let i = 0; i < h; i++) mean += hp[i];
     mean /= h;
 
     let varSum = 0;
     for (let i = 0; i < h; i++) {
-      const d = profile[i] - mean;
+      const d = hp[i] - mean;
       varSum += d * d;
     }
     const std = Math.sqrt(varSum / Math.max(1, h - 1));
 
+    // Threshold on high-pass signal
     const threshold = Math.max(params.minPeakStrength, mean + params.thresholdK * std);
 
-    // Peak detection with min distance
+    // Prominence threshold (tăng độ chắc chắn)
+    const promAbs = Math.max(1.5, 0.6 * std);
+
+    // Peak detection with min distance + prominence
     const minDist = Math.max(1, params.minPeakDistance | 0);
     const peaks = [];
     let lastKeptY = -999999;
     let lastKeptVal = -Infinity;
 
     for (let y = 1; y < h - 1; y++) {
-      const v = profile[y];
+      const v = hp[y];
       if (v <= threshold) continue;
-      if (!(v > profile[y - 1] && v >= profile[y + 1])) continue;
+      if (!(v > hp[y - 1] && v >= hp[y + 1])) continue;
+
+      // prominence: so với đáy lân cận trong vùng +/- minDist
+      let leftMin = v;
+      for (let yy = Math.max(0, y - minDist); yy < y; yy++) leftMin = Math.min(leftMin, hp[yy]);
+      let rightMin = v;
+      for (let yy = y + 1; yy <= Math.min(h - 1, y + minDist); yy++) rightMin = Math.min(rightMin, hp[yy]);
+      const prominence = v - Math.max(leftMin, rightMin);
+      if (prominence < promAbs) continue;
 
       if (peaks.length === 0) {
         peaks.push({ y, v });
@@ -149,7 +208,7 @@
         lastKeptY = y;
         lastKeptVal = v;
       } else {
-        // Within minDist: keep the stronger one
+        // Within minDist: keep stronger
         if (v > lastKeptVal) {
           peaks[peaks.length - 1] = { y, v };
           lastKeptY = y;
@@ -157,6 +216,15 @@
         }
       }
     }
+
+    return {
+      profileRaw,
+      profile: hp,          // đổi debug profile sang hp để bạn thấy tín hiệu sạch hơn
+      peaksY: peaks.map(p => p.y),
+      threshold,
+      stats: { mean, std }
+    };
+
 
     return {
       profileRaw,
