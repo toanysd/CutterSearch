@@ -1,0 +1,671 @@
+/* ============================================================
+   photo-audit-camera-r1.1.0.css
+   写真監査ツール - カメラ画面 / Photo Audit Camera Screen
+   - Fullscreen camera with correct aspect ratio
+   - Native camera preview (no distortion)
+   - Capture controls
+   - Photo preview mode
+   - Save to device option
+   ============================================================ */
+
+/* ---------- Camera Overlay (Fullscreen) ---------- */
+.photo-audit-camera-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.photo-audit-camera-overlay.pa-hidden {
+  display: none;
+  opacity: 0;
+}
+
+/* ---------- Camera Header ---------- */
+.pa-camera-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  padding: 16px 20px;
+  background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pa-camera-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.pa-camera-status i {
+  color: #10b981;
+  font-size: 14px;
+  animation: pa-pulse 2s infinite;
+}
+
+@keyframes pa-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.pa-camera-status.preview-mode i {
+  color: #818cf8;
+  animation: none;
+}
+
+.pa-btn-camera-close {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(239, 68, 68, 0.3);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 2px solid rgba(239, 68, 68, 0.5);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 18px;
+}
+
+.pa-btn-camera-close:hover {
+  background: rgba(239, 68, 68, 0.5);
+  border-color: rgba(239, 68, 68, 0.7);
+  transform: scale(1.05);
+}
+
+/* ---------- Camera View Container ---------- */
+.pa-camera-view {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #000;
+}
+
+/* Video Element (Camera Preview) */
+.pa-camera-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  background: #000;
+}
+
+/* Preview Image (After Capture) */
+.pa-camera-preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: none;
+  background: #000;
+}
+
+.pa-camera-preview-img.pa-visible {
+  display: block;
+}
+
+/* Hidden Canvas (for capture) */
+.pa-camera-canvas {
+  display: none;
+}
+
+/* Camera Grid Overlay (Rule of Thirds) */
+.pa-camera-grid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 5;
+  display: none;
+}
+
+.pa-camera-grid.active {
+  display: block;
+}
+
+.pa-camera-grid svg {
+  width: 100%;
+  height: 100%;
+}
+
+.pa-grid-line {
+  stroke: rgba(255, 255, 255, 0.3);
+  stroke-width: 1;
+  stroke-dasharray: 5, 5;
+}
+
+/* ---------- Camera Controls (Bottom) ---------- */
+.pa-camera-controls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  padding: 24px 20px 32px;
+  background: linear-gradient(0deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+/* Capture Button (Circle) */
+.pa-btn-capture {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #fff 0%, #e5e7eb 100%);
+  border: 4px solid rgba(255, 255, 255, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+  position: relative;
+}
+
+.pa-btn-capture::before {
+  content: '';
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.15s ease;
+}
+
+.pa-btn-capture:hover {
+  transform: scale(1.08);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.7);
+}
+
+.pa-btn-capture:active::before {
+  transform: scale(0.85);
+}
+
+.pa-btn-capture i {
+  position: relative;
+  z-index: 1;
+  font-size: 28px;
+  color: #1e293b;
+}
+
+/* Flip Camera Button */
+.pa-btn-flip {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: absolute;
+  right: 20px;
+  bottom: 32px;
+}
+
+.pa-btn-flip:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: scale(1.05);
+}
+
+.pa-btn-flip i {
+  font-size: 22px;
+}
+
+/* Grid Toggle Button */
+.pa-btn-grid-toggle {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: absolute;
+  left: 20px;
+  bottom: 32px;
+}
+
+.pa-btn-grid-toggle:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: scale(1.05);
+}
+
+.pa-btn-grid-toggle.active {
+  background: rgba(129, 140, 248, 0.3);
+  border-color: rgba(129, 140, 248, 0.5);
+  color: #818cf8;
+}
+
+.pa-btn-grid-toggle i {
+  font-size: 20px;
+}
+
+/* ---------- Preview Mode Controls ---------- */
+.pa-preview-controls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  padding: 20px;
+  background: linear-gradient(0deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%);
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pa-preview-controls.pa-visible {
+  display: flex;
+}
+
+.pa-preview-actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.pa-btn-preview {
+  padding: 14px 16px;
+  border: none;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Hiragino Sans', sans-serif;
+}
+
+.pa-btn-preview:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pa-btn-preview i {
+  font-size: 16px;
+}
+
+/* Retake Button */
+.pa-btn-retake {
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+}
+
+.pa-btn-retake:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.3);
+  border-color: rgba(239, 68, 68, 0.6);
+  transform: translateY(-2px);
+}
+
+/* Save Button */
+.pa-btn-save-photo {
+  background: rgba(59, 130, 246, 0.2);
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  color: #93c5fd;
+}
+
+.pa-btn-save-photo:hover:not(:disabled) {
+  background: rgba(59, 130, 246, 0.3);
+  border-color: rgba(59, 130, 246, 0.6);
+  transform: translateY(-2px);
+}
+
+/* Send Button */
+.pa-btn-send {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.pa-btn-send:hover:not(:disabled) {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.5);
+  transform: translateY(-2px);
+}
+
+.pa-btn-send:disabled {
+  background: rgba(16, 185, 129, 0.2);
+  box-shadow: none;
+}
+
+/* Preview Info Badge */
+.pa-preview-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.pa-preview-info-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pa-preview-info-item i {
+  font-size: 12px;
+  color: #818cf8;
+}
+
+/* ---------- Loading State ---------- */
+.pa-camera-loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  z-index: 20;
+}
+
+.pa-camera-loading.active {
+  display: flex;
+}
+
+.pa-camera-loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(255, 255, 255, 0.2);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: pa-spin 0.8s linear infinite;
+}
+
+@keyframes pa-spin {
+  to { transform: rotate(360deg); }
+}
+
+.pa-camera-loading-text {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  text-align: center;
+}
+
+/* ---------- Error State ---------- */
+.pa-camera-error {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  z-index: 20;
+  padding: 32px;
+  text-align: center;
+}
+
+.pa-camera-error.active {
+  display: flex;
+}
+
+.pa-camera-error i {
+  font-size: 48px;
+  color: #f87171;
+}
+
+.pa-camera-error-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.pa-camera-error-message {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+  max-width: 300px;
+}
+
+/* ---------- File Input (Hidden) ---------- */
+.pa-file-input {
+  display: none;
+}
+
+/* ---------- Photo Info Overlay (Top Right) ---------- */
+.pa-photo-info-overlay {
+  position: absolute;
+  top: 80px;
+  right: 20px;
+  z-index: 10;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 12px;
+  padding: 12px 16px;
+  display: none;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 200px;
+}
+
+.pa-photo-info-overlay.pa-visible {
+  display: flex;
+}
+
+.pa-photo-info-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.pa-photo-info-label {
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.pa-photo-info-value {
+  font-weight: 700;
+  color: #fff;
+}
+
+/* ---------- Zoom Controls (Optional) ---------- */
+.pa-zoom-controls {
+  position: absolute;
+  bottom: 120px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: none;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 20px;
+}
+
+.pa-zoom-controls.active {
+  display: flex;
+}
+
+.pa-zoom-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pa-zoom-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.pa-zoom-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.pa-zoom-level {
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  min-width: 40px;
+  text-align: center;
+}
+
+/* ---------- Responsive Mobile ---------- */
+@media (max-width: 640px) {
+  .pa-camera-header {
+    padding: 12px 16px;
+  }
+
+  .pa-camera-controls {
+    padding: 20px 16px 24px;
+  }
+
+  .pa-btn-capture {
+    width: 64px;
+    height: 64px;
+  }
+
+  .pa-btn-capture::before {
+    width: 52px;
+    height: 52px;
+  }
+
+  .pa-btn-capture i {
+    font-size: 24px;
+  }
+
+  .pa-btn-flip,
+  .pa-btn-grid-toggle {
+    width: 48px;
+    height: 48px;
+    bottom: 28px;
+  }
+
+  .pa-preview-controls {
+    padding: 16px;
+  }
+
+  .pa-preview-actions {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .pa-btn-preview {
+    padding: 12px 14px;
+  }
+}
+
+@media (max-width: 430px) {
+  .pa-camera-status {
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+
+  .pa-btn-camera-close {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+}
+
+/* ---------- Landscape Mode ---------- */
+@media (orientation: landscape) and (max-height: 500px) {
+  .pa-camera-header {
+    padding: 8px 16px;
+  }
+
+  .pa-camera-controls {
+    padding: 12px 16px 16px;
+  }
+
+  .pa-btn-capture {
+    width: 56px;
+    height: 56px;
+  }
+
+  .pa-btn-capture::before {
+    width: 46px;
+    height: 46px;
+  }
+
+  .pa-btn-flip,
+  .pa-btn-grid-toggle {
+    width: 44px;
+    height: 44px;
+    bottom: 20px;
+  }
+
+  .pa-preview-controls {
+    padding: 12px;
+  }
+}
+
+/* ---------- Utilities ---------- */
+.pa-hidden {
+  display: none !important;
+}
+
+.pa-visible {
+  display: flex !important;
+}

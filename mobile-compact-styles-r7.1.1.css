@@ -2517,3 +2517,32 @@ border-color: #212121 !important;
     color: #fff;
 }
 
+/* Photo Audit Button */
+.btn-photo {
+  background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%);
+  color: #fff;
+}
+
+.btn-photo:hover {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+}
+
+.btn-photo:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+}
+
+/* Adjust grid for 9 buttons (3x3) */
+.action-buttons-grid.normal-mode {
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 12px;
+}
+
+@media (max-width: 640px) {
+  .action-buttons-grid.normal-mode {
+    gap: 10px;
+  }
+}
