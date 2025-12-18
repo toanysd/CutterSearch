@@ -1,23 +1,17 @@
 /**
  * ========================================================================
- * teflon-manager-r7.2.3.js - Quản lý mạ Teflon (PAGINATION FIX)
+ * teflon-manager-r7.2.4.js - Quản lý mạ Teflon (AUTO-REFRESH & SYNC)
  * ========================================================================
+ * Based on: r7.2.3 (PAGINATION FIX)
+ * UPDATED in r7.2.4: 2025-12-18 14:30 JST
  *
- * Based on: r7.2.2
- *
- * FIXED in r7.2.3 (2025-12-18 09:59 JST):
- * ✅ PAGINATION: Render 50 rows/page (like ResultsTable)
- * ✅ SCROLL FIX: Now table has proper height constraint
- * ✅ Previous/Next buttons in actions bar
- * ✅ Page info in summary bar
- * ✅ All r7.2.2 features preserved
- *
- * Dependencies:
- * - window.DataManager (molds, teflonlog, employees)
- * - window.TeflonProcessManager (optional)
- *
- * Updated: 2025-12-18 09:59 JST
- * ========================================================================
+ * ✅ NEW FEATURES:
+ * - Auto-refresh when opening panel (always fresh data)
+ * - Auto-refresh every 60 seconds (polling)
+ * - Refresh on window focus (return to tab)
+ * - Cross-tab sync via localStorage events
+ * - Silent refresh (no loading indicator)
+ * - Fixed filter layout (label + field in same row)
  */
 
 (function () {
@@ -35,10 +29,31 @@
   let teflonProcessManagerReady = false;
   let teflonProcessManagerRetries = 0;
   const MAX_MANAGER_RETRIES = 5;
-
+  
   // ✅ NEW in r7.2.3: Pagination state
   let currentPage = 1;
   const rowsPerPage = 50;
+
+  // NEW in r7.2.4: Auto-refresh state
+  let autoRefreshTimer = null;
+  let lastRefreshTime = 0;
+  const AUTO_REFRESH_INTERVAL = 60000; // 60 giây
+  const MIN_REFRESH_GAP = 5000; // 5 giây tối thiểu giữa các lần refresh
+
+  // ===== DEBOUNCE UTILITY =====
+  let clickTimeout = null;
+  function debounce(func, wait) {
+    return function executedFunction(...args) {
+      if (clickTimeout !== null) {
+        clearTimeout(clickTimeout); // ✅ Clear timeout cũ
+      }
+      clickTimeout = setTimeout(() => {
+        clickTimeout = null;
+        func(...args);
+      }, wait);
+    };
+  }
+
 
   // ========================================================================
   // STATUS MAPPING
@@ -660,7 +675,6 @@ Page <strong>${currentPage}</strong>/<strong>${totalPages}</strong>
 <td class="mold-name-cell" style="padding:8px 10px;min-width:120px;max-width:250px;">
   <a href="javascript:void(0)" data-action="open-detail" title="${escapeHtml(moldName)}">${escapeHtml(moldName)}</a>
 </td>
-
 <td style="padding:8px 10px;text-align:center;">
 <span class="status-badge ${statusClass}" data-action="view-status" title="詳細">${escapeHtml(statusShort)}</span>
 </td>
@@ -675,35 +689,60 @@ Page <strong>${currentPage}</strong>/<strong>${totalPages}</strong>
 </tr>`;
     });
 
-    tbody.innerHTML = html;
+      tbody.innerHTML = html;
 
-    // Bind events
-    Array.from(tbody.querySelectorAll('tr[data-mold-id]')).forEach(tr => {
+    // ✅ CRITICAL FIX: Remove all event listeners by cloning
+    const table = document.getElementById('teflon-table');
+    const oldTbody = document.getElementById('teflon-tbody');
+    
+    if (oldTbody && oldTbody.parentNode) {
+      const newTbody = oldTbody.cloneNode(true);
+      oldTbody.parentNode.replaceChild(newTbody, oldTbody);
+    }
+    
+    // Re-get fresh tbody reference
+    const cleanTbody = document.getElementById('teflon-tbody');
+    if (!cleanTbody) {
+      console.error('[TeflonManager] Failed to get clean tbody after clone');
+      return;
+    }
+
+    // Create debounced version of openMobileDetailModal (300ms)
+    const debouncedOpen = debounce(openMobileDetailModal, 300);
+
+    // Bind events to CLEAN tbody (no old listeners)
+    Array.from(cleanTbody.querySelectorAll('tr[data-mold-id]')).forEach(tr => {
       tr.addEventListener('click', (e) => {
-        const target = e.target.closest('[data-action]');
-        const moldId = tr.getAttribute('data-mold-id');
-        const row = filteredRows.find(r => String(r.MoldID) === String(moldId));
-        if (!row) return;
 
-        if (target) {
-          const action = target.getAttribute('data-action');
-          if (action === 'open-detail') {
-            e.preventDefault();
-            e.stopPropagation();
-            openDetailModal(row);
-            return;
-          }
-          if (action === 'view-status') {
-            e.preventDefault();
-            e.stopPropagation();
-            openDetailModal(row);
-            return;
-          }
+      const target = e.target.closest('[data-action]');
+      const moldId = tr.getAttribute('data-mold-id');
+      const row = filteredRows.find(r => String(r.MoldID) === String(moldId));
+      
+      if (!row) return;
+
+      // If clicked on specific action button
+            if (target) {
+        const action = target.getAttribute('data-action');
+        if (action === 'open-detail') {
+          e.preventDefault();
+          e.stopPropagation();
+          debouncedOpen(row); // ✅ Use debounced
+          return;
         }
+        if (action === 'view-status') {
+          e.preventDefault();
+          e.stopPropagation();
+          openDetailModal(row);
+          return;
+        }
+      }
 
-        openDetailModal(row);
+          // ✅ Click on entire row also opens MobileDetailModal
+          e.preventDefault();
+          e.stopPropagation(); // ✅ THÊM DÒNG NÀY
+          debouncedOpen(row); // ✅ DÙNG DEBOUNCED - NHẤT QUÁN!
+        });
       });
-    });
   }
 
   // ========================================================================
@@ -884,6 +923,63 @@ ${detailRow('ソース | Nguồn', escapeHtml(row.source === 'teflonlog' ? 'tefl
       attachSwipeToClose(modalHeader, modalContent, closeModal);
     }
   }
+
+  // ===== MOBILE DETAIL MODAL INTEGRATION (r7.2.4) =====
+/**
+ * Open MobileDetailModal for mold item
+ * Uses mobile-detail-modal-r7.1.2.js module if available
+ */
+function openMobileDetailModal(row) {
+  if (!row) {
+    console.warn('[TeflonManager] No row data provided');
+    return;
+  }
+
+  console.log('[TeflonManager] Opening MobileDetailModal for:', row.MoldID, row.MoldName);
+  
+  
+
+  // Check if MobileDetailModal is available
+  if (typeof window.MobileDetailModal !== 'undefined' && window.MobileDetailModal) {
+    try {
+      // Prepare item data for mobile-detail-modal
+      // The modal expects a full mold object with enriched data
+      const dm = window.DataManager?.data;
+      
+      if (!dm || !dm.molds) {
+        console.warn('[TeflonManager] DataManager not ready');
+        // Fallback to simple detail modal
+        openDetailModal(row);
+        return;
+      }
+
+      // Find the full mold object from DataManager
+      const moldId = String(row.MoldID).trim();
+      const fullMoldItem = dm.molds.find(m => String(m.MoldID).trim() === moldId);
+
+      if (!fullMoldItem) {
+        console.warn('[TeflonManager] Mold not found in DataManager:', moldId);
+        // Fallback to simple detail modal
+        openDetailModal(row);
+        return;
+      }
+
+      console.log('[TeflonManager] Found full mold data:', fullMoldItem.MoldCode);
+      
+      // Open mobile-detail-modal
+      window.MobileDetailModal.show(fullMoldItem, 'mold');
+      
+    } catch (err) {
+      console.error('[TeflonManager] Error opening MobileDetailModal:', err);
+      // Fallback to simple detail modal
+      openDetailModal(row);
+    }
+  } else {
+    console.warn('[TeflonManager] MobileDetailModal not available, using fallback');
+    // Fallback to simple detail modal
+    openDetailModal(row);
+  }
+}
 
   // ========================================================================
   // NAV BADGE UPDATE
@@ -1078,44 +1174,114 @@ h3 { margin: 0 0 8px 0; }
   // ========================================================================
   // REFRESH DATA
   // ========================================================================
-  function refreshData() {
-    console.log('[TeflonManager] Refreshing data...');
+  function refreshData(silent = false) {
+    const now = Date.now();
+    if (now - lastRefreshTime < MIN_REFRESH_GAP) {
+      console.log('[TeflonManager] Refresh skipped (too soon)');
+      return Promise.resolve();
+    }
+    
+    lastRefreshTime = now;
+    console.log('[TeflonManager] Refreshing data...', silent ? '(silent)' : '');
+    
     const btn = document.getElementById('teflon-refresh-btn');
-    if (btn) {
+    if (btn && !silent) {
       btn.disabled = true;
-      btn.innerHTML = '<div class="jp">更新中...</div><div class="vi">Loading...</div>';
+      btn.innerHTML = `<div class="jp">読み込み中...</div><div class="vi">Loading...</div>`;
     }
 
     if (window.DataManager && typeof window.DataManager.loadAllData === 'function') {
-      window.DataManager.loadAllData()
+      return window.DataManager.loadAllData()
         .then(() => {
           console.log('[TeflonManager] Data refreshed');
           buildRows();
           applyFilterAndSort();
           updateNavBadge();
-          if (btn) {
+          
+          // ✅ Broadcast to other tabs
+          broadcastRefresh();
+          
+          if (btn && !silent) {
             btn.disabled = false;
-            btn.innerHTML = '<div class="jp">更新</div><div class="vi">Refresh</div>';
+            btn.innerHTML = `<div class="jp">更新</div><div class="vi">Refresh</div>`;
           }
         })
-        .catch(err => {
-          console.error('[TeflonManager] Refresh failed:', err);
-          alert('データの更新に失敗しました。\nLỗi khi làm mới dữ liệu.');
-          if (btn) {
+        .catch((err) => {
+          console.error('[TeflonManager] Refresh failed', err);
+          if (!silent) {
+            alert('Lỗi khi làm mới dữ liệu.');
+          }
+          if (btn && !silent) {
             btn.disabled = false;
-            btn.innerHTML = '<div class="jp">更新</div><div class="vi">Refresh</div>';
+            btn.innerHTML = `<div class="jp">更新</div><div class="vi">Refresh</div>`;
           }
         });
     } else {
       buildRows();
       applyFilterAndSort();
       updateNavBadge();
-      if (btn) {
+      if (btn && !silent) {
         btn.disabled = false;
-        btn.innerHTML = '<div class="jp">更新</div><div class="vi">Refresh</div>';
+        btn.innerHTML = `<div class="jp">更新</div><div class="vi">Refresh</div>`;
+      }
+      return Promise.resolve();
+    }
+  }
+
+  // ===== AUTO-REFRESH & CROSS-TAB SYNC (NEW in r7.2.4) =====
+  function startAutoRefresh() {
+    stopAutoRefresh();
+    console.log('[TeflonManager] Starting auto-refresh (every 60s)');
+    
+    autoRefreshTimer = setInterval(() => {
+      console.log('[TeflonManager] Auto-refresh triggered');
+      refreshData(true); // silent refresh
+    }, AUTO_REFRESH_INTERVAL);
+  }
+
+  function stopAutoRefresh() {
+    if (autoRefreshTimer) {
+      clearInterval(autoRefreshTimer);
+      autoRefreshTimer = null;
+      console.log('[TeflonManager] Auto-refresh stopped');
+    }
+  }
+
+  // Refresh when window gains focus
+  function handleVisibilityChange() {
+    if (!document.hidden) {
+      console.log('[TeflonManager] Window focused, refreshing...');
+      refreshData(true); // silent refresh
+    }
+  }
+
+  // Broadcast refresh event to other tabs
+  function broadcastRefresh() {
+    try {
+      localStorage.setItem('teflon-refresh-trigger', Date.now().toString());
+    } catch (e) {
+      console.warn('[TeflonManager] Could not broadcast refresh', e);
+    }
+  }
+
+  // Listen for refresh events from other tabs
+  function handleStorageEvent(e) {
+    if (e.key === 'teflon-refresh-trigger' && e.newValue) {
+      const triggerTime = parseInt(e.newValue, 10);
+      const timeDiff = Date.now() - triggerTime;
+      
+      // Only refresh if event is recent (within 2 seconds)
+      if (timeDiff < 2000) {
+        console.log('[TeflonManager] Refresh triggered by another tab');
+        setTimeout(() => {
+          buildRows();
+          applyFilterAndSort();
+          updateNavBadge();
+        }, 500);
       }
     }
   }
+
 
   // ========================================================================
   // TOGGLE TABLE LOCK
@@ -1167,9 +1333,17 @@ h3 { margin: 0 0 8px 0; }
     const isMobile = window.innerWidth <= 767;
     if (isMobile) document.body.classList.add('modal-open');
 
-    if (!isRowsBuilt) buildRows();
+      // ✅ ALWAYS refresh when opening panel (r7.2.4)
+    if (!isRowsBuilt) {
+      buildRows();
+    } else {
+      // Refresh data if panel is reopened
+      console.log('[TeflonManager] Panel reopened, refreshing data...');
+      refreshData(true); // silent refresh
+    }
 
-// ✅ r7.2.3: Updated HTML with pagination buttons
+    // r7.2.3 Updated HTML with pagination buttons
+
 const html = `
 <div id="teflon-panel" class="checkio-panel teflon-panel" style="display:block;">
   <div class="tef-header">
@@ -1190,48 +1364,58 @@ const html = `
         ヘッダークリックでソート / Bấm tiêu đề để sắp xếp。金型名クリックで更新 / Bấm tên khuôn để cập nhật。
       </div>
 
-      <div class="filter-grid">
-        <!-- Line 1: Label + Select -->
-        <div class="filter-line filter-line-1">
-          <label class="filter-label filter-label-inline">
-            <div class="label-jp">表示フィルター</div>
-            <div class="label-vi">Lọc hiển thị</div>
-          </label>
-          <div class="filter-control">
+              <div class="filter-bar">
+          <!-- Filter Item 1: Status -->
+          <div class="filter-item">
+            <label class="filter-label-inline2">
+              <div class="label-jp">状態</div>
+              <div class="label-vi">Lọc hiển thị</div>
+            </label>
             <select id="teflon-status-filter">
-              <option value="active">承認待ち・承認済・加工中</option>
-              <option value="unprocessed">未処理 | Chưa xử lý</option>
-              <option value="pending">テフロン加工承認待ち</option>
-              <option value="approved">承認済(発送待ち)</option>
-              <option value="processing">テフロン加工中</option>
-              <option value="completed">テフロン加工済</option>
-              <option value="all">全て | Tất cả</option>
+              <option value="active">承認待・発送待・加工中</option>
+              <option value="unprocessed">未処理 (Chưa xử lý)</option>
+              <option value="pending">承認待 (Chờ phê duyệt)</option>
+              <option value="approved">承認済 (Đã duyệt chờ gửi)</option>
+              <option value="processing">加工中 (Đang mạ)</option>
+              <option value="completed">完了 (Hoàn thành)</option>
+              <option value="all">全て (Tất cả)</option>
             </select>
           </div>
-        </div>
 
-        <!-- Line 2: Label + Search + Lock + Refresh -->
-        <div class="filter-line filter-line-2">
-          <label class="filter-label filter-label-inline">
-            <div class="label-jp">検索</div>
-            <div class="label-vi">Tìm kiếm</div>
-          </label>
-          <div class="filter-control filter-control-grow">
-            <input type="text" id="teflon-search-input" placeholder="金型名・コード・日付 / Tên khuôn, mã, ngày">
+          <!-- Filter Item 2: Search -->
+          <div class="filter-item filter-item-search">
+            <label class="filter-label-inline2">
+              <div class="label-jp">検索</div>
+              <div class="label-vi">Tìm kiếm</div>
+            </label>
+            <input type="text" id="teflon-search-input" placeholder="金型名・コード・日付 / Tên khuôn, mã..." />
           </div>
 
-          <button id="teflon-lock-btn" class="tef-btn tef-btn-lock" type="button"
-            title="クリックして全列を表示 | Bấm để hiện tất cả cột">
-            <div class="jp">解除</div>
-            <div class="vi">Unlock</div>
-          </button>
+                    <!-- Filter Actions -->
+          <div class="filter-actions-inline">
+            <!-- Pagination Buttons - Small -->
+            <button id="teflon-prev-btn" class="tef-btn tef-btn-blue tef-btn-sm" type="button" title="Trang trước / 前ページ">
+              <div class="jp">◀前</div>
+              <div class="vi">◀Prev</div>
+            </button>
+            <button id="teflon-next-btn" class="tef-btn tef-btn-blue tef-btn-sm" type="button" title="Trang sau / 次ページ">
+              <div class="jp">次▶</div>
+              <div class="vi">Next▶</div>
+            </button>
+            
+            <!-- Original Actions -->
+            <button id="teflon-lock-btn" class="tef-btn tef-btn-lock" type="button" title="クリックで全列表示 / Bấm hiển thị tất cả cột">
+              <div class="jp">解錠</div>
+              <div class="vi">Unlock</div>
+            </button>
+            <button id="teflon-refresh-btn" class="tef-btn tef-btn-blue" type="button">
+              <div class="jp">更新</div>
+              <div class="vi">Refresh</div>
+            </button>
+          </div>
 
-          <button id="teflon-refresh-btn" class="tef-btn tef-btn-blue" type="button">
-            <div class="jp">更新</div>
-            <div class="vi">Refresh</div>
-          </button>
         </div>
-      </div>
+
     </div>
 
     <div class="table-wrapper table-locked">
@@ -1259,15 +1443,7 @@ const html = `
         <div class="vi">Đóng</div>
       </button>
 
-      <button id="teflon-prev-btn" class="tef-btn tef-btn-blue" type="button" title="前のページ | Trang trước">
-        <div class="jp">◀ 前</div>
-        <div class="vi">Previous</div>
-      </button>
-
-      <button id="teflon-next-btn" class="tef-btn tef-btn-blue" type="button" title="次のページ | Trang sau">
-        <div class="jp">次 ▶</div>
-        <div class="vi">Next</div>
-      </button>
+      
 
       <button id="teflon-export-btn" class="tef-btn tef-btn-blue" type="button">
         <div class="jp">CSV出力</div>
@@ -1425,17 +1601,27 @@ const html = `
     injectStyles();
     initNavButton();
 
-    setTimeout(() => {
-      buildRows();
-      updateNavBadge();
-    }, 100);
-  }
+      setTimeout(() => {
+    buildRows();
+    updateNavBadge();
+    
+    // ✅ Start auto-refresh (r7.2.4)
+    startAutoRefresh();
+    
+    // ✅ Listen for visibility changes
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    // ✅ Listen for storage events (cross-tab sync)
+    window.addEventListener('storage', handleStorageEvent);
+  }, 100);
+}
+
 
   // ========================================================================
   // PUBLIC API
   // ========================================================================
   const TeflonManager = {
-    version: 'r7.2.3',
+    version: 'r7.2.4',
     INIT: INIT,
     openPanel: openPanel,
     closePanel: closePanel,
@@ -1444,6 +1630,7 @@ const html = `
     renderTable: renderTable,
     updateNavBadge: updateNavBadge,
     openDetailModal: openDetailModal,
+    openMobileDetailModal: openMobileDetailModal, // ✅ NEW
     openProcessManager: openProcessManager,
     exportToCsv: exportToCsv,
     printView: printView,
@@ -1453,7 +1640,11 @@ const html = `
     goToPage: goToPage,
     previousPage: previousPage,
     nextPage: nextPage,
-    getTotalPages: getTotalPages
+    getTotalPages: getTotalPages,
+    // ✅ NEW in r7.2.4
+    startAutoRefresh: startAutoRefresh,
+    stopAutoRefresh: stopAutoRefresh,
+    broadcastRefresh: broadcastRefresh
   };
 
   window.TeflonManager = TeflonManager;
@@ -1469,7 +1660,8 @@ const html = `
     TeflonManager.INIT();
   }
 
-  console.log('[TeflonManager r7.2.3] Module loaded (PAGINATION FIX)');
+  console.log('[TeflonManager] r7.2.4 Module loaded (AUTO-REFRESH & SYNC)');
+
 
 })();
 
@@ -1479,7 +1671,38 @@ const html = `
  * ========================================================================
  * 
  * CHANGELOG r7.2.3 (2025-12-18 10:20 JST):
- * 
+ * /*
+===================================================================
+CHANGELOG
+===================================================================
+r7.2.4 (2025-12-18 14:30 JST) - AUTO-REFRESH & SYNC
+-------------------------------------------------------------------
+✅ NEW FEATURES:
+- Auto-refresh when opening panel (always fresh data)
+- Auto-refresh every 60 seconds (silent polling)
+- Refresh on window focus (when returning to tab)
+- Cross-tab sync via localStorage events
+- Silent refresh mode (no loading UI for background refresh)
+- Fixed filter layout: label + field in same row (filter-bar)
+
+✅ CHANGES:
+- refreshData() now accepts silent parameter
+- Added startAutoRefresh(), stopAutoRefresh()
+- Added handleVisibilityChange(), broadcastRefresh()
+- Added handleStorageEvent() for cross-tab sync
+- openPanel() now always refreshes data when reopened
+- INIT() now starts auto-refresh and event listeners
+- HTML filter layout changed from filter-grid to filter-bar
+
+✅ PRESERVED from r7.2.3:
+- Pagination (50 rows/page)
+- All buttons, filters, layouts
+- Nav badge with kanji
+- CSV export, print, mail
+-------------------------------------------------------------------
+
+r7.2.3 (2025-12-18 10:20 JST) - PAGINATION FIX
+
  * ✅ PAGINATION FIX (Main Issue):
  *    - Render only 50 rows per page (like ResultsTable)
  *    - Added currentPage state variable

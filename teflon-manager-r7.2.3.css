@@ -709,6 +709,7 @@ pre code {
   white-space: nowrap;
 }
 
+
 .tef-btn .jp {
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-bold);
@@ -791,6 +792,28 @@ pre code {
 .tef-btn-lock.unlocked:hover:not(:disabled) {
   background: var(--color-primary-hover);
   border-color: var(--color-primary-hover);
+}
+
+/* ===== SMALL BUTTON VARIANT ===== */
+.tef-btn-sm {
+  padding: var(--space-4) var(--space-6);
+  min-width: 50px;
+  font-size: 10px;
+}
+
+.tef-btn-sm .jp,
+.tef-btn-sm .vi {
+  font-size: 10px;
+  line-height: 1;
+  margin-top: 0;
+}
+
+/* Responsive - Mobile */
+@media (max-width: 480px) {
+  .tef-btn-sm {
+    padding: var(--space-6) var(--space-8);
+    min-width: 44px;
+  }
 }
 
 /* ========================================================================
@@ -1778,4 +1801,18 @@ body.modal-open {
     padding: 12px;
     background: white;
     border-top: 1px solid #e5e7eb;
+}
+/* ===== MODAL INTERACTION ===== */
+/* Dim teflon-panel when mobile-detail-modal is open */
+#teflon-panel:has(~ .mobile-detail-modal.show),
+#teflon-panel.dimmed {
+  opacity: 0.5;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+/* Restore when modal closed */
+#teflon-panel:not(.dimmed) {
+  opacity: 1;
+  pointer-events: auto;
 }
