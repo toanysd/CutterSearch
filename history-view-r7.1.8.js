@@ -35,7 +35,9 @@
   
   // Notification tracking (7 days for "new" data)
   const NOTIFICATION_DAYS = 7;
-  const STORAGE_KEY_READ_EVENTS = 'historyview_read_events';
+  const STORAGE_KEY_READ_EVENTS = 'historyview:read:events';
+  const STORAGE_KEY_DISMISSED_EVENTS = 'historyview:dismissed:events'; // NEW: Events user dismissed
+
 
   // ✅ NEW: Background polling for badge updates
   const BADGE_POLLING_INTERVAL = 5 * 60 * 1000; // 5 minutes
@@ -249,14 +251,59 @@
   }
 
   /**
-   * Clear all read events - mark all as unread
+   * Get dismissed events (events that user permanently dismissed)
+   */
+  function getDismissedEvents() {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY_DISMISSED_EVENTS);
+      return stored ? JSON.parse(stored) : [];
+    } catch (e) {
+      console.warn('[HistoryView] Failed to read dismissed events', e);
+      return [];
+    }
+  }
+
+  /**
+   * Add events to dismissed list (never show notification again)
+   */
+  function addToDismissedList(eventIds) {
+    try {
+      const dismissed = getDismissedEvents();
+      const updated = [...new Set([...dismissed, ...eventIds])]; // Remove duplicates
+      localStorage.setItem(STORAGE_KEY_DISMISSED_EVENTS, JSON.stringify(updated));
+      console.log('[HistoryView] Added to dismissed list:', eventIds.length, 'events');
+    } catch (e) {
+      console.warn('[HistoryView] Failed to add to dismissed list', e);
+    }
+  }
+
+  /**
+   * Check if event is dismissed (never show notification)
+   */
+  function isEventDismissed(eventId) {
+    const dismissed = getDismissedEvents();
+    return dismissed.includes(eventId);
+  }
+
+  /**
+   * Clear all notifications - Add all recent unread events to dismissed list
    */
   function clearAllNotifications() {
     try {
+      // Get all recent unread event IDs
+      const recentUnreadIds = window.HistoryView.state.allEvents
+        .filter(ev => ev.IsRecent && !ev.IsRead)
+        .map(ev => ev.EventID);
+      
+      // Add them to dismissed list
+      addToDismissedList(recentUnreadIds);
+      
+      // Also clear read events
       localStorage.removeItem(STORAGE_KEY_READ_EVENTS);
-      console.log('[HistoryView] All notifications cleared');
+      
+      console.log('[HistoryView] ✅ Dismissed', recentUnreadIds.length, 'notifications permanently');
     } catch (e) {
-      console.warn('[HistoryView] Failed to clear notifications:', e);
+      console.warn('[HistoryView] Failed to clear notifications', e);
     }
   }
 
@@ -751,9 +798,17 @@
 
       // Update IsRead status from localStorage
       const readEvents = getReadEvents();
+      const dismissedEvents = getDismissedEvents(); // NEW
+      
       events.forEach(ev => {
-        ev.IsRead = readEvents.includes(ev.EventID);
+        // Mark as read if:
+        // 1. In read list, OR
+        // 2. In dismissed list (permanently dismissed)
+        ev.IsRead = readEvents.includes(ev.EventID) || dismissedEvents.includes(ev.EventID);
       });
+      
+      console.log('[HistoryView] Dismissed events:', dismissedEvents.length);
+
 
       this.state.allEvents = events;
       console.log('[HistoryView r7.1.8] events built:', events.length);
@@ -981,18 +1036,12 @@
         </div>
 
         <!-- Action buttons -->
-        <div class="hist-filter-actions">
-          <button class="hist-btn hist-btn-secondary" id="history-scroll-toggle" title="横スクロール / Scroll ngang">
-            🔒 Lock
-          </button>
-          <button class="hist-btn hist-btn-success" id="history-refresh-btn">
-            更新 / Refresh
-          </button>
-          <button class="hist-btn" id="history-clear-btn">
-            クリア / Xóa lọc
-          </button>
+          <div class="hist-filter-actions">
+            <button class="hist-btn hist-btn-secondary" id="history-scroll-toggle" title="横スクロール / Scroll ngang">🔒 Lock</button>
+            <button class="hist-btn hist-btn-success" id="history-refresh-btn">🔄 Refresh</button>
+            <button class="hist-btn" id="history-clear-btn">✕ Xóa lọc</button>
+            <button class="hist-btn hist-btn-warning" id="history-clear-notifications-btn" title="全通知をクリア / Clear all notifications">🔕 Clear All</button>
         </div>
-
       </div>
 
       <!-- TABLE -->
@@ -1140,6 +1189,29 @@
         this.els.clearBtn.addEventListener('click', () => this.clearFilters());
       }
 
+      // Clear all notifications (r7.1.9)
+      const clearNotificationsBtn = document.getElementById('history-clear-notifications-btn');
+      if (clearNotificationsBtn) {
+        clearNotificationsBtn.addEventListener('click', () => {
+          if (confirm('すべての未読通知をクリアしますか？\nXóa tất cả thông báo chưa đọc?')) {
+            clearAllNotifications();
+            
+            // Reset all events to read
+            this.state.allEvents.forEach(ev => {
+              ev.IsRead = true;
+            });
+            
+            // Re-render to remove highlights
+            this.applyFiltersAndRender(false);
+            
+            // Update badge
+            this.updateNavBadge();
+            
+            console.log('[HistoryView] All notifications cleared');
+          }
+        });
+      }
+
       // Refresh
       if (this.els.refreshBtn) {
         this.els.refreshBtn.addEventListener('click', () => this.refreshData());
@@ -1156,35 +1228,60 @@
         });
       }
 
-      // Row click - Mark as read
+      // Row click - Improved behavior (r7.1.9)
       if (this.els.tableBody) {
-        this.els.tableBody.addEventListener('click', e => {
+        this.els.tableBody.addEventListener('click', (e) => {
           const row = e.target.closest('tr[data-eventid]');
           if (!row) return;
+
           const eventId = row.getAttribute('data-eventid');
-          console.log('[HistoryView] Row clicked, eventId:', eventId);
-          
-          if (eventId) {
-            // Mark as read
+          if (!eventId) return;
+
+          // Check what was clicked
+          const clickedBadge = e.target.closest('.hist-action-badge');
+          const clickedItemCell = e.target.closest('.hist-col-item');
+
+          if (clickedBadge) {
+            // ✅ CASE 1: Clicked status badge → Show quick info popup
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('[HistoryView] Status badge clicked:', eventId);
+            this.showQuickInfoPopup(e, eventId);
+            
+            // Still mark as read
             markEventAsRead(eventId);
-            
-            // Update state
             const event = this.state.allEvents.find(ev => ev.EventID === eventId);
-            if (event) {
-              event.IsRead = true;
-            }
-            
-            // Remove highlight from row
+            if (event) event.IsRead = true;
             row.classList.remove('hist-row-unread');
-            
-            // Update badge
             this.updateNavBadge();
             
-            // Open detail modal
-            this.openDetailForEventId(eventId);
+          } else if (clickedItemCell) {
+            // ✅ CASE 2: Clicked Code/Name cell → Open detail modal
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('[HistoryView] Item cell clicked:', eventId);
+            
+            markEventAsRead(eventId);
+            const event = this.state.allEvents.find(ev => ev.EventID === eventId);
+            if (event) event.IsRead = true;
+            row.classList.remove('hist-row-unread');
+            this.updateNavBadge();
+            
+            this.openDetailForEventID(eventId);
+            
+          } else {
+            // ✅ CASE 3: Clicked other area → Only mark as read
+            console.log('[HistoryView] Row clicked (mark as read):', eventId);
+            
+            markEventAsRead(eventId);
+            const event = this.state.allEvents.find(ev => ev.EventID === eventId);
+            if (event) event.IsRead = true;
+            row.classList.remove('hist-row-unread');
+            this.updateNavBadge();
           }
         });
       }
+
 
       // ✅ FIX: Toggle scroll lock - Add/Remove class to table wrapper
       const scrollToggle = document.getElementById('history-scroll-toggle');
@@ -1891,39 +1988,167 @@
       if (this.els.statIO) this.els.statIO.textContent = inout;
     },
 
-    // =========================================================================
-    // OPEN DETAIL FOR EVENT ID
-    // =========================================================================
-    openDetailForEventId(eventId) {
+      /**
+     * OPEN DETAIL FOR EVENT ID (r7.1.9 - Improved debugging)
+     */
+    openDetailForEventID(eventId) {
+      console.log('[HistoryView] 🔍 openDetailForEventID called:', eventId);
+      
       const event = this.state.filteredEvents.find(ev => ev.EventID === eventId);
       if (!event) {
-        console.warn('[HistoryView] Event not found:', eventId);
+        console.warn('[HistoryView] ❌ Event not found:', eventId);
         return;
       }
+
+      console.log('[HistoryView] ✅ Event found:', event);
+
+      // Check MobileDetailModal availability
+      if (!window.MobileDetailModal) {
+        console.error('[HistoryView] ❌ window.MobileDetailModal not found');
+        alert('MobileDetailModal chưa sẵn sàng. Vui lòng thử lại.');
+        return;
+      }
+
+      if (typeof window.MobileDetailModal.show !== 'function') {
+        console.error('[HistoryView] ❌ MobileDetailModal.show is not a function');
+        alert('MobileDetailModal.show không khả dụng.');
+        return;
+      }
+
+      const itemType = event.ItemType; // 'mold' or 'cutter'
+      const itemId = event.ItemId;
+      let fullItem = null;
       
-      // Use MobileDetailModal if available
-      if (window.MobileDetailModal && typeof window.MobileDetailModal.show === 'function') {
-        const itemType = event.ItemType; // 'mold' or 'cutter'
-        const itemId = event.ItemId;
+      console.log('[HistoryView] 📦 Searching for:', itemType, itemId);
+      
+      if (itemType === 'mold') {
+        fullItem = this.state.master.moldsById.get(itemId);
+      } else if (itemType === 'cutter') {
+        fullItem = this.state.master.cuttersById.get(itemId);
+      }
+      
+      if (fullItem) {
+        console.log('[HistoryView] ✅ Item found in master, opening modal...', fullItem);
         
-        let fullItem = null;
-        if (itemType === 'mold') {
-          fullItem = this.state.master.moldsById.get(itemId);
-        } else if (itemType === 'cutter') {
-          fullItem = this.state.master.cuttersById.get(itemId);
+        // Close quick info popup if exists
+        const popup = document.querySelector('.hist-quick-info-popup');
+        if (popup) {
+          popup.remove();
+          console.log('[HistoryView] ✅ Popup closed before opening modal');
         }
         
-        if (fullItem) {
+        // Small delay to ensure popup is closed
+        setTimeout(() => {
           window.MobileDetailModal.show(fullItem, itemType);
-        } else {
-          console.warn('[HistoryView] Item not found in master:', itemType, itemId);
-        }
+          console.log('[HistoryView] ✅ Modal.show() called');
+        }, 50);
+        
       } else {
-        console.warn('[HistoryView] MobileDetailModal not available');
+        console.error('[HistoryView] ❌ Item not found in master:', itemType, itemId);
+        alert(`Không tìm thấy ${itemType === 'mold' ? 'khuôn' : 'dao'} ID: ${itemId}`);
       }
     },
 
-    
+
+    /**
+     * Show quick info popup near the clicked badge (r7.1.9)
+     */
+    showQuickInfoPopup(clickEvent, eventId) {
+      // Close existing popup
+      const existingPopup = document.querySelector('.hist-quick-info-popup');
+      if (existingPopup) {
+        existingPopup.remove();
+      }
+
+      const ev = this.state.allEvents.find(e => e.EventID === eventId);
+      if (!ev) return;
+
+      const { date, time } = formatDateTime(ev.EventDate);
+      const meta = actionMeta(ev.ActionKey);
+
+      // Create popup HTML
+      const popup = document.createElement('div');
+      popup.className = 'hist-quick-info-popup';
+      popup.innerHTML = `
+        <div class="hist-quick-info-header">
+          <span class="hist-quick-info-title">履歴情報 / History Info</span>
+          <button class="hist-quick-info-close" title="Close">×</button>
+        </div>
+        <div class="hist-quick-info-body">
+          <div class="hist-quick-info-row">
+            <span class="hist-quick-info-label">日時 / Date:</span>
+            <span class="hist-quick-info-value">${escapeHtml(date)} ${escapeHtml(time)}</span>
+          </div>
+          <div class="hist-quick-info-row">
+            <span class="hist-quick-info-label">ID / Code:</span>
+            <span class="hist-quick-info-value">${escapeHtml(ev.ItemCode)}</span>
+          </div>
+          <div class="hist-quick-info-row">
+            <span class="hist-quick-info-label">名前 / Name:</span>
+            <span class="hist-quick-info-value">${escapeHtml(ev.ItemName)}</span>
+          </div>
+          <div class="hist-quick-info-row">
+            <span class="hist-quick-info-label">種類 / Action:</span>
+            <span class="hist-quick-info-value">${meta.ja} / ${meta.vi}</span>
+          </div>
+          <div class="hist-quick-info-row">
+            <span class="hist-quick-info-label">元 / From:</span>
+            <span class="hist-quick-info-value">${escapeHtml(ev.FromCompanyName || ev.FromRackLayer || '-')}</span>
+          </div>
+          <div class="hist-quick-info-row">
+            <span class="hist-quick-info-label">先 / To:</span>
+            <span class="hist-quick-info-value">${escapeHtml(ev.ToCompanyName || ev.ToRackLayer || '-')}</span>
+          </div>
+          <div class="hist-quick-info-row">
+            <span class="hist-quick-info-label">注記 / Notes:</span>
+            <span class="hist-quick-info-value">${escapeHtml(ev.Notes || '-')}</span>
+          </div>
+          <div class="hist-quick-info-row">
+            <span class="hist-quick-info-label">担当 / Handler:</span>
+            <span class="hist-quick-info-value">${escapeHtml(ev.Handler || '-')}</span>
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(popup);
+
+      // Position popup near click
+      const rect = clickEvent.target.getBoundingClientRect();
+      const popupRect = popup.getBoundingClientRect();
+      
+      let left = rect.left + (rect.width / 2) - (popupRect.width / 2);
+      let top = rect.bottom + 8;
+
+      // Keep within viewport
+      if (left < 8) left = 8;
+      if (left + popupRect.width > window.innerWidth - 8) {
+        left = window.innerWidth - popupRect.width - 8;
+      }
+      if (top + popupRect.height > window.innerHeight - 8) {
+        top = rect.top - popupRect.height - 8;
+      }
+
+      popup.style.left = `${left}px`;
+      popup.style.top = `${top}px`;
+
+      // Close button
+      const closeBtn = popup.querySelector('.hist-quick-info-close');
+      if (closeBtn) {
+        closeBtn.addEventListener('click', () => popup.remove());
+      }
+
+      // Close on outside click
+      setTimeout(() => {
+        const closeOnOutside = (e) => {
+          if (!popup.contains(e.target)) {
+            popup.remove();
+            document.removeEventListener('click', closeOnOutside);
+          }
+        };
+        document.addEventListener('click', closeOnOutside);
+      }, 100);
+    },
+
     // =========================================================================
     // EXPORT CSV
     // =========================================================================
