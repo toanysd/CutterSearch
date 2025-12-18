@@ -287,14 +287,16 @@
   border: 2px solid var(--pa-primary);
   border-radius: 8px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-  z-index: 1000;
-  display: none;
+  z-index: 10005;  /* ← CHANGED: Increase from 1000 to 10005 */
+  display: none;  /* ← CHANGED: Use display instead of opacity */
   -webkit-overflow-scrolling: touch;
 }
 
 .pa-search-results.pa-visible {
-  display: block;
+  display: block !important;  /* ← CHANGED: Simple display toggle */
 }
+
+
 
 .pa-search-results::-webkit-scrollbar {
   width: 6px;
@@ -614,10 +616,11 @@
    CAMERA MODAL
    ======================================== */
 .photo-audit-camera-overlay {
-  z-index: 10001;
+  z-index: 20000;  /* ← CHANGED: Increase from 10001 to 20000 */
   background: #000000;
   padding: 0;
 }
+
 
 .photo-audit-camera {
   width: 100%;

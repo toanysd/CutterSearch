@@ -39,7 +39,7 @@ const PHOTO_AUDIT_CONFIG = {
   IMAGE_TARGET_WIDTH: 1920,
   IMAGE_TARGET_HEIGHT: 1080,
   IMAGE_QUALITY: 0.92,
-  DEBOUNCE_DELAY: 300,
+  DEBOUNCE_DELAY: 150,
   TOAST_DURATION: 3000
 };
 
@@ -545,7 +545,7 @@ const PhotoAuditTool = {
     // File button
     this.els.btnFile.addEventListener('click', () => this.openFilePicker());
 
-    // Mold search input
+    // Mold search input - IMPROVED
     this.els.moldSearchInput.addEventListener('input', debounce((e) => {
       const value = e.target.value.trim();
       this.state.manualMoldInput = value;
@@ -558,19 +558,32 @@ const PhotoAuditTool = {
       }
       
       this.filterMoldDropdown(value);
+      
+      // Auto-show dropdown when typing
+      if (!this.state.moldDropdownOpen) {
+        this.showMoldDropdown();
+      }
     }, PHOTO_AUDIT_CONFIG.DEBOUNCE_DELAY));
 
-    // Mold search focus - show dropdown
+    // Mold search focus - show ALL options
     this.els.moldSearchInput.addEventListener('focus', () => {
       this.showMoldDropdown();
     });
+
+    // Mold search click - also show dropdown
+    this.els.moldSearchInput.addEventListener('click', () => {
+      if (!this.state.moldDropdownOpen) {
+        this.showMoldDropdown();
+      }
+    });
+
 
     // Mold dropdown toggle
     this.els.moldToggle.addEventListener('click', () => {
       this.toggleMoldDropdown();
     });
 
-    // Employee search input
+    // Employee search input - IMPROVED
     this.els.employeeSearchInput.addEventListener('input', debounce((e) => {
       const value = e.target.value.trim();
       this.state.manualEmployeeInput = value;
@@ -583,12 +596,25 @@ const PhotoAuditTool = {
       }
       
       this.filterEmployeeDropdown(value);
+      
+      // Auto-show dropdown when typing
+      if (!this.state.employeeDropdownOpen) {
+        this.showEmployeeDropdown();
+      }
     }, PHOTO_AUDIT_CONFIG.DEBOUNCE_DELAY));
 
-    // Employee search focus - show dropdown
+    // Employee search focus - show ALL options
     this.els.employeeSearchInput.addEventListener('focus', () => {
       this.showEmployeeDropdown();
     });
+
+    // Employee search click - also show dropdown
+    this.els.employeeSearchInput.addEventListener('click', () => {
+      if (!this.state.employeeDropdownOpen) {
+        this.showEmployeeDropdown();
+      }
+    });
+
 
     // Employee dropdown toggle
     this.els.employeeToggle.addEventListener('click', () => {
@@ -1142,13 +1168,21 @@ const PhotoAuditTool = {
 
       this.state.photoBlob = file;
       this.state.photoSource = 'file';
-      this.closeSettings();
-      this.openCamera(true); // Preview mode
+      
+      // FIX: Use setTimeout to prevent auto-close
+      setTimeout(() => {
+        this.closeSettings();
+        setTimeout(() => {
+          this.openCamera(true); // Preview mode
+        }, 100);
+      }, 100);
+      
     } catch (error) {
       console.error('❌ [PhotoAuditTool] File select error:', error);
       this.toast('ファイル読み込みエラー / File read error', 'error');
     }
   },
+
 
   /* ========================================
      OPEN/CLOSE SETTINGS
@@ -1178,6 +1212,13 @@ const PhotoAuditTool = {
 
     // Prevent body scroll
     document.body.style.overflow = 'hidden';
+
+    // ADD THIS: Auto-focus on mold search after a short delay
+    setTimeout(() => {
+      if (this.els.moldSearchInput) {
+        this.els.moldSearchInput.focus();
+      }
+    }, 300);
   },
 
   closeSettings() {
@@ -1630,10 +1671,18 @@ const PhotoAuditTool = {
     this.els.cameraStatus.innerHTML = '<i class="fas fa-check-circle"></i><span>写真プレビュー / Photo preview</span>';
 
     // Update preview info
-    const moldCode = this.state.selectedMold?.MoldCode || this.state.manualMoldInput || '-';
-    const employeeName = this.state.selectedEmployee?.name || '-';
-    this.els.previewMold.textContent = moldCode;
-    this.els.previewEmployee.textContent = employeeName;
+    const moldCode = this.state.selectedMold?.MoldCode || this.state.manualMoldInput || 'Manual';
+    const moldName = this.state.selectedMold?.MoldName || '';
+    const displayMold = moldName ? `${moldCode} - ${moldName}` : moldCode;
+    const employeeName = this.state.selectedEmployee?.name || 'Manual';
+
+    if (this.els.previewMold) {
+      this.els.previewMold.textContent = displayMold;
+    }
+    if (this.els.previewEmployee) {
+      this.els.previewEmployee.textContent = employeeName;
+    }
+
   },
 
   async retakePhoto() {
