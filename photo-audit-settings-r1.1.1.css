@@ -1,0 +1,689 @@
+/* ============================================================
+   photo-audit-settings-r1.1.0.css
+   写真監査ツール - 設定画面 / Photo Audit Settings Screen
+   - Mold selection (search or manual input)
+   - Dimensions display + manual edit (L×W×D)
+   - Employee selection
+   - Email recipients config
+   - Photo source selection (camera/file picker)
+   ============================================================ */
+
+/* ---------- Settings Overlay ---------- */
+.photo-audit-settings-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 99998;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.photo-audit-settings-overlay.pa-hidden {
+  display: none;
+  opacity: 0;
+}
+
+/* ---------- Settings Container ---------- */
+.photo-audit-settings-container {
+  background: linear-gradient(145deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 0;
+  width: 100%;
+  height: 100%;
+  max-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+@media (min-width: 768px) {
+  .photo-audit-settings-container {
+    border-radius: 20px;
+    max-width: 720px;
+    max-height: 90vh;
+  }
+}
+
+/* ---------- Header ---------- */
+.pa-settings-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.pa-settings-title {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pa-settings-title-main {
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 0.3px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pa-settings-title-main i {
+  font-size: 20px;
+  color: #818cf8;
+}
+
+.pa-settings-title-sub {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 500;
+}
+
+.pa-settings-header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.pa-btn-header-close {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 16px;
+}
+
+.pa-btn-header-close:hover {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: rgba(239, 68, 68, 0.5);
+  transform: scale(1.05);
+}
+
+/* ---------- Body / Form Container ---------- */
+.pa-settings-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-height: 0;
+}
+
+.pa-settings-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.pa-settings-body::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.pa-settings-body::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.pa-settings-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* ---------- Form Section ---------- */
+.pa-form-section {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pa-form-section-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #e0e7ff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.pa-form-section-title i {
+  color: #818cf8;
+  font-size: 16px;
+}
+
+/* ---------- Form Field ---------- */
+.pa-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pa-form-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #cbd5e1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pa-form-label .pa-required {
+  color: #f87171;
+  font-size: 14px;
+  margin-left: 2px;
+}
+
+.pa-form-label .pa-optional {
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.4);
+  margin-left: 4px;
+}
+
+.pa-form-input,
+.pa-form-select {
+  width: 100%;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Hiragino Sans', sans-serif;
+}
+
+.pa-form-input:focus,
+.pa-form-select:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.12);
+  border-color: #818cf8;
+  box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.2);
+}
+
+.pa-form-input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.pa-form-input:disabled,
+.pa-form-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* ---------- Dimensions Grid (3 columns for L×W×D) ---------- */
+.pa-dimensions-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.pa-dimension-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pa-dimension-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-align: center;
+}
+
+.pa-dimension-input {
+  width: 100%;
+  padding: 10px 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  transition: all 0.2s ease;
+  font-family: 'SF Mono', Monaco, monospace;
+}
+
+.pa-dimension-input:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.12);
+  border-color: #818cf8;
+  box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.2);
+}
+
+.pa-dimension-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* Auto-filled dimension (from DB) */
+.pa-dimension-input.auto-filled {
+  background: rgba(34, 197, 94, 0.15);
+  border-color: rgba(34, 197, 94, 0.3);
+  color: #86efac;
+}
+
+/* Manually edited dimension */
+.pa-dimension-input.manual-edit {
+  background: rgba(251, 191, 36, 0.15);
+  border-color: rgba(251, 191, 36, 0.3);
+  color: #fde047;
+}
+
+/* ---------- Search Dropdown ---------- */
+.pa-mold-search-wrap {
+  position: relative;
+}
+
+.pa-search-results {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: rgba(17, 24, 39, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  max-height: 240px;
+  overflow-y: auto;
+  z-index: 100;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  display: none;
+}
+
+.pa-search-results.pa-visible {
+  display: block;
+}
+
+.pa-search-item {
+  padding: 10px 14px;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  transition: background 0.15s ease;
+}
+
+.pa-search-item:last-child {
+  border-bottom: none;
+}
+
+.pa-search-item:hover {
+  background: rgba(129, 140, 248, 0.2);
+}
+
+.pa-search-item-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 2px;
+}
+
+.pa-search-item-code {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.pa-search-empty {
+  padding: 16px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+}
+
+/* ---------- Toggle Switches ---------- */
+.pa-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+}
+
+.pa-toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+  flex: 1;
+}
+
+.pa-toggle-label input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #818cf8;
+}
+
+.pa-toggle-label span {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 600;
+}
+
+/* ---------- Email Recipients List ---------- */
+.pa-recipients-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.pa-recipient-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(129, 140, 248, 0.2);
+  border: 1px solid rgba(129, 140, 248, 0.3);
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #c7d2fe;
+}
+
+.pa-recipient-remove {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: rgba(239, 68, 68, 0.3);
+  border: none;
+  color: #fca5a5;
+  font-size: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.pa-recipient-remove:hover {
+  background: rgba(239, 68, 68, 0.5);
+  transform: scale(1.1);
+}
+
+.pa-recipient-add-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.pa-recipient-input {
+  flex: 1;
+}
+
+.pa-btn-add-recipient {
+  padding: 10px 16px;
+  background: rgba(34, 197, 94, 0.15);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-radius: 8px;
+  color: #86efac;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.pa-btn-add-recipient:hover {
+  background: rgba(34, 197, 94, 0.25);
+  border-color: rgba(34, 197, 94, 0.5);
+}
+
+/* ---------- Footer Action Buttons ---------- */
+.pa-settings-footer {
+  padding: 16px 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.pa-footer-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.pa-footer {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px;
+  padding-bottom: max(16px, env(safe-area-inset-bottom)); /* iOS Safe Area */
+  background: #fff;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  gap: 12px;
+  z-index: 10;
+}
+
+.pa-btn-action {
+  padding: 14px 20px;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Hiragino Sans', sans-serif;
+  position: relative;
+  overflow: hidden;
+}
+
+.pa-btn-action:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.pa-btn-action i {
+  font-size: 16px;
+}
+
+/* File Picker Button */
+.pa-btn-file-picker {
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(6, 182, 212, 0.4);
+}
+
+.pa-btn-file-picker:hover:not(:disabled) {
+  background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+  box-shadow: 0 6px 16px rgba(6, 182, 212, 0.5);
+  transform: translateY(-2px);
+}
+
+/* Camera Button */
+.pa-btn-camera {
+  background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+
+.pa-btn-camera:hover:not(:disabled) {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.5);
+  transform: translateY(-2px);
+}
+
+/* Settings Toggle Button (1 column span) */
+.pa-btn-settings-toggle {
+  grid-column: 1 / -1;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #cbd5e1;
+}
+
+.pa-btn-settings-toggle:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.pa-btn-settings-toggle i {
+  transition: transform 0.3s ease;
+}
+
+.pa-btn-settings-toggle.expanded i {
+  transform: rotate(180deg);
+}
+
+/* ---------- Advanced Settings (Collapsible) ---------- */
+.pa-advanced-settings {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.pa-advanced-settings.expanded {
+  max-height: 500px;
+}
+
+/* ---------- Info Badge ---------- */
+.pa-info-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #93c5fd;
+  margin-top: 4px;
+}
+
+.pa-info-badge i {
+  font-size: 12px;
+}
+
+/* ---------- Toast Notification ---------- */
+.pa-toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.95);
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  z-index: 100000;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  max-width: 90vw;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pa-toast.pa-visible {
+  opacity: 1;
+}
+
+.pa-toast.success {
+  background: rgba(34, 197, 94, 0.95);
+  color: #fff;
+}
+
+.pa-toast.error {
+  background: rgba(239, 68, 68, 0.95);
+  color: #fff;
+}
+
+/* ---------- Loading Spinner ---------- */
+.pa-loading-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: pa-spin 0.8s linear infinite;
+}
+
+@keyframes pa-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ---------- Responsive Mobile ---------- */
+@media (max-width: 640px) {
+  .pa-settings-body {
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .pa-form-section {
+    padding: 14px;
+  }
+
+  .pa-settings-footer {
+    padding: 12px 16px;
+  }
+
+  .pa-btn-action {
+    padding: 12px 16px;
+    font-size: 13px;
+  }
+
+  .pa-dimensions-grid {
+    gap: 8px;
+  }
+
+  .pa-dimension-input {
+    padding: 8px 6px;
+    font-size: 13px;
+  }
+}
+
+/* ---------- Utilities ---------- */
+.pa-hidden {
+  display: none !important;
+}
+
+.pa-visible {
+  display: block !important;
+}
+
+.pa-text-center {
+  text-align: center;
+}
+
+.pa-mt-2 {
+  margin-top: 8px;
+}
+
+.pa-mb-2 {
+  margin-bottom: 8px;
+}

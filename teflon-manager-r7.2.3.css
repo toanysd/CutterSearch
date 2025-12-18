@@ -443,6 +443,88 @@ pre code {
   max-width: 100%;
 }
 
+/* ===== FILTER BAR (1-line, left aligned) ===== */
+.filter-bar{
+  display:flex;
+  align-items:flex-end;
+  justify-content:flex-start; /* ✅ căn trái */
+  gap: var(--space-10);
+  flex-wrap:wrap;
+  width:100%;
+}
+
+.tef-help-inline{
+  width:auto;
+  max-width: 520px;
+  padding: var(--space-6) var(--space-10);
+  margin:0;
+}
+
+.tef-help-inline .jp{
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+  line-height: 1.15;
+}
+
+.tef-help-inline .vi{
+  font-size: 10px;
+  opacity: 0.85;
+  line-height: 1.15;
+}
+
+.filter-item{
+  display:flex;
+  align-items:flex-end;
+  gap: var(--space-8);
+}
+
+.filter-label-inline2{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+  min-width: 64px;
+}
+
+.filter-label-inline2 .label-jp{
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+  line-height: 1.1;
+}
+
+.filter-label-inline2 .label-vi{
+  font-size: 9px;
+  opacity: 0.75;
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.1;
+}
+
+/* đảm bảo select/input căn trái và không bị co lỗi */
+.filter-item select,
+.filter-item input{
+  min-width: 0;
+}
+
+.filter-item-search{
+  flex: 1;          /* ✅ search giãn ra */
+  min-width: 240px; /* chống quá hẹp */
+}
+
+.filter-actions-inline{
+  display:flex;
+  gap: var(--space-8);
+  align-items:flex-end;
+  margin-left:auto; /* ✅ đẩy cụm nút về bên phải nhưng toàn khối vẫn “căn trái đều” */
+}
+
+/* Mobile: cho wrap tự nhiên */
+@media (max-width: 767px){
+  .filter-actions-inline{ margin-left:0; width:100%; }
+  .filter-item-search{ min-width: 0; width: 100%; }
+  .filter-item{ width:100%; }
+}
+
+
 .tef-help {
   padding: var(--space-6) var(--space-10);
   font-size: var(--font-size-xs);
@@ -881,6 +963,53 @@ pre code {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* ===== FIX: Empty state table layout (giữ độ rộng cột khi không có dữ liệu) ===== */
+
+/* Đảm bảo table có min-width khi locked */
+.table-locked .teflon-table {
+  min-width: 100%;
+  table-layout: fixed;
+}
+
+/* Khi tbody empty, thead vẫn giữ layout */
+.table-locked .teflon-table thead {
+  width: 100%;
+}
+
+/* Empty row (colspan) không làm ảnh hưởng layout */
+.table-locked .teflon-table tbody tr[data-empty-row] {
+  display: table-row;
+}
+
+/* Cột ID giữ min-width */
+.table-locked .teflon-table th:nth-child(1) {
+  min-width: 80px !important;
+  width: 13%;
+}
+
+/* Cột 金型名 giữ min-width */
+.table-locked .teflon-table th:nth-child(2) {
+  min-width: 100px !important;
+  width: 25%;
+}
+
+/* Cột 状態 */
+.table-locked .teflon-table th:nth-child(3) {
+  min-width: 100px !important;
+  width: 20%;
+}
+
+/* Cột 依頼日 */
+.table-locked .teflon-table th:nth-child(4) {
+  min-width: 100px !important;
+  width: 20%;
+}
+
+/* Cột 依頼者 */
+.table-locked .teflon-table th:nth-child(5) {
+  min-width: 80px !important;
+  width: 22%;
+}
 
 /* ===== UNLOCKED TABLE COLUMN WIDTHS ===== */
 .table-wrapper:not(.table-locked) .teflon-table th,
@@ -891,17 +1020,18 @@ pre code {
 
 .table-wrapper:not(.table-locked) .teflon-table th:nth-child(1),
 .table-wrapper:not(.table-locked) .teflon-table td:nth-child(1) {
+  min-width: 84px;
+  text-align: center;
+}
+
+.table-wrapper:not(.table-locked) .teflon-table th:nth-child(2),
+.table-wrapper:not(.table-locked) .teflon-table td:nth-child(2) {
   min-width: 160px;
   max-width: 260px;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.table-wrapper:not(.table-locked) .teflon-table th:nth-child(2),
-.table-wrapper:not(.table-locked) .teflon-table td:nth-child(2) {
-  min-width: 84px;
-  text-align: center;
-}
 
 .table-wrapper:not(.table-locked) .teflon-table th:nth-child(3),
 .table-wrapper:not(.table-locked) .teflon-table td:nth-child(3) {
@@ -1155,17 +1285,20 @@ pre code {
 }
 
 /* ========================================================================
-   ACTIONS BAR (fixed bottom)
+ACTIONS BAR (NOT fixed - to protect table scrollbars)
 ======================================================================== */
+
+/* ✅ FIX: Không dùng fixed nữa để .table-wrapper không bị che phần đáy (scrollbar ngang/row cuối). */
 .tef-actions {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 6000;
+  position: relative;            /* was: fixed */
+  left: auto;
+  right: auto;
+  bottom: auto;
+
+  z-index: 10;                   /* đủ cao trong panel, không cần 6000 */
+  flex-shrink: 0;                /* giữ chiều cao, không bị co */
 
   padding: var(--space-8) var(--space-12);
-
   border-top: 1px solid var(--color-border);
 
   display: flex;
@@ -1175,13 +1308,13 @@ pre code {
 
   background: linear-gradient(to top, var(--color-secondary) 0%, var(--color-surface) 100%);
   box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08);
-
   flex-wrap: wrap;
 }
 
 .tef-actions button {
   min-width: 86px;
 }
+
 
 /* ========================================================================
    MODAL (detail modal)

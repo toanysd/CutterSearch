@@ -617,6 +617,7 @@ Page <strong>${currentPage}</strong>/<strong>${totalPages}</strong>
 
     let html = '';
     pageRows.forEach(row => {
+      const moldId = row.MoldID || '-';
       const moldName = row.MoldName || '-';
       const statusKey = row.TeflonStatusKey || '';
       const statusShort = getShortStatusLabel(statusKey);
@@ -653,9 +654,13 @@ Page <strong>${currentPage}</strong>/<strong>${totalPages}</strong>
 
       html += `
 <tr data-mold-id="${escapeHtml(row.MoldID)}" class="${rowClass}" style="cursor:pointer;border-bottom:1px solid #eee;">
+<td class="mold-id-cell" style="padding:8px 10px;min-width:38px;max-width:50px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+    ${escapeHtml(moldId)}
+  </td>
 <td class="mold-name-cell" style="padding:8px 10px;min-width:120px;max-width:250px;">
-<a href="javascript:void(0)" data-action="open-process" title="更新">${escapeHtml(moldName)}</a>
+  <a href="javascript:void(0)" data-action="open-detail" title="${escapeHtml(moldName)}">${escapeHtml(moldName)}</a>
 </td>
+
 <td style="padding:8px 10px;text-align:center;">
 <span class="status-badge ${statusClass}" data-action="view-status" title="詳細">${escapeHtml(statusShort)}</span>
 </td>
@@ -682,10 +687,10 @@ Page <strong>${currentPage}</strong>/<strong>${totalPages}</strong>
 
         if (target) {
           const action = target.getAttribute('data-action');
-          if (action === 'open-process') {
+          if (action === 'open-detail') {
             e.preventDefault();
             e.stopPropagation();
-            openProcessManager(row);
+            openDetailModal(row);
             return;
           }
           if (action === 'view-status') {
@@ -1067,7 +1072,7 @@ h3 { margin: 0 0 8px 0; }
 
     const subject = encodeURIComponent(`Teflon status - ${new Date().toISOString().slice(0, 10)}`);
     const body = encodeURIComponent(lines.join('\n'));
-    window.location.href = `mailto:teflon@ysd.local?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:toan@ysd-pack.co.jp?subject=${subject}&body=${body}`;
   }
 
   // ========================================================================
@@ -1164,109 +1169,124 @@ h3 { margin: 0 0 8px 0; }
 
     if (!isRowsBuilt) buildRows();
 
-    // ✅ r7.2.3: Updated HTML with pagination buttons
-    const html = `
+// ✅ r7.2.3: Updated HTML with pagination buttons
+const html = `
 <div id="teflon-panel" class="checkio-panel teflon-panel" style="display:block;">
-<div class="tef-header">
-<div class="tef-title">
-<div>テフロン加工管理</div>
-<div>Quản lý mạ Teflon</div>
-</div>
-<button id="teflon-close-btn" title="閉じる | Đóng">×</button>
-</div>
-<div class="tef-summary">
-ステータス別に依頼状況を表示します。 | Hiển thị trạng thái theo danh mục.
-</div>
-<div class="checkio-body panel-body">
-<div class="filter-row">
-<div class="tef-help">
-ヘッダークリックでソート / Bấm tiêu đề để sắp xếp。金型名クリックで更新 / Bấm tên khuôn để cập nhật。
-</div>
-<div class="filter-grid">
-<!-- Line 1: Label + Select -->
-<div class="filter-line filter-line-1">
-<label class="filter-label filter-label-inline">
-<div class="label-jp">表示フィルター</div>
-<div class="label-vi">Lọc hiển thị</div>
-</label>
-<div class="filter-control">
-<select id="teflon-status-filter">
-<option value="active">承認待ち・承認済・加工中</option>
-<option value="unprocessed">未処理 | Chưa xử lý</option>
-<option value="pending">テフロン加工承認待ち</option>
-<option value="approved">承認済(発送待ち)</option>
-<option value="processing">テフロン加工中</option>
-<option value="completed">テフロン加工済</option>
-<option value="all">全て | Tất cả</option>
-</select>
-</div>
-</div>
-<!-- Line 2: Label + Search + Lock + Refresh -->
-<div class="filter-line filter-line-2">
-<label class="filter-label filter-label-inline">
-<div class="label-jp">検索</div>
-<div class="label-vi">Tìm kiếm</div>
-</label>
-<div class="filter-control filter-control-grow">
-<input type="text" id="teflon-search-input" placeholder="金型名・コード・日付 / Tên khuôn, mã, ngày">
-</div>
-<button id="teflon-lock-btn" class="tef-btn tef-btn-lock" type="button"
-title="クリックして全列を表示 | Bấm để hiện tất cả cột">
-<div class="jp">解除</div>
-<div class="vi">Unlock</div>
-</button>
-<button id="teflon-refresh-btn" class="tef-btn tef-btn-blue" type="button">
-<div class="jp">更新</div>
-<div class="vi">Refresh</div>
-</button>
-</div>
-</div>
-</div>
-<div class="table-wrapper table-locked">
-<table id="teflon-table" class="teflon-table">
-<thead>
-<tr>
-<th data-sort="MoldName">金型名<span class="sort-indicator"></span></th>
-<th data-sort="TeflonStatusKey">状態<span class="sort-indicator"></span></th>
-<th data-sort="RequestedDate">依頼日<span class="sort-indicator">▼</span></th>
-<th data-sort="RequestedByName">依頼者<span class="sort-indicator"></span></th>
-<th data-sort="SentDate" class="col-hidden-locked">出荷日<span class="sort-indicator"></span></th>
-<th data-sort="ReceivedDate" class="col-hidden-locked">受入日<span class="sort-indicator"></span></th>
-<th data-sort="SentByName" class="col-hidden-locked">担当者<span class="sort-indicator"></span></th>
-<th class="col-hidden-locked">メモ</th>
-</tr>
-</thead>
-<tbody id="teflon-tbody"></tbody>
-</table>
-</div>
-<div class="tef-actions">
-<button id="teflon-close-bottom" class="tef-btn tef-btn-gray" type="button">
-<div class="jp">閉じる</div>
-<div class="vi">Đóng</div>
-</button>
-<button id="teflon-prev-btn" class="tef-btn tef-btn-blue" type="button" title="前のページ | Trang trước">
-<div class="jp">◀ 前</div>
-<div class="vi">Previous</div>
-</button>
-<button id="teflon-next-btn" class="tef-btn tef-btn-blue" type="button" title="次のページ | Trang sau">
-<div class="jp">次 ▶</div>
-<div class="vi">Next</div>
-</button>
-<button id="teflon-export-btn" class="tef-btn tef-btn-blue" type="button">
-<div class="jp">CSV出力</div>
-<div class="vi">Xuất CSV</div>
-</button>
-<button id="teflon-print-btn" class="tef-btn tef-btn-blue" type="button">
-<div class="jp">印刷</div>
-<div class="vi">In</div>
-</button>
-<button id="teflon-mail-btn" class="tef-btn tef-btn-green" type="button">
-<div class="jp">メール送信</div>
-<div class="vi">Gửi email</div>
-</button>
-</div>
-</div>
+  <div class="tef-header">
+    <div class="tef-title">
+      <div>テフロン加工管理</div>
+      <div>Quản lý mạ Teflon</div>
+    </div>
+    <button id="teflon-close-btn" title="閉じる | Đóng">×</button>
+  </div>
+
+  <div class="tef-summary">
+    ステータス別に依頼状況を表示します。 | Hiển thị trạng thái theo danh mục.
+  </div>
+
+  <div class="checkio-body panel-body">
+    <div class="filter-row">
+      <div class="tef-help">
+        ヘッダークリックでソート / Bấm tiêu đề để sắp xếp。金型名クリックで更新 / Bấm tên khuôn để cập nhật。
+      </div>
+
+      <div class="filter-grid">
+        <!-- Line 1: Label + Select -->
+        <div class="filter-line filter-line-1">
+          <label class="filter-label filter-label-inline">
+            <div class="label-jp">表示フィルター</div>
+            <div class="label-vi">Lọc hiển thị</div>
+          </label>
+          <div class="filter-control">
+            <select id="teflon-status-filter">
+              <option value="active">承認待ち・承認済・加工中</option>
+              <option value="unprocessed">未処理 | Chưa xử lý</option>
+              <option value="pending">テフロン加工承認待ち</option>
+              <option value="approved">承認済(発送待ち)</option>
+              <option value="processing">テフロン加工中</option>
+              <option value="completed">テフロン加工済</option>
+              <option value="all">全て | Tất cả</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Line 2: Label + Search + Lock + Refresh -->
+        <div class="filter-line filter-line-2">
+          <label class="filter-label filter-label-inline">
+            <div class="label-jp">検索</div>
+            <div class="label-vi">Tìm kiếm</div>
+          </label>
+          <div class="filter-control filter-control-grow">
+            <input type="text" id="teflon-search-input" placeholder="金型名・コード・日付 / Tên khuôn, mã, ngày">
+          </div>
+
+          <button id="teflon-lock-btn" class="tef-btn tef-btn-lock" type="button"
+            title="クリックして全列を表示 | Bấm để hiện tất cả cột">
+            <div class="jp">解除</div>
+            <div class="vi">Unlock</div>
+          </button>
+
+          <button id="teflon-refresh-btn" class="tef-btn tef-btn-blue" type="button">
+            <div class="jp">更新</div>
+            <div class="vi">Refresh</div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-wrapper table-locked">
+      <table id="teflon-table" class="teflon-table">
+        <thead>
+          <tr>
+            <th data-sort="MoldID">ID<span class="sort-indicator"></span></th>
+            <th data-sort="MoldName">金型名<span class="sort-indicator"></span></th>
+            <th data-sort="TeflonStatusKey">状態<span class="sort-indicator"></span></th>
+            <th data-sort="RequestedDate">依頼日<span class="sort-indicator">▼</span></th>
+            <th data-sort="RequestedByName">依頼者<span class="sort-indicator"></span></th>
+            <th data-sort="SentDate" class="col-hidden-locked">出荷日<span class="sort-indicator"></span></th>
+            <th data-sort="ReceivedDate" class="col-hidden-locked">受入日<span class="sort-indicator"></span></th>
+            <th data-sort="SentByName" class="col-hidden-locked">担当者<span class="sort-indicator"></span></th>
+            <th class="col-hidden-locked">メモ</th>
+          </tr>
+        </thead>
+        <tbody id="teflon-tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="tef-actions">
+      <button id="teflon-close-bottom" class="tef-btn tef-btn-gray" type="button">
+        <div class="jp">閉じる</div>
+        <div class="vi">Đóng</div>
+      </button>
+
+      <button id="teflon-prev-btn" class="tef-btn tef-btn-blue" type="button" title="前のページ | Trang trước">
+        <div class="jp">◀ 前</div>
+        <div class="vi">Previous</div>
+      </button>
+
+      <button id="teflon-next-btn" class="tef-btn tef-btn-blue" type="button" title="次のページ | Trang sau">
+        <div class="jp">次 ▶</div>
+        <div class="vi">Next</div>
+      </button>
+
+      <button id="teflon-export-btn" class="tef-btn tef-btn-blue" type="button">
+        <div class="jp">CSV出力</div>
+        <div class="vi">Xuất CSV</div>
+      </button>
+
+      <button id="teflon-print-btn" class="tef-btn tef-btn-blue" type="button">
+        <div class="jp">印刷</div>
+        <div class="vi">In</div>
+      </button>
+
+      <button id="teflon-mail-btn" class="tef-btn tef-btn-green" type="button">
+        <div class="jp">メール送信</div>
+        <div class="vi">Gửi email</div>
+      </button>
+    </div>
+  </div>
 </div>`;
+
 
     upper.insertAdjacentHTML('beforeend', html);
 
