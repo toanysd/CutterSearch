@@ -1,0 +1,563 @@
+/* ============================================================
+   photo-audit-tool-r1.0.0.css
+   写真監査ツール / Photo Audit Tool
+   - Camera capture + resize HD
+   - Mold selection (search)
+   - Employee selection
+   - Email via Supabase Edge Function + Resend
+   - Audit logging
+   ============================================================ */
+
+/* ---------- Overlay & Dialog ---------- */
+.photo-audit-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  opacity: 1;
+  transition: opacity 0.25s ease;
+}
+
+.photo-audit-overlay.pa-hidden {
+  display: none;
+  opacity: 0;
+}
+
+.photo-audit-dialog {
+  background: linear-gradient(145deg, #1e1b4b 0%, #312e81 100%);
+  border-radius: 20px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  width: 100%;
+  max-width: 680px;
+  max-height: 95vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ---------- Header ---------- */
+.photo-audit-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.photo-audit-title {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.photo-audit-title-main {
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 0.3px;
+}
+
+.photo-audit-title-sub {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.65);
+  font-weight: 500;
+}
+
+.photo-audit-header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* ---------- Body ---------- */
+.photo-audit-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 20px;
+  gap: 16px;
+  min-height: 0;
+}
+
+/* Camera Area */
+.photo-audit-camera-wrap {
+  position: relative;
+  width: 100%;
+  background: #000;
+  border-radius: 12px;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+.photo-audit-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.photo-audit-canvas-hidden {
+  display: none;
+}
+
+.photo-audit-preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+  display: none;
+}
+
+.photo-audit-preview-img.pa-visible {
+  display: block;
+}
+
+.photo-audit-camera-controls {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 12px;
+  z-index: 10;
+}
+
+.photo-audit-camera-status {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: rgba(0, 0, 0, 0.75);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 10;
+}
+
+.photo-audit-camera-status .pa-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10b981;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ---------- Form Section ---------- */
+.photo-audit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.photo-audit-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.photo-audit-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #e0e7ff;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.photo-audit-label .pa-required {
+  color: #f87171;
+  font-size: 14px;
+}
+
+.photo-audit-input,
+.photo-audit-select {
+  width: 100%;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.photo-audit-input:focus,
+.photo-audit-select:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.12);
+  border-color: #818cf8;
+  box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.2);
+}
+
+.photo-audit-input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.photo-audit-input:disabled,
+.photo-audit-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Search dropdown custom */
+.photo-audit-mold-search-wrap {
+  position: relative;
+}
+
+.photo-audit-search-results {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: rgba(30, 27, 75, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  max-height: 240px;
+  overflow-y: auto;
+  z-index: 100;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  display: none;
+}
+
+.photo-audit-search-results.pa-visible {
+  display: block;
+}
+
+.photo-audit-search-item {
+  padding: 10px 14px;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  transition: background 0.15s ease;
+}
+
+.photo-audit-search-item:last-child {
+  border-bottom: none;
+}
+
+.photo-audit-search-item:hover {
+  background: rgba(129, 140, 248, 0.2);
+}
+
+.photo-audit-search-item-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 2px;
+}
+
+.photo-audit-search-item-code {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.photo-audit-search-empty {
+  padding: 16px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+}
+
+/* Employee toggle */
+.photo-audit-employee-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.photo-audit-toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.photo-audit-toggle-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #818cf8;
+}
+
+.photo-audit-toggle-label span {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.75);
+  font-weight: 600;
+}
+
+/* ---------- Footer ---------- */
+.photo-audit-footer {
+  padding: 16px 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* ---------- Buttons ---------- */
+.photo-audit-btn {
+  padding: 11px 20px;
+  border: none;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  white-space: nowrap;
+}
+
+.photo-audit-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.photo-audit-btn-icon {
+  padding: 10px 12px;
+  min-width: auto;
+}
+
+.photo-audit-btn-primary {
+  background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+
+.photo-audit-btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.5);
+  transform: translateY(-1px);
+}
+
+.photo-audit-btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.photo-audit-btn-secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.photo-audit-btn-secondary:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.photo-audit-btn-danger {
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.photo-audit-btn-danger:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+.photo-audit-btn-success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.photo-audit-btn-success:hover:not(:disabled) {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.5);
+  transform: translateY(-1px);
+}
+
+/* Camera control buttons */
+.photo-audit-btn-capture {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #fff 0%, #e5e7eb 100%);
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.photo-audit-btn-capture:hover {
+  transform: scale(1.08);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+}
+
+.photo-audit-btn-capture:active {
+  transform: scale(0.95);
+}
+
+.photo-audit-btn-capture i {
+  font-size: 24px;
+  color: #1e1b4b;
+}
+
+.photo-audit-btn-flip {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.photo-audit-btn-flip:hover {
+  background: rgba(0, 0, 0, 0.75);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: scale(1.05);
+}
+
+.photo-audit-btn-flip i {
+  font-size: 20px;
+  color: #fff;
+}
+
+/* ---------- Toast ---------- */
+.photo-audit-toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.9);
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  z-index: 100000;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  max-width: 90vw;
+  text-align: center;
+}
+
+.photo-audit-toast.pa-visible {
+  opacity: 1;
+}
+
+/* ---------- Loading Spinner ---------- */
+.photo-audit-loading {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ---------- Responsive Mobile ---------- */
+@media (max-width: 640px) {
+  .photo-audit-dialog {
+    max-width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .photo-audit-body {
+    padding: 16px;
+  }
+
+  .photo-audit-camera-wrap {
+    border-radius: 8px;
+  }
+
+  .photo-audit-footer {
+    flex-wrap: wrap;
+  }
+
+  .photo-audit-btn {
+    flex: 1;
+    min-width: 0;
+    justify-content: center;
+  }
+
+  .photo-audit-btn-icon {
+    padding: 10px;
+  }
+}
+
+@media (max-width: 430px) {
+  .photo-audit-header {
+    padding: 12px 16px;
+  }
+
+  .photo-audit-title-main {
+    font-size: 16px;
+  }
+
+  .photo-audit-title-sub {
+    font-size: 10px;
+  }
+
+  .photo-audit-btn {
+    padding: 10px 16px;
+    font-size: 12px;
+  }
+
+  .photo-audit-btn-capture {
+    width: 56px;
+    height: 56px;
+  }
+
+  .photo-audit-btn-flip {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+/* ---------- Utilities ---------- */
+.pa-hidden {
+  display: none !important;
+}
+
+.pa-visible {
+  display: block !important;
+}
+
+.pa-disabled {
+  pointer-events: none;
+  opacity: 0.5;
+}

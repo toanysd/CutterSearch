@@ -38,6 +38,9 @@
     <link rel="stylesheet" href="filter-module-mobile-r7.1.1.css">
     <!-- Tray Stack Counter (積み重ねカウント) -->
     <link rel="stylesheet" href="tray-stack-counter-r1.0.0.css">
+    <!-- Photo Audit Tool (写真監査) -->
+    <link rel="stylesheet" href="photo-audit-tool-r1.0.0.css">
+
 
 
      
@@ -49,6 +52,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- Supabase Client (for Photo Audit Tool) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     
 </head>
 <body>
@@ -863,6 +869,13 @@
             <span class="bottom-nav-label"><br><small>積層<br>Stack</small></span>
         </button>
 
+        <!-- Tab X Photo Audit / 写真監査 -->
+        <button class="bottom-nav-item" data-tab="photo-audit" id="nav-photo-audit-btn"
+                title="写真監査 / Chụp ảnh khuôn gửi mail">
+        <i class="fas fa-camera bottom-nav-icon"></i>
+        <span class="bottom-nav-label"><br><small>写真<br>Photo</small></span>
+        </button>
+
 
         <!-- Tab 5: Filter -->
         <button class="bottom-nav-item" data-tab="settings" title="フィルター | Bộ lọc" id="filter-nav-btn">
@@ -967,8 +980,8 @@
     <script src="shipping-manager-r7.1.2.js"></script>
     <link rel="stylesheet" href="shipping-mobile-r7.0.8.css">
 
-    <script src="teflon-manager-r7.2.0.js"></script>
-    <link rel="stylesheet" href="teflon-manager-r7.2.0.css">
+    <script src="teflon-manager-r7.2.3.js"></script>
+    <link rel="stylesheet" href="teflon-manager-r7.2.2.css">
 
     <script src="teflon-process-manager-r7.1.1.js"></script>
     <link rel="stylesheet" href="teflon-process-manager-r7.1.1.css">
@@ -1020,6 +1033,9 @@
     <link rel="stylesheet" href="bulk-inventory-fab-r7.1.2-fixed.css">
     <!-- Tray Stack Counter (積み重ねカウント) -->
     <script src="tray-stack-counter-r1.0.0.js"></script>
+    <!-- Photo Audit Tool (写真監査) -->
+    <script src="photo-audit-tool-r1.0.0.js"></script>
+
 
         
     <!-- Initialization Script -->
