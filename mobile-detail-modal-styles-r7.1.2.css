@@ -19,25 +19,26 @@
    ======================================== */
 
 @media (max-width: 767px) {
-    .mobile-detail-modal {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.85);
-        z-index: 10000;
-        display: flex;
-        flex-direction: column;
-        opacity: 0;
-        visibility: hidden;
-        transition: all 0.25s ease;
-    }
-    
-    .mobile-detail-modal.show {
-        opacity: 1;
-        visibility: visible;
-    }
+  .mobile-detail-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 10500;
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    visibility: hidden;
+    /* ✅ CHỈ ANIMATE OPACITY, KHÔNG TRANSFORM */
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+  }
+
+  .mobile-detail-modal.show {
+    opacity: 1;
+    visibility: visible;
+  }
     
     .mobile-detail-modal.hidden {
         opacity: 0;
@@ -54,7 +55,7 @@
         right: 0;
         height: calc(100vh - 180px);
         background: rgba(0, 0, 0, 0.85);
-        z-index: 9999;
+        z-index: 10500;
         display: flex;
         flex-direction: column;
         opacity: 0;
@@ -1188,44 +1189,45 @@
    ======================================== */
 
 @media (max-width: 767px) {
-    .mobile-modal-actions {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: white;
-        padding: 6px;
-        box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.15);
-        z-index: 100;
-        border-top: 2px solid #E0E0E0;
-    }
-    
-    .action-buttons-grid.normal-mode {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 6px;
-    }
-    
-    /* ✅ R7.0.3: Normal Mode - 2-line layout (Icon + JA / VI) */
-    .action-btn {
-        display: grid;
-        grid-template-columns: auto 1fr;
-        grid-template-rows: auto auto;
-        gap: 0 6px;
-        align-items: center;
-        padding: 8px 6px;
-        background: white;
-        border: 2px solid #90CAF9;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        min-height: 56px;
-    }
+  .mobile-modal-actions {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    padding: 4px; /* ✅ 6px → 4px */
+    box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.15);
+    z-index: 100;
+    border-top: 2px solid #E0E0E0;
+  }
+
+  .action-buttons-grid.normal-mode {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px; /* ✅ 6px → 4px */
+  }
+
+  /* ✅ LAYOUT MỚI: CHỈ 1 DÒNG - ICON + TEXT TIẾNG NHẬT */
+  .action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 4px 2px; /* ✅ 8px 6px → 4px 2px */
+    background: white;
+    border: 1px solid #90CAF9; /* ✅ 2px → 1px */
+    border-radius: 6px; /* ✅ 8px → 6px */
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-height: 42px; /* ✅ 56px → 42px (giảm 25%) */
+  }
 
     .action-btn i {
+        display: none !important;
         grid-row: 1 / 3;
         grid-column: 1;
-        font-size: 20px;
+        font-size: 16px;
         color: #0D47A1;
         margin: 0;
         line-height: 1;
@@ -1352,24 +1354,23 @@
    ======================================== */
 
 @media (max-width: 1024px) {
-    .action-buttons-grid.inventory-mode {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
-    }
-    
-    /* ✅ R7.0.3: Inventory Mode - 2-line layout (Icon + JA / VI) */
-    .action-buttons-grid.inventory-mode .action-btn {
-        display: grid;
-        grid-template-columns: auto 1fr;
-        grid-template-rows: auto auto;
-        gap: 0 8px;
-        align-items: center;
-        min-height: 60px;
-        padding: 10px 12px;
-    }
+  .action-buttons-grid.inventory-mode {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px; /* ✅ 12px → 8px */
+  }
 
+  .action-buttons-grid.inventory-mode .action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-height: 50px; /* ✅ 60px → 50px */
+    padding: 6px 8px; /* ✅ 10px 12px → 6px 8px */
+  }
     .action-buttons-grid.inventory-mode .action-btn i {
+        display: none !important;
         grid-row: 1 / 3;
         grid-column: 1;
         font-size: 28px;
@@ -1445,39 +1446,7 @@
     }
 }
 
-/* ========================================
-   17. ANIMATIONS
-   ======================================== */
 
-@media (max-width: 1024px) {
-    @keyframes slideUp {
-        from {
-            transform: translateY(20px);
-            opacity: 0;
-        }
-        to {
-            transform: translateY(0);
-            opacity: 1;
-        }
-    }
-    
-    @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-    }
-    
-    .mobile-detail-modal.show .mobile-modal-header {
-        animation: slideUp 0.3s ease;
-    }
-    
-    .mobile-detail-modal.show .mobile-modal-body {
-        animation: fadeIn 0.4s ease;
-    }
-    
-    .modal-section {
-        animation: slideUp 0.35s ease;
-    }
-}
 
 /* ========================================
    18. DISABLE ON DESKTOP

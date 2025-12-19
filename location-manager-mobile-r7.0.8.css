@@ -28,7 +28,7 @@ body.modal-open .location-panel {
   border: none !important;
   margin: 0 !important;
   padding: 0 !important;
-  z-index: 10000 !important;
+  z-index: 11000 !important;
   display: flex !important;
   flex-direction: column !important;
   background: var(--color-surface, #fcfcf9) !important;

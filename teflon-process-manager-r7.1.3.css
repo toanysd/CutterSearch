@@ -564,7 +564,7 @@ body.modal-open {
     border-right: none;
     border-bottom: none;
     box-shadow: 0 -8px 28px rgba(15, 23, 42, 0.18);
-    z-index: 10040;
+    z-index: 11000;
   }
 
   .tefproc-panel.dragging {

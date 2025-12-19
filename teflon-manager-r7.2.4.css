@@ -1,47 +1,54 @@
 /**
  * ========================================================================
- * teflon-manager-r7.2.4.css - Teflon Manager Styles (UX IMPROVEMENTS)
+ * teflon-manager-r7.2.3.css - Teflon Manager Styles (STABLE SCROLL FIX)
  * ========================================================================
  *
  * 目的 / Mục đích:
- * - Fix action bar che mất scrollbar ngang
- * - Cải thiện layout filter (label inline 1 dòng)
- * - Tăng font size và row height cho dễ đọc
- * - Column widths phù hợp hơn
+ * - テーブルが画面外に押し出される問題を根本修正
+ * - Khắc phục triệt để vấn đề bảng bị đẩy xuống dưới, vượt qua màn hình
+ * - flex + min-height:0 + overflow 制御で確実にスクロール領域を固定
  *
  * 対応 / Tương thích:
- * - TeflonManager r7.2.4
+ * - TeflonManager r7.2.3
  * - Mobile / iPhone / iPad / Desktop
  *
- * Updated: 2025-12-18 12:15 JST
+ * Updated: 2025-12-18 10:37 JST
  * ========================================================================
  */
 
 /* ========================================================================
    DESIGN TOKENS
-   ======================================================================== */
+======================================================================== */
 :root {
   /* Primitive Colors */
   --color-white: rgba(255, 255, 255, 1);
   --color-black: rgba(0, 0, 0, 1);
+
   --color-cream-50: rgba(252, 252, 249, 1);
   --color-cream-100: rgba(255, 255, 253, 1);
+
   --color-gray-200: rgba(245, 245, 245, 1);
   --color-gray-300: rgba(167, 169, 169, 1);
   --color-gray-400: rgba(119, 124, 124, 1);
+
   --color-slate-500: rgba(98, 108, 113, 1);
   --color-slate-900: rgba(19, 52, 59, 1);
+
   --color-brown-600: rgba(94, 82, 64, 1);
+
   --color-charcoal-700: rgba(31, 33, 33, 1);
   --color-charcoal-800: rgba(38, 40, 40, 1);
+
   --color-teal-300: rgba(50, 184, 198, 1);
   --color-teal-400: rgba(45, 166, 178, 1);
   --color-teal-500: rgba(33, 128, 141, 1);
   --color-teal-600: rgba(29, 116, 128, 1);
   --color-teal-700: rgba(26, 104, 115, 1);
   --color-teal-800: rgba(41, 150, 161, 1);
+
   --color-red-400: rgba(255, 84, 89, 1);
   --color-red-500: rgba(192, 21, 47, 1);
+
   --color-orange-400: rgba(230, 129, 97, 1);
   --color-orange-500: rgba(168, 75, 47, 1);
 
@@ -58,6 +65,7 @@
   --color-red-400-rgb: 255, 84, 89;
   --color-orange-500-rgb: 168, 75, 47;
   --color-orange-400-rgb: 230, 129, 97;
+
   --color-success-rgb: 33, 128, 141;
   --color-error-rgb: 192, 21, 47;
   --color-warning-rgb: 168, 75, 47;
@@ -78,43 +86,52 @@
   --color-surface: var(--color-cream-100);
   --color-text: var(--color-slate-900);
   --color-text-secondary: var(--color-slate-500);
+
   --color-primary: var(--color-teal-500);
   --color-primary-hover: var(--color-teal-600);
   --color-primary-active: var(--color-teal-700);
+
   --color-secondary: rgba(var(--color-brown-600-rgb), 0.12);
   --color-secondary-hover: rgba(var(--color-brown-600-rgb), 0.20);
   --color-secondary-active: rgba(var(--color-brown-600-rgb), 0.25);
+
   --color-border: rgba(var(--color-brown-600-rgb), 0.20);
   --color-card-border: rgba(var(--color-brown-600-rgb), 0.12);
   --color-btn-primary-text: var(--color-cream-50);
+
   --color-error: var(--color-red-500);
   --color-success: var(--color-teal-500);
   --color-warning: var(--color-orange-500);
   --color-info: var(--color-slate-500);
+
   --color-focus-ring: rgba(var(--color-teal-500-rgb), 0.40);
   --color-select-caret: rgba(var(--color-slate-900-rgb), 0.80);
 
-  /* Typography - ✅ r7.2.4: UPDATED font sizes */
+  /* Typography */
   --font-family-base: "FKGroteskNeue", "Geist", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
   --font-family-mono: "Berkeley Mono", ui-monospace, "SFMono-Regular", "Menlo", "Monaco", "Consolas", monospace;
-  --font-size-xs: 11px;
-  --font-size-sm: 12px;
-  --font-size-base: 14px;
+
+/* Typography - Optimized for compact display */
+--font-size-xs: 10px;
+--font-size-sm: 11px;
+--font-size-base: 12px;
   --font-size-md: 14px;
   --font-size-lg: 16px;
   --font-size-xl: 18px;
   --font-size-2xl: 20px;
   --font-size-3xl: 24px;
   --font-size-4xl: 30px;
+
   --font-weight-normal: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 550;
   --font-weight-bold: 600;
+
   --line-height-tight: 1.2;
   --line-height-normal: 1.5;
   --letter-spacing-tight: -0.01em;
 
-  /* Spacing - ✅ r7.2.4: UPDATED spacing */
+  /* Spacing */
   --space-0: 0;
   --space-1: 1px;
   --space-2: 2px;
@@ -156,6 +173,7 @@
   /* Utilities */
   --focus-ring: 0 0 0 3px var(--color-focus-ring);
   --focus-outline: 2px solid var(--color-primary);
+
   --status-bg-opacity: 0.15;
   --status-border-opacity: 0.25;
 
@@ -164,16 +182,16 @@
   --select-caret-dark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23f5f5f5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
 }
 
-
 /* ========================================================================
    DARK MODE
-   ======================================================================== */
+======================================================================== */
 @media (prefers-color-scheme: dark) {
   :root {
     --color-gray-200-rgb: 245, 245, 245;
     --color-gray-300-rgb: 167, 169, 169;
     --color-gray-400-rgb: 119, 124, 124;
     --color-teal-300-rgb: 50, 184, 198;
+
     --color-bg-1: rgba(29, 78, 216, 0.15);
     --color-bg-2: rgba(180, 83, 9, 0.15);
     --color-bg-3: rgba(21, 128, 61, 0.15);
@@ -182,29 +200,38 @@
     --color-bg-6: rgba(194, 65, 12, 0.15);
     --color-bg-7: rgba(190, 24, 93, 0.15);
     --color-bg-8: rgba(8, 145, 178, 0.15);
+
     --color-background: var(--color-charcoal-700);
     --color-surface: var(--color-charcoal-800);
     --color-text: var(--color-gray-200);
     --color-text-secondary: rgba(var(--color-gray-300-rgb), 0.70);
+
     --color-primary: var(--color-teal-300);
     --color-primary-hover: var(--color-teal-400);
     --color-primary-active: var(--color-teal-800);
+
     --color-secondary: rgba(var(--color-gray-400-rgb), 0.15);
     --color-secondary-hover: rgba(var(--color-gray-400-rgb), 0.25);
     --color-secondary-active: rgba(var(--color-gray-400-rgb), 0.30);
+
     --color-border: rgba(var(--color-gray-400-rgb), 0.30);
     --color-card-border: rgba(var(--color-gray-400-rgb), 0.20);
+
     --color-btn-primary-text: var(--color-slate-900);
+
     --color-error: var(--color-red-400);
     --color-success: var(--color-teal-300);
     --color-warning: var(--color-orange-400);
     --color-info: var(--color-gray-300);
+
     --color-focus-ring: rgba(var(--color-teal-300-rgb), 0.40);
     --color-select-caret: rgba(var(--color-gray-200-rgb), 0.80);
+
     --color-success-rgb: var(--color-teal-300-rgb);
     --color-error-rgb: var(--color-red-400-rgb);
     --color-warning-rgb: var(--color-orange-400-rgb);
     --color-info-rgb: var(--color-gray-300-rgb);
+
     --shadow-inset-sm: inset 0 1px 0 rgba(255, 255, 255, 0.10), inset 0 -1px 0 rgba(0, 0, 0, 0.15);
   }
 }
@@ -212,14 +239,13 @@
 [data-color-scheme="dark"] {
   color-scheme: dark;
 }
-
 [data-color-scheme="light"] {
   color-scheme: light;
 }
 
 /* ========================================================================
    BASE STYLES
-   ======================================================================== */
+======================================================================== */
 html {
   font-size: var(--font-size-base);
   font-family: var(--font-family-base);
@@ -246,7 +272,6 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--color-text);
   letter-spacing: var(--letter-spacing-tight);
 }
-
 h1 { font-size: var(--font-size-4xl); }
 h2 { font-size: var(--font-size-3xl); }
 h3 { font-size: var(--font-size-2xl); }
@@ -263,7 +288,6 @@ a {
   text-decoration: none;
   transition: color var(--duration-fast) var(--ease-standard);
 }
-
 a:hover {
   color: var(--color-primary-hover);
 }
@@ -274,42 +298,44 @@ code, pre {
   background-color: var(--color-secondary);
   border-radius: var(--radius-sm);
 }
-
 code {
   padding: var(--space-1) var(--space-4);
 }
-
 pre {
   padding: var(--space-16);
   margin: var(--space-16) 0;
   overflow: auto;
   border: 1px solid var(--color-border);
 }
-
 pre code {
   background: none;
   padding: 0;
 }
 
 /* ========================================================================
-   TEFLON PANEL LAYOUT (r7.2.4 IMPROVEMENTS)
-   ======================================================================== */
+   TEFLON PANEL LAYOUT (CRITICAL FIX r7.2.3)
+======================================================================== */
+
 /**
- * ✅ 修正のポイント / Điểm quan trọng r7.2.4:
- * 1. .teflon-panel: height 95vh で高さ固定 → スクロール可能
- * 2. .checkio-body: overflow hidden + flex → scroll 成立
- * 3. .table-wrapper: flex 1 + overflow auto → 内部スクロール
- * 4. .tef-actions: flex-shrink 0 (NOT fixed) → scrollbar が見える
+ * ✅ 修正のポイント / Điểm quan trọng:
+ * 1. .teflon-panel: height 95vh で高さ固定 → 子要素がスクロール可能に
+ * 2. .checkio-body.panel-body: overflow hidden + min-height 0 → flex scroll 成立
+ * 3. .table-wrapper: flex 1 + min-height 0 + overflow auto → 確実に内部スクロール
+ * 4. padding-bottom でアクションバー分の余白確保 → 表示領域を守る
  */
+
 .teflon-panel {
   position: relative;
   z-index: 5000;
+
   background: var(--color-surface);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
   overflow: hidden;
+
   display: flex;
   flex-direction: column;
+
   /* ✅ CRITICAL: 固定高さでflexスクロールを成立させる */
   height: 95vh;
   max-height: 95vh;
@@ -321,14 +347,16 @@ pre code {
   display: flex;
   justify-content: space-between;
   align-items: center;
+
   padding: var(--space-8) var(--space-12);
+
   background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
   color: var(--color-btn-primary-text);
+
   cursor: grab;
   user-select: none;
   flex-shrink: 0;
 }
-
 .tef-header:active {
   cursor: grabbing;
 }
@@ -338,14 +366,12 @@ pre code {
   flex-direction: column;
   gap: var(--space-1);
 }
-
 .tef-title div:first-child {
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-bold);
   line-height: var(--line-height-tight);
   letter-spacing: var(--letter-spacing-tight);
 }
-
 .tef-title div:last-child {
   font-size: var(--font-size-xs);
   opacity: 0.90;
@@ -362,11 +388,9 @@ pre code {
   line-height: 1;
   transition: transform var(--duration-fast) var(--ease-standard);
 }
-
 #teflon-close-btn:hover {
   transform: scale(1.12);
 }
-
 #teflon-close-btn:active {
   transform: scale(0.95);
 }
@@ -376,26 +400,31 @@ pre code {
   font-size: var(--font-size-xs);
   color: var(--color-text-secondary);
   text-align: center;
+
   padding: var(--space-6) var(--space-10);
   background: var(--color-secondary);
   border-bottom: 1px solid var(--color-border);
+
   flex-shrink: 0;
   font-weight: var(--font-weight-medium);
 }
 
 /* ===== BODY CONTAINER ===== */
 /**
- * ✅ CRITICAL FIX r7.2.3 + r7.2.4:
+ * ✅ CRITICAL FIX r7.2.3:
  * - overflow: hidden を復元 (子要素のスクロールを成立させるため必須)
  * - min-height: 0 で flex child の縮小を許可
+ * - padding-bottom で固定アクションバーの分を確保
  */
 .checkio-body.panel-body {
   display: flex;
   flex-direction: column;
   flex: 1;
+
   /* ✅ CRITICAL: flex child scroll の前提 */
   min-height: 0;
   overflow: hidden;
+
   background: var(--color-background);
   max-width: 100%;
 }
@@ -405,26 +434,112 @@ pre code {
   padding: var(--space-8) var(--space-12);
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
+
   display: flex;
   flex-direction: column;
   gap: var(--space-8);
+
   font-size: var(--font-size-sm);
   flex-shrink: 0;
   max-width: 100%;
 }
 
+/* ===== FILTER BAR (1-line, left aligned) ===== */
+.filter-bar{
+  display:flex;
+  align-items:flex-end;
+  justify-content:flex-start; /* ✅ căn trái */
+  gap: var(--space-10);
+  flex-wrap:wrap;
+  width:100%;
+}
+
+.tef-help-inline{
+  width:auto;
+  max-width: 520px;
+  padding: var(--space-6) var(--space-10);
+  margin:0;
+}
+
+.tef-help-inline .jp{
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+  line-height: 1.15;
+}
+
+.tef-help-inline .vi{
+  font-size: 10px;
+  opacity: 0.85;
+  line-height: 1.15;
+}
+
+.filter-item{
+  display:flex;
+  align-items:flex-end;
+  gap: var(--space-8);
+}
+
+.filter-label-inline2{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+  min-width: 64px;
+}
+
+.filter-label-inline2 .label-jp{
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+  line-height: 1.1;
+}
+
+.filter-label-inline2 .label-vi{
+  font-size: 9px;
+  opacity: 0.75;
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.1;
+}
+
+/* đảm bảo select/input căn trái và không bị co lỗi */
+.filter-item select,
+.filter-item input{
+  min-width: 0;
+}
+
+.filter-item-search{
+  flex: 1;          /* ✅ search giãn ra */
+  min-width: 240px; /* chống quá hẹp */
+}
+
+.filter-actions-inline{
+  display:flex;
+  gap: var(--space-8);
+  align-items:flex-end;
+  margin-left:auto; /* ✅ đẩy cụm nút về bên phải nhưng toàn khối vẫn “căn trái đều” */
+}
+
+/* Mobile: cho wrap tự nhiên */
+@media (max-width: 767px){
+  .filter-actions-inline{ margin-left:0; width:100%; }
+  .filter-item-search{ min-width: 0; width: 100%; }
+  .filter-item{ width:100%; }
+}
+
+
 .tef-help {
   padding: var(--space-6) var(--space-10);
   font-size: var(--font-size-xs);
   color: var(--color-text-secondary);
+
   background: var(--color-secondary);
   border-left: 3px solid var(--color-primary);
   border-radius: var(--radius-sm);
+
   line-height: var(--line-height-normal);
   width: 100%;
 }
 
-/* ===== FILTER GRID (✅ r7.2.4: INLINE LABELS) ===== */
+/* ===== FILTER GRID (r7.1.5 layout) ===== */
 .filter-grid {
   display: flex;
   flex-direction: column;
@@ -433,7 +548,7 @@ pre code {
 
 .filter-line {
   display: flex;
-  align-items: center; /* ✅ r7.2.4: center alignment */
+  align-items: flex-end;
   gap: var(--space-8);
   width: 100%;
   max-width: 100%;
@@ -445,19 +560,17 @@ pre code {
   min-width: 0;
 }
 
-/* ✅ r7.2.4: INLINE LABEL (1 line, bilingual side-by-side) */
 .filter-label {
   display: flex;
-  flex-direction: row; /* ✅ CHANGED: row instead of column */
-  align-items: baseline;
-  gap: var(--space-4);
+  flex-direction: column;
+  gap: var(--space-1);
   font-weight: var(--font-weight-bold);
   color: var(--color-primary);
   white-space: nowrap;
 }
 
 .filter-label.filter-label-inline {
-  min-width: 140px; /* ✅ r7.2.4: INCREASED for bilingual */
+  min-width: 86px;
 }
 
 .filter-label .label-jp {
@@ -467,9 +580,10 @@ pre code {
 }
 
 .filter-label .label-vi {
-  font-size: var(--font-size-xs); /* ✅ r7.2.4: SAME line */
+  font-size: 9px;
+  line-height: var(--line-height-tight);
   opacity: 0.75;
-  font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-semibold);
 }
 
 .filter-control {
@@ -487,19 +601,26 @@ pre code {
 #teflon-status-filter {
   width: 100%;
   min-width: 0;
-  padding: var(--space-8) var(--space-10); /* ✅ r7.2.4: INCREASED */
+
+  padding: var(--space-6) var(--space-10);
   padding-right: 32px;
+
   border: 1px solid var(--color-border);
   border-radius: var(--radius-base);
+
   font-size: var(--font-size-sm);
   font-family: var(--font-family-base);
+
   background: var(--color-surface);
   color: var(--color-text);
+
   cursor: pointer;
   transition: all var(--duration-normal) var(--ease-standard);
+
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
+
   background-image: var(--select-caret-light);
   background-repeat: no-repeat;
   background-position: right var(--space-10) center;
@@ -535,13 +656,18 @@ pre code {
 #teflon-search-input {
   width: 100%;
   min-width: 0;
-  padding: var(--space-8) var(--space-10); /* ✅ r7.2.4: INCREASED */
+
+  padding: var(--space-6) var(--space-10);
+
   border: 1px solid var(--color-border);
   border-radius: var(--radius-base);
+
   font-size: var(--font-size-sm);
   font-family: var(--font-family-base);
+
   color: var(--color-text);
   background: var(--color-surface);
+
   transition: all var(--duration-normal) var(--ease-standard);
 }
 
@@ -568,26 +694,31 @@ pre code {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: var(--space-8) var(--space-12); /* ✅ r7.2.4: INCREASED */
+
+  padding: var(--space-6) var(--space-10);
   border-radius: var(--radius-base);
   border: 1px solid var(--color-border);
+
   cursor: pointer;
   user-select: none;
+
   background: var(--color-surface);
   color: var(--color-text);
+
   transition: all var(--duration-normal) var(--ease-standard);
   font-family: var(--font-family-base);
   white-space: nowrap;
 }
 
+
 .tef-btn .jp {
-  font-size: var(--font-size-sm); /* ✅ r7.2.4: INCREASED */
+  font-size: var(--font-size-xs);
   font-weight: var(--font-weight-bold);
   line-height: 1.1;
 }
 
 .tef-btn .vi {
-  font-size: 10px; /* ✅ r7.2.4: INCREASED from 9px */
+  font-size: 9px;
   opacity: 0.86;
   line-height: 1.1;
   margin-top: var(--space-2);
@@ -619,7 +750,6 @@ pre code {
   color: var(--color-text);
   border-color: var(--color-border);
 }
-
 .tef-btn-gray:hover:not(:disabled) {
   background: var(--color-secondary);
 }
@@ -629,7 +759,6 @@ pre code {
   border-color: var(--color-primary);
   color: var(--color-primary);
 }
-
 .tef-btn-blue:hover:not(:disabled) {
   background: rgba(var(--color-teal-500-rgb), 0.15);
   border-color: var(--color-primary-hover);
@@ -640,7 +769,6 @@ pre code {
   border-color: var(--color-primary);
   color: var(--color-btn-primary-text);
 }
-
 .tef-btn-green:hover:not(:disabled) {
   background: var(--color-primary-hover);
   border-color: var(--color-primary-hover);
@@ -652,7 +780,6 @@ pre code {
   color: var(--color-btn-primary-text);
   font-weight: var(--font-weight-bold);
 }
-
 .tef-btn-lock:hover:not(:disabled) {
   background: rgba(var(--color-warning-rgb), 0.85);
   border-color: rgba(var(--color-warning-rgb), 0.85);
@@ -663,32 +790,59 @@ pre code {
   border-color: var(--color-success);
   color: var(--color-btn-primary-text);
 }
-
 .tef-btn-lock.unlocked:hover:not(:disabled) {
   background: var(--color-primary-hover);
   border-color: var(--color-primary-hover);
 }
 
+/* ===== SMALL BUTTON VARIANT ===== */
+.tef-btn-sm {
+  padding: var(--space-4) var(--space-6);
+  min-width: 50px;
+  font-size: 10px;
+}
+
+.tef-btn-sm .jp,
+.tef-btn-sm .vi {
+  font-size: 10px;
+  line-height: 1;
+  margin-top: 0;
+}
+
+/* Responsive - Mobile */
+@media (max-width: 480px) {
+  .tef-btn-sm {
+    padding: var(--space-6) var(--space-8);
+    min-width: 44px;
+  }
+}
+
 /* ========================================================================
-   TABLE WRAPPER (r7.2.4 FIX)
-   ======================================================================== */
+   TABLE WRAPPER (CRITICAL FIX r7.2.3)
+======================================================================== */
+
 /**
- * ✅ 最重要修正 / CRITICAL FIX r7.2.4:
+ * ✅ 最重要修正 / CRITICAL FIX:
  * - flex: 1 + min-height: 0 で親コンテナに収まる
  * - overflow: auto で確実にスクロール領域を確保
  * - table が横に広がっても画面外に押し出されない
  */
+
 .table-wrapper {
   flex: 1;
+
   /* ✅ CRITICAL: flex child で確実に縮む */
   min-height: 0;
   max-height: 100%;
   max-width: 100%;
+
   position: relative;
   background: var(--color-surface);
+
   /* ✅ CRITICAL: スクロール制御 */
   overflow-y: auto;
   overflow-x: hidden; /* locked mode; unlocked で override */
+
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
 }
@@ -706,8 +860,8 @@ pre code {
 
 /* Unlocked mode (full columns, horizontal scroll) */
 .table-wrapper:not(.table-locked) {
-  overflow-x: auto !important; /* ✅ r7.2.4: FORCE scrollbar */
-  overflow-y: auto !important;
+  overflow-x: auto;
+  overflow-y: auto;
   touch-action: pan-x pan-y;
 }
 
@@ -729,9 +883,10 @@ pre code {
 /* ===== TABLE STYLES ===== */
 .teflon-table {
   border-collapse: collapse;
-  font-size: var(--font-size-sm); /* ✅ r7.2.4: INCREASED from xs to sm (12px) */
+  font-size: var(--font-size-xs);
   font-family: var(--font-family-base);
   background: var(--color-surface);
+
   /* ✅ table 自身も横幅制御 */
   max-width: 100%;
 }
@@ -739,7 +894,7 @@ pre code {
 .teflon-table th,
 .teflon-table td {
   border-bottom: 1px solid var(--color-border);
-  padding: var(--space-8) var(--space-10); /* ✅ r7.2.4: INCREASED from 6px 8px */
+  padding: var(--space-6) var(--space-8);
   vertical-align: middle;
   text-align: left;
   color: var(--color-text);
@@ -749,6 +904,7 @@ pre code {
   position: sticky;
   top: 0;
   z-index: 10;
+
   background: var(--color-primary);
   color: var(--color-btn-primary-text);
   box-shadow: var(--shadow-sm);
@@ -756,12 +912,15 @@ pre code {
 
 .teflon-table thead th {
   font-weight: var(--font-weight-bold);
-  font-size: var(--font-size-sm); /* ✅ r7.2.4: INCREASED */
+  font-size: var(--font-size-xs);
   white-space: nowrap;
+
   user-select: none;
   cursor: pointer;
+
   position: relative;
   padding-right: var(--space-20);
+
   border-right: 1px solid rgba(255, 255, 255, 0.28);
   transition: background-color var(--duration-normal) var(--ease-standard);
 }
@@ -797,12 +956,12 @@ pre code {
   box-shadow: var(--shadow-xs);
 }
 
-/* ===== LOCKED TABLE COLUMN WIDTHS (✅ r7.2.4: ADJUSTED) ===== */
+/* ===== LOCKED TABLE COLUMN WIDTHS ===== */
 /* ✅ パーセント指定で画面幅に収まる */
 .table-locked .teflon-table th:nth-child(1),
 .table-locked .teflon-table td:nth-child(1) {
   width: 44%;
-  min-width: 130px; /* ✅ r7.2.4: INCREASED from 120px */
+  min-width: 120px;
   max-width: 65vw;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -828,60 +987,108 @@ pre code {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* ===== FIX: Empty state table layout (giữ độ rộng cột khi không có dữ liệu) ===== */
 
-/* ===== UNLOCKED TABLE COLUMN WIDTHS (✅ r7.2.4: ADJUSTED) ===== */
+/* Đảm bảo table có min-width khi locked */
+.table-locked .teflon-table {
+  min-width: 100%;
+  table-layout: fixed;
+}
+
+/* Khi tbody empty, thead vẫn giữ layout */
+.table-locked .teflon-table thead {
+  width: 100%;
+}
+
+/* Empty row (colspan) không làm ảnh hưởng layout */
+.table-locked .teflon-table tbody tr[data-empty-row] {
+  display: table-row;
+}
+
+/* Cột ID giữ min-width */
+.table-locked .teflon-table th:nth-child(1) {
+  min-width: 80px !important;
+  width: 13%;
+}
+
+/* Cột 金型名 giữ min-width */
+.table-locked .teflon-table th:nth-child(2) {
+  min-width: 100px !important;
+  width: 25%;
+}
+
+/* Cột 状態 */
+.table-locked .teflon-table th:nth-child(3) {
+  min-width: 100px !important;
+  width: 20%;
+}
+
+/* Cột 依頼日 */
+.table-locked .teflon-table th:nth-child(4) {
+  min-width: 100px !important;
+  width: 20%;
+}
+
+/* Cột 依頼者 */
+.table-locked .teflon-table th:nth-child(5) {
+  min-width: 80px !important;
+  width: 22%;
+}
+
+/* ===== UNLOCKED TABLE COLUMN WIDTHS ===== */
 .table-wrapper:not(.table-locked) .teflon-table th,
 .table-wrapper:not(.table-locked) .teflon-table td {
   white-space: nowrap;
-  padding: var(--space-8) var(--space-12); /* ✅ r7.2.4: INCREASED */
+  padding: var(--space-6) var(--space-10);
 }
 
 .table-wrapper:not(.table-locked) .teflon-table th:nth-child(1),
 .table-wrapper:not(.table-locked) .teflon-table td:nth-child(1) {
-  min-width: 180px; /* ✅ r7.2.4: INCREASED from 160px */
-  max-width: 280px;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  min-width: 84px;
+  text-align: center;
 }
 
 .table-wrapper:not(.table-locked) .teflon-table th:nth-child(2),
 .table-wrapper:not(.table-locked) .teflon-table td:nth-child(2) {
-  min-width: 94px; /* ✅ r7.2.4: INCREASED from 84px */
-  text-align: center;
+  min-width: 160px;
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
+
 
 .table-wrapper:not(.table-locked) .teflon-table th:nth-child(3),
 .table-wrapper:not(.table-locked) .teflon-table td:nth-child(3) {
-  min-width: 106px; /* ✅ r7.2.4: INCREASED from 96px */
+  min-width: 96px;
   text-align: center;
 }
 
 .table-wrapper:not(.table-locked) .teflon-table th:nth-child(4),
 .table-wrapper:not(.table-locked) .teflon-table td:nth-child(4) {
-  min-width: 100px; /* ✅ r7.2.4: INCREASED from 90px */
+  min-width: 90px;
 }
 
 .table-wrapper:not(.table-locked) .teflon-table th:nth-child(5),
 .table-wrapper:not(.table-locked) .teflon-table td:nth-child(5) {
-  min-width: 106px; /* ✅ r7.2.4: INCREASED from 96px */
+  min-width: 96px;
   text-align: center;
 }
 
 .table-wrapper:not(.table-locked) .teflon-table th:nth-child(6),
 .table-wrapper:not(.table-locked) .teflon-table td:nth-child(6) {
-  min-width: 106px; /* ✅ r7.2.4: INCREASED from 96px */
+  min-width: 96px;
   text-align: center;
 }
 
 .table-wrapper:not(.table-locked) .teflon-table th:nth-child(7),
 .table-wrapper:not(.table-locked) .teflon-table td:nth-child(7) {
-  min-width: 100px; /* ✅ r7.2.4: INCREASED from 90px */
+  min-width: 90px;
 }
 
 .table-wrapper:not(.table-locked) .teflon-table th:nth-child(8),
 .table-wrapper:not(.table-locked) .teflon-table td:nth-child(8) {
-  min-width: 200px; /* ✅ r7.2.4: INCREASED from 180px */
-  max-width: 320px;
+  min-width: 180px;
+  max-width: 300px;
   white-space: normal;
   word-break: break-word;
 }
@@ -889,16 +1096,18 @@ pre code {
 /* ===== STATUS BADGES (in table rows) ===== */
 .status-badge {
   display: inline-block;
-  min-width: 68px; /* ✅ r7.2.4: INCREASED from 62px */
+  min-width: 60px;              /* 62px → 60px */
   text-align: center;
-  padding: var(--space-4) var(--space-8); /* ✅ r7.2.4: INCREASED */
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-sm); /* ✅ r7.2.4: INCREASED */
-  font-weight: var(--font-weight-bold);
+  padding: 3px 8px;              /* 4px 6px → 3px 8px */
+  border-radius: 10px;           /* 6px → 10px - TRÒN HƠN */
+  font-size: 10px;               /* 11px → 10px */
+  font-weight: 700;              /* Giữ nguyên */
   white-space: nowrap;
   cursor: pointer;
   transition: all var(--duration-normal) var(--ease-standard);
 }
+
+
 
 .status-badge:hover {
   transform: scale(1.05);
@@ -969,7 +1178,7 @@ pre code {
 .tef-req-overdue-14 {
   display: inline-block;
   border-radius: var(--radius-sm);
-  padding: var(--space-4) var(--space-8) !important; /* ✅ r7.2.4: INCREASED */
+  padding: var(--space-4) var(--space-6) !important;
 }
 
 .tef-req-overdue-7 {
@@ -1038,30 +1247,32 @@ pre code {
 
 /* ========================================================================
    NAV BADGE (r7.1.5: KANJI 発/承/中)
-   ======================================================================== */
+======================================================================== */
 #nav-teflon-btn {
   position: relative;
 }
 
 .tef-nav-badge {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  width: 20px;
-  height: 20px;
-  border-radius: var(--radius-full);
-  display: flex;
+  position: absolute !important;  /* Thêm !important */
+  top: -6px !important;
+  right: -6px !important;
+  width: 20px !important;
+  height: 20px !important;
+  border-radius: 50% !important;   /* 9999px → 50% rõ ràng hơn */
+  display: flex !important;
   align-items: center;
   justify-content: center;
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-bold);
+  font-size: 11px !important;      /* 12px → 11px */
+  font-weight: 700;
   color: var(--color-btn-primary-text);
-  box-shadow: 0 0 0 2px var(--color-surface), var(--shadow-md);
-  z-index: 9999;
+  box-shadow: 0 0 0 2px #fff, 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+  z-index: 9999 !important;
   animation: badge-pulse 2s ease-in-out infinite;
-  font-family: "MS Gothic", "Hiragino Kaku Gothic Pro", var(--font-family-base);
+  font-family: 'MS Gothic', 'Hiragino Kaku Gothic Pro', sans-serif;
   line-height: 1;
+  pointer-events: none;            /* Thêm để không chặn click */
 }
+
 
 @keyframes badge-pulse {
   0%, 100% {
@@ -1077,62 +1288,70 @@ pre code {
 }
 
 .tef-nav-badge-approved {
-  background: var(--color-error);
-  box-shadow: 0 0 0 2px var(--color-surface), 0 0 12px rgba(var(--color-error-rgb), 0.60);
+  background: #dc3545 !important;   /* Đỏ - giống SHIPOUT */
+  box-shadow: 0 0 0 2px #fff, 0 0 12px rgba(220, 53, 69, 0.6) !important;
 }
 
 .tef-nav-badge-pending {
-  background: var(--color-warning);
-  box-shadow: 0 0 0 2px var(--color-surface), 0 0 12px rgba(var(--color-warning-rgb), 0.60);
+  background: #fd7e14 !important;   /* Cam - giống LOCATION */
+  box-shadow: 0 0 0 2px #fff, 0 0 12px rgba(253, 126, 20, 0.6) !important;
 }
 
 .tef-nav-badge-processing {
-  background: var(--color-primary);
-  box-shadow: 0 0 0 2px var(--color-surface), 0 0 12px rgba(var(--color-teal-500-rgb), 0.60);
+  background: #21808d !important;   /* Xanh */
+  box-shadow: 0 0 0 2px #fff, 0 0 12px rgba(33, 128, 141, 0.6) !important;
 }
 
+
 /* ========================================================================
-   ACTIONS BAR (✅ r7.2.4: NOT FIXED - FLEXBOX INSTEAD)
-   ======================================================================== */
-/**
- * ✅ r7.2.4 FIX: 
- * - REMOVED: position: fixed
- * - ADDED: flex-shrink: 0 (flexbox child)
- * - This ensures action bar doesn't cover the horizontal scrollbar
- */
+ACTIONS BAR (NOT fixed - to protect table scrollbars)
+======================================================================== */
+
+/* ✅ FIX: Không dùng fixed nữa để .table-wrapper không bị che phần đáy (scrollbar ngang/row cuối). */
 .tef-actions {
-  /* ✅ r7.2.4: NOT position: fixed anymore */
-  flex-shrink: 0; /* ✅ ADDED: doesn't shrink in flex layout */
-  padding: var(--space-10) var(--space-12); /* ✅ r7.2.4: INCREASED */
+  position: relative;            /* was: fixed */
+  left: auto;
+  right: auto;
+  bottom: auto;
+
+  z-index: 10;                   /* đủ cao trong panel, không cần 6000 */
+  flex-shrink: 0;                /* giữ chiều cao, không bị co */
+
+  padding: var(--space-8) var(--space-12);
   border-top: 1px solid var(--color-border);
+
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: var(--space-8);
+
   background: linear-gradient(to top, var(--color-secondary) 0%, var(--color-surface) 100%);
   box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08);
   flex-wrap: wrap;
-  z-index: 10; /* ✅ Lower z-index, no longer fixed */
 }
 
 .tef-actions button {
-  min-width: 90px; /* ✅ r7.2.4: INCREASED from 86px */
+  min-width: 86px;
 }
+
 
 /* ========================================================================
    MODAL (detail modal)
-   ======================================================================== */
+======================================================================== */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
+
   background: rgba(0, 0, 0, 0.60);
   z-index: 12000;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   animation: fadeIn var(--duration-normal) var(--ease-standard);
 }
 
@@ -1149,11 +1368,15 @@ pre code {
   background: var(--color-surface);
   width: 90%;
   max-width: 750px;
+
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
+
   max-height: 90vh;
+
   display: flex;
   flex-direction: column;
+
   animation: slideUp 0.3s var(--ease-standard);
   will-change: transform, opacity;
 }
@@ -1171,12 +1394,16 @@ pre code {
 
 .modal-header {
   padding: var(--space-10) var(--space-12);
+
   background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
   color: var(--color-btn-primary-text);
+
   border-radius: var(--radius-md) var(--radius-md) 0 0;
+
   display: flex;
   justify-content: space-between;
   align-items: center;
+
   cursor: grab;
   user-select: none;
 }
@@ -1188,11 +1415,14 @@ pre code {
 .modal-close-x {
   background: none;
   border: none;
+
   color: var(--color-btn-primary-text);
   font-size: var(--font-size-3xl);
+
   cursor: pointer;
   line-height: 1;
   padding: 0 var(--space-6);
+
   transition: transform var(--duration-fast) var(--ease-standard);
 }
 
@@ -1204,6 +1434,7 @@ pre code {
   padding: var(--space-12) var(--space-16);
   overflow-y: auto;
   flex: 1;
+
   background: var(--color-background);
 }
 
@@ -1211,6 +1442,7 @@ pre code {
   width: 100%;
   border-collapse: collapse;
   font-size: var(--font-size-sm);
+
   background: var(--color-surface);
   border-radius: var(--radius-base);
   overflow: hidden;
@@ -1227,11 +1459,14 @@ pre code {
 .modal-body table th {
   padding: var(--space-8) var(--space-10);
   text-align: left;
+
   background: var(--color-secondary);
   font-weight: var(--font-weight-bold);
   color: var(--color-text);
+
   width: 40%;
   vertical-align: top;
+
   font-size: var(--font-size-xs);
 }
 
@@ -1243,21 +1478,23 @@ pre code {
 
 .modal-footer {
   padding: var(--space-10) var(--space-12);
+
   border-top: 1px solid var(--color-border);
+
   display: flex;
   justify-content: space-between;
   gap: var(--space-10);
+
   background: var(--color-surface);
   border-radius: 0 0 var(--radius-md) var(--radius-md);
 }
 
 /* ========================================================================
    SCROLLBAR STYLING (desktop webkit)
-   ======================================================================== */
-/* ✅ r7.2.4: IMPROVED scrollbar visibility */
+======================================================================== */
 .table-wrapper::-webkit-scrollbar {
-  width: 12px; /* ✅ r7.2.4: INCREASED from 10px */
-  height: 12px;
+  width: 10px;
+  height: 10px;
 }
 
 .table-wrapper::-webkit-scrollbar-track {
@@ -1274,31 +1511,12 @@ pre code {
   background: var(--color-text-secondary);
 }
 
-/* ✅ r7.2.4: FORCE scrollbar visibility when unlocked */
-.table-wrapper:not(.table-locked)::-webkit-scrollbar {
-  width: 14px !important;
-  height: 14px !important;
-}
-
-.table-wrapper:not(.table-locked)::-webkit-scrollbar-thumb {
-  background: var(--color-primary) !important;
-}
-
-.table-wrapper:not(.table-locked)::-webkit-scrollbar-thumb:hover {
-  background: var(--color-primary-hover) !important;
-}
-
-/* Firefox scrollbar */
-.table-wrapper {
-  scrollbar-width: auto;
-  scrollbar-color: var(--color-primary) var(--color-secondary);
-}
-
 /* ========================================================================
    UTILITY CLASSES
-   ======================================================================== */
+======================================================================== */
 .dragging {
-  transition: transform var(--duration-fast) var(--ease-standard), opacity var(--duration-fast) var(--ease-standard);
+  transition: transform var(--duration-fast) var(--ease-standard),
+              opacity var(--duration-fast) var(--ease-standard);
 }
 
 body.modal-open {
@@ -1307,7 +1525,7 @@ body.modal-open {
 
 /* ========================================================================
    RESPONSIVE - MOBILE
-   ======================================================================== */
+======================================================================== */
 
 /* Mobile portrait (480px) */
 @media (max-width: 480px) {
@@ -1317,8 +1535,10 @@ body.modal-open {
     left: 0 !important;
     right: 0 !important;
     bottom: 0 !important;
+
     width: 100% !important;
     max-height: 100vh !important;
+
     border-radius: 0 !important;
     margin: 0 !important;
   }
@@ -1359,7 +1579,7 @@ body.modal-open {
   }
 
   .filter-label.filter-label-inline {
-    min-width: 100px; /* ✅ r7.2.4: ADJUSTED for mobile */
+    min-width: 74px;
   }
 
   .filter-row {
@@ -1368,7 +1588,7 @@ body.modal-open {
   }
 
   .tef-help {
-    font-size: 10px; /* ✅ r7.2.4: INCREASED */
+    font-size: 9px;
     padding: var(--space-4) var(--space-8);
   }
 
@@ -1401,11 +1621,11 @@ body.modal-open {
   }
 
   .tef-nav-badge {
-    width: 18px;
-    height: 18px;
-    font-size: var(--font-size-xs);
-    top: -6px;
-    right: -6px;
+    width: 18px !important;
+    height: 18px !important;
+    font-size: 10px !important;
+    top: -4px !important;
+    right: -4px !important;
   }
 
   .teflon-table {
@@ -1470,8 +1690,10 @@ body.modal-open {
     left: 0 !important;
     right: 0 !important;
     bottom: 0 !important;
+
     width: 100% !important;
     max-height: 100vh !important;
+
     border-radius: 0 !important;
     margin: 0 !important;
   }
@@ -1498,7 +1720,7 @@ body.modal-open {
   }
 
   .filter-label.filter-label-inline {
-    min-width: 110px; /* ✅ r7.2.4: ADJUSTED */
+    min-width: 74px;
   }
 
   .tef-actions {
@@ -1522,7 +1744,7 @@ body.modal-open {
 
 /* ========================================================================
    PRINT STYLES
-   ======================================================================== */
+======================================================================== */
 @media print {
   .tef-header,
   .tef-summary,
@@ -1548,4 +1770,45 @@ body.modal-open {
   .teflon-table thead {
     display: table-header-group;
   }
+}
+/* Container */
+.teflon-panel .checkio-body {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 0;  /* NO padding-bottom */
+}
+
+/* Filter row */
+.filter-row {
+    flex-shrink: 0;
+}
+
+/* Table wrapper - chiếm phần còn lại */
+.table-wrapper {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: auto;
+}
+
+/* Action bar - không bị co lại */
+.tef-actions {
+    flex-shrink: 0;
+    padding: 12px;
+    background: white;
+    border-top: 1px solid #e5e7eb;
+}
+/* ===== MODAL INTERACTION ===== */
+/* Dim teflon-panel when mobile-detail-modal is open */
+#teflon-panel:has(~ .mobile-detail-modal.show),
+#teflon-panel.dimmed {
+  opacity: 0.5;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+/* Restore when modal closed */
+#teflon-panel:not(.dimmed) {
+  opacity: 1;
+  pointer-events: auto;
 }

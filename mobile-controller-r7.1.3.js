@@ -748,9 +748,6 @@ class MobilePanelController {
       
       console.log('✅ Inventory mode toggled from bottom-nav');
       break;
-
-
-
         
       case 'settings':
       // iPhone: mở modal lọc & sort full-screen

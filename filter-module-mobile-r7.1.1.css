@@ -58,7 +58,7 @@ Ghi chú:
   #filter-fullscreen-modal.filter-fullscreen-modal {
     position: fixed;
     inset: 0;
-    z-index: 10020; /* cao hơn các bar cố định khác */
+    z-index: 11500; /* cao hơn các bar cố định khác */
     background: rgba(0, 0, 0, 0.84);
 
     display: none; /* default: không hiện */
