@@ -1,18 +1,21 @@
-
 // Deno Deploy Edge Function
 // File: supabase/functions/send-photo-audit/index.ts
 
+
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')!
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
+
 
 interface EmailPayload {
   moldName: string
@@ -31,37 +34,44 @@ interface EmailPayload {
   fromEmail?: string
 }
 
+
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
+
   try {
     const payload: EmailPayload = await req.json()
-    
+   
     console.log('[PhotoAudit] Received payload:', {
       moldCode: payload.moldCode,
       photoFile: payload.photoFileName,
       recipients: payload.recipients
     })
 
+
     // Validate required fields
     if (!payload.moldCode || !payload.photoFileName || !payload.recipients?.length) {
       throw new Error('Missing required fields: moldCode, photoFileName, or recipients')
     }
 
+
     // Initialize Supabase client
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+
 
     // 1. Download photo from storage
     const { data: photoBlob, error: downloadError } = await supabase.storage
       .from('mold-photos')
       .download(payload.photoFileName)
 
+
     if (downloadError) {
       throw new Error(`Failed to download photo: ${downloadError.message}`)
     }
+
 
     // 2. Convert to base64
     const arrayBuffer = await photoBlob.arrayBuffer()
@@ -72,6 +82,7 @@ serve(async (req) => {
     }
     const base64Photo = btoa(binary)
 
+
     // 3. Format dimensions
     const dims = payload.dimensions || {}
     const length = dims.length || '-'
@@ -79,8 +90,10 @@ serve(async (req) => {
     const depth = dims.depth || '-'
     const dimensionStr = `${length} × ${width} × ${depth}`
 
+
     // 4. Format email subject
     const subject = `【写真監査】${payload.moldCode} | ${payload.employee} | ${payload.date}`
+
 
     // 5. Build HTML email body
     const htmlBody = `
@@ -213,7 +226,7 @@ serve(async (req) => {
       <h1>金型写真監査レポート</h1>
       <p>Mold Photo Audit Report</p>
     </div>
-    
+   
     <div class="content">
       <table class="info-table">
         <tr>
@@ -242,6 +255,7 @@ serve(async (req) => {
         </tr>
       </table>
 
+
       <div class="photo-section">
         <h2>撮影写真 / Photo</h2>
         <div class="photo-wrapper">
@@ -249,6 +263,7 @@ serve(async (req) => {
         </div>
       </div>
     </div>
+
 
     <div class="footer">
       <p>
@@ -263,6 +278,7 @@ serve(async (req) => {
 </body>
 </html>
     `.trim()
+
 
     // 6. Send email via Resend
     const emailPayload = {
@@ -279,7 +295,9 @@ serve(async (req) => {
       ]
     }
 
+
     console.log('[PhotoAudit] Sending email to:', payload.recipients)
+
 
     const emailResponse = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -290,17 +308,20 @@ serve(async (req) => {
       body: JSON.stringify(emailPayload)
     })
 
+
     if (!emailResponse.ok) {
       const errorText = await emailResponse.text()
       throw new Error(`Resend API error: ${errorText}`)
     }
 
+
     const emailResult = await emailResponse.json()
     console.log('[PhotoAudit] Email sent successfully:', emailResult.id)
 
+
     // 7. Log to photo_audits table
     const photoUrl = `${SUPABASE_URL}/storage/v1/object/public/mold-photos/${payload.photoFileName}`
-    
+   
     const auditLogData = {
       mold_id: payload.moldId,
       mold_code: payload.moldCode,
@@ -315,38 +336,42 @@ serve(async (req) => {
       email_recipients: payload.recipients.join(', ')
     }
 
+
     const { error: insertError } = await supabase
       .from('photo_audits')
       .insert(auditLogData)
+
 
     if (insertError) {
       console.error('[PhotoAudit] Failed to log audit:', insertError.message)
       // Don't throw - email already sent successfully
     }
 
+
     // 8. Return success response
     return new Response(
-      JSON.stringify({ 
-        success: true, 
+      JSON.stringify({
+        success: true,
         emailId: emailResult.id,
         photoUrl: photoUrl,
         recipients: payload.recipients
       }),
-      { 
+      {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200
       }
     )
 
+
   } catch (error: any) {
     console.error('[PhotoAudit] Error:', error)
-    
+   
     return new Response(
-      JSON.stringify({ 
-        success: false, 
+      JSON.stringify({
+        success: false,
         error: error.message || 'Unknown error occurred'
       }),
-      { 
+      {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500
       }

@@ -687,6 +687,29 @@ class MobilePanelController {
               }
               break;
 
+              case 'photo-audit':
+                console.log('[MobilePanelController] 📸 Opening Photo Audit Tool...');
+                  // Đóng floating action bar
+                  this.hideFloatingActionBar();
+                  // Mở PhotoAuditTool settings screen
+                  if (window.PhotoAuditTool && typeof window.PhotoAuditTool.openSettings === 'function') {
+                      window.PhotoAuditTool.openSettings();
+                  } else {
+                      console.error('[MobilePanelController] ❌ PhotoAuditTool not available');
+                      alert('写真監査ツールがまだ準備できていません / Công cụ Photo Audit chưa sẵn sàng');
+                }
+              break;
+              
+              case 'tray-stack':
+                  console.log('[MobilePanelController] 📦 Opening Tray Stack Counter...');
+                    this.hideFloatingActionBar();
+                    if (window.TrayStackCounter && typeof window.TrayStackCounter.open === 'function') {
+                        window.TrayStackCounter.open();
+                    } else {
+                        console.warn('[MobilePanelController] ⚠ TrayStackCounter not available');
+                    }
+              break;
+
                   
               default:
                   console.warn('⚠ Unknown tab:', tab);
@@ -762,6 +785,26 @@ class MobilePanelController {
       console.log('✅ Settings tab: Filter (fullscreen/modal) opened');
       break;
 
+      case 'photo-audit':
+        console.log('[MobilePanelController] 📸 Opening Photo Audit from handleBottomNavTab...');
+        this.hideFloatingActionBar();
+        if (window.PhotoAuditTool && typeof window.PhotoAuditTool.openSettings === 'function') {
+            window.PhotoAuditTool.openSettings();
+        } else {
+            console.error('[MobilePanelController] ❌ PhotoAuditTool not available');
+            alert('写真監査ツールがまだ準備できていません / Công cụ Photo Audit chưa sẵn sàng');
+        }
+        break;
+
+      case 'tray-stack':
+          console.log('[MobilePanelController] 📦 Opening Tray Stack Counter...');
+          this.hideFloatingActionBar();
+          if (window.TrayStackCounter && typeof window.TrayStackCounter.open === 'function') {
+              window.TrayStackCounter.open();
+          } else {
+              console.warn('[MobilePanelController] ⚠ TrayStackCounter not available');
+          }
+        break;
     }
   }
 
