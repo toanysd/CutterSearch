@@ -1,0 +1,1257 @@
+/* ========================================
+   CHECK-IN / CHECK-OUT MODAL - V7.FINAL
+   - KHỚP PADDING VỚI UPPER-SECTION LAYOUT
+   - Lề trái = lề phải = 16px (spacing-lg)
+   ======================================== */
+
+/* ========================================
+   PANEL CONTAINER
+   ======================================== */
+/* PANEL CONTAINER */
+.checkio-panel {
+    position: absolute;
+    inset: 0;  /* ✅ THÊM: Bám trọn vào upper-section (giống location) */
+    max-height: 100%;  /* ✅ THÊM: Đảm bảo không tràn */
+    background: var(--color-surface, #fcfcf9);
+    border: 1px solid rgba(94, 82, 64, 0.2);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    font-family: var(--font-family-base, Geist, sans-serif);
+    padding-bottom: env(safe-area-inset-bottom, 0px);  /* ✅ THÊM: iOS safe area */
+}
+
+
+/* ========================================
+   HEADER
+   ======================================== */
+.checkio-header {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
+}
+
+.checkio-mode {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+}
+
+.mode-btn {
+  padding: 6px 16px;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mode-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.mode-btn.active {
+  background: white;
+  color: #16a34a;
+  border-color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn-close-compact {
+  width: 28px;
+  height: 28px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.btn-close-compact:hover {
+  background: rgba(255, 255, 255, 0.35);
+  transform: scale(1.05);
+}
+
+.btn-close-compact:active {
+  transform: scale(0.95);
+}
+
+/* ========================================
+   BODY - 3 CỘT (KHỚP VỚI UPPER-SECTION)
+   ======================================== */
+.checkio-body {
+  display: flex;
+  gap: 16px; /* ← GIỮ NGUYÊN gap như upper-section (--spacing-lg) */
+  padding: 16px; /* ← GIỮ NGUYÊN padding như upper-section (--spacing-lg) */
+  overflow: hidden;
+  flex: 1;
+  min-height: 0;
+}
+
+/* CỘT 1: LỊCH SỬ - 45% width (giảm từ 50%) */
+.cio-history {
+  flex: 0 0 calc(45% - 10px); /* Giảm xuống để có chỗ cho cột 2 rộng hơn */
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg-1, rgba(59, 130, 246, 0.05));
+  border: 1px solid rgba(94, 82, 64, 0.12);
+  border-radius: 10px;
+  padding: 8px;
+  overflow: hidden;
+}
+
+/* CỘT 2: TRẠNG THÁI - 30% width (tăng từ 25%) */
+.cio-status {
+  flex: 0 0 calc(30% - 10px); /* Tăng lên để hiển thị đầy đủ */
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg-3, rgba(34, 197, 94, 0.05));
+  border: 1px solid rgba(94, 82, 64, 0.12);
+  border-radius: 10px;
+  padding: 8px;
+  overflow: hidden;
+}
+
+/* CỘT 3: NHẬP LIỆU - 25% width (giữ nguyên) */
+.cio-inputs {
+  flex: 0 0 calc(25% - 10px);
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg-2, rgba(245, 158, 11, 0.05));
+  border: 1px solid rgba(94, 82, 64, 0.12);
+  border-radius: 10px;
+  padding: 8px;
+  overflow-y: auto;
+  overflow-x: visible !important; /* ✅ Cho phép dropdown tràn ngang */
+}
+
+/* ✅ Thêm rule này */
+.cio-inputs .form-group {
+  position: relative;
+  z-index: 1; /* Đảm bảo dropdown không bị che */
+}
+
+.cio-inputs .form-group.focused {
+  z-index: 10; /* Khi focus, tăng z-index */
+}
+
+
+/* ✅ XÓA .cio-mode-row ở top level */
+.cio-mode-row {
+  display: none; /* Ẩn vì đã chuyển vào .cio-inputs */
+}
+
+/* ✅ STYLE MỚI cho mode buttons trong .cio-inputs */
+.cio-mode-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 10px; /* Khoảng cách với form bên dưới */
+}
+
+.cio-mode-buttons .mode-btn {
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.2);
+  color: #134252;
+  border: 2px solid rgba(94, 82, 64, 0.25);
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.cio-mode-buttons .mode-btn:hover {
+  background: rgba(34, 197, 94, 0.1);
+  border-color: #22c55e;
+}
+
+.cio-mode-buttons .mode-btn.active[data-mode="check-in"] {
+  background: #16a34a !important;
+  color: white !important;
+  border-color: #16a34a !important;
+  box-shadow: 0 2px 6px rgba(22, 163, 74, 0.3);
+}
+
+.cio-mode-buttons .mode-btn.active[data-mode="check-out"] {
+  background: #ef4444 !important;
+  color: white !important;
+  border-color: #dc2626 !important;
+  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.35);
+}
+
+
+/* ========================================
+   SECTION HEADERS
+   ======================================== */
+.cio-history h4,
+.cio-status h4,
+.cio-inputs h4 {
+  margin: 0 0 6px 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text, #134252);
+  border-bottom: 2px solid rgba(94, 82, 64, 0.15);
+  padding-bottom: 4px;
+}
+
+/* ========================================
+   LỊCH SỬ - TABLE + FILTER
+   ======================================== */
+.filter-row {
+  margin-bottom: 6px;
+  flex-shrink: 0;
+}
+
+.filter-row input {
+  width: 100%;
+  padding: 5px 8px;
+  border: 1px solid rgba(94, 82, 64, 0.2);
+  border-radius: 6px;
+  font-size: 12px;
+  background: white;
+}
+
+/* ✅ HISTORY WRAP - Cuộn ngang khi unlock */
+.history-wrap {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden; /* Mặc định ẩn cuộn ngang */
+  min-height: 0;
+}
+
+/* ✅ KHI UNLOCK - Cho phép cuộn ngang */
+.history-table.history-unlocked {
+  min-width: 700px; /* Đặt min-width để bảng rộng hơn container */
+}
+
+.history-unlocked ~ .history-wrap,
+.history-wrap:has(.history-table.history-unlocked) {
+  overflow-x: auto !important; /* Bật cuộn ngang */
+}
+
+/* ✅ MIN-WIDTH CHO CÁC CỘT KHI UNLOCK */
+.history-table.history-unlocked thead th:nth-child(1),
+.history-table.history-unlocked tbody td:nth-child(1) {
+  min-width: 140px; /* Thời gian */
+  width: 140px;
+}
+
+.history-table.history-unlocked thead th:nth-child(2),
+.history-table.history-unlocked tbody td:nth-child(2) {
+  min-width: 70px; /* Loại */
+  width: 70px;
+  text-align: center;
+}
+
+.history-table.history-unlocked thead th:nth-child(3),
+.history-table.history-unlocked tbody td:nth-child(3) {
+  min-width: 120px; /* Nhân viên */
+  width: 120px;
+}
+
+.history-table.history-unlocked thead th:nth-child(4),
+.history-table.history-unlocked tbody td:nth-child(4) {
+  min-width: 150px; /* Ghi chú */
+  width: auto;
+}
+
+.history-table.history-unlocked thead th:nth-child(5),
+.history-table.history-unlocked tbody td:nth-child(5) {
+  min-width: 60px; /* Sync */
+  width: 60px;
+  text-align: center;
+}
+
+.history-table.history-unlocked thead th:nth-child(6),
+.history-table.history-unlocked tbody td:nth-child(6) {
+  min-width: 50px; /* Delete */
+  width: 50px;
+  text-align: center;
+}
+
+/* ✅ LOCK MODE - Rút gọn 4 cột */
+.history-table.history-locked {
+  width: 100%;
+  table-layout: fixed; /* Chia đều 4 cột */
+}
+
+.history-table.history-locked thead th:nth-child(1),
+.history-table.history-locked tbody td:nth-child(1) {
+  width: 35%; /* Thời gian */
+}
+
+.history-table.history-locked thead th:nth-child(2),
+.history-table.history-locked tbody td:nth-child(2) {
+  width: 15%; /* Loại */
+}
+
+.history-table.history-locked thead th:nth-child(3),
+.history-table.history-locked tbody td:nth-child(3) {
+  width: 25%; /* Nhân viên */
+}
+
+.history-table.history-locked thead th:nth-child(4),
+.history-table.history-locked tbody td:nth-child(4) {
+  width: 25%; /* Ghi chú */
+}
+
+/* ✅ SCROLLBAR STYLING */
+.history-wrap::-webkit-scrollbar {
+  width: 6px;
+  height: 6px; /* Thanh cuộn ngang */
+}
+
+.history-wrap::-webkit-scrollbar-track {
+  background: rgba(94, 82, 64, 0.05);
+  border-radius: 3px;
+}
+
+.history-wrap::-webkit-scrollbar-thumb {
+  background: rgba(94, 82, 64, 0.3);
+  border-radius: 3px;
+}
+
+.history-wrap::-webkit-scrollbar-thumb:hover {
+  background: rgba(94, 82, 64, 0.5);
+}
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  background: white;
+  table-layout: fixed;  /* ✅ THÊM DÒNG NÀY */
+}
+
+.history-table thead {
+  position: sticky;
+  top: 0;
+  background: rgba(255, 255, 255, 0.95);
+  z-index: 10;
+}
+
+.history-table th {
+  padding: 5px 3px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 10px;
+  color: #134252;
+  border-bottom: 2px solid rgba(94, 82, 64, 0.2);
+  white-space: nowrap;
+}
+
+.history-table th::after {
+  content: ' ⇅';
+  opacity: 0.4;
+  font-size: 9px;
+}
+
+.history-table th.asc::after {
+  content: ' ▲';
+  opacity: 1;
+  color: #16a34a;
+}
+
+.history-table th.desc::after {
+  content: ' ▼';
+  opacity: 1;
+  color: #16a34a;
+}
+
+.history-table td {
+  padding: 5px 3px;
+  border-bottom: 1px solid rgba(94, 82, 64, 0.1);
+  vertical-align: top;
+}
+
+/* ===================================================
+   ✅ FIX: Cố định độ rộng cột - Ngăn nhảy UX
+   =================================================== */
+
+/* FIX: Cố định rộng cột - Ngăn nhảy UX */
+/* Cột DateTime */
+.history-table thead th:nth-child(1),
+.history-table tbody td:nth-child(1) {
+    min-width: 110px; /* Giảm từ 160px → 110px */
+    width: 110px;
+    font-size: 10px; /* Thu nhỏ font */
+}
+
+/* Cột Type (Check-in/Check-out) */
+.history-table thead th:nth-child(2),
+.history-table tbody td:nth-child(2) {
+    min-width: 55px; /* Giảm từ 100px → 55px */
+    width: 55px;
+    text-align: center;
+}
+
+/* Cột Employee */
+.history-table thead th:nth-child(3),
+.history-table tbody td:nth-child(3) {
+    min-width: 100px;
+    max-width: 100px;
+    width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Cột Notes */
+.history-table thead th:nth-child(4),
+.history-table tbody td:nth-child(4) {
+    min-width: 80px;
+    width: auto;
+}
+
+/* Cột Sync */
+.history-table thead th:nth-child(5),
+.history-table tbody td:nth-child(5) {
+    width: 35px;
+    min-width: 35px;
+    max-width: 35px;
+    text-align: center;
+}
+
+/* Cột Delete */
+.history-table thead th:nth-child(6),
+.history-table tbody td:nth-child(6) {
+    width: 40px;
+    min-width: 40px;
+    max-width: 40px;
+    text-align: center;
+}
+
+
+
+.history-table tbody tr:hover {
+  background: rgba(34, 197, 94, 0.08);
+}
+
+.history-table td.action-cell {
+  text-align: center;
+  padding: 5px 3px;
+  width: 40px;
+}
+.history-table .btn-delete-history {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid #dc2626;
+  background: #fee2e2;
+  color: #dc2626;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  padding: 0;
+  line-height: 1;
+}
+.history-table .btn-delete-history:hover {
+  background: #dc2626;
+  color: white;
+  transform: scale(1.15);
+  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.4);
+}
+.history-table .btn-delete-history:active {
+  transform: scale(0.95);
+}
+.history-table tr.deleting {
+  animation: slideOutRight 0.3s ease-out forwards;
+}
+@keyframes slideOutRight {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(100%); }
+}
+
+/* ========================================
+   BADGE IN/OUT
+   ======================================== */
+.status-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  text-align: center;
+  min-width: 36px;
+  border: 1px solid;
+  letter-spacing: 0.4px;
+}
+
+.status-badge.badge-in {
+    background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+    color: #15803d;
+    border-color: #43A047; /* Màu mới */
+    box-shadow: 0 1px 3px rgba(67, 160, 71, 0.2);
+}
+
+.status-badge.badge-out {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  color: #991b1b;
+  border-color: #ef4444;
+  box-shadow: 0 1px 3px rgba(239, 68, 68, 0.2);
+}
+
+.note-cell {
+  font-size: 10px;
+  color: #626c7c;
+  max-width: 150px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.no-history {
+  padding: 16px;
+  text-align: center;
+  color: #626c7c;
+  font-size: 12px;
+}
+
+/* ========================================
+   TRẠNG THÁI - BADGES
+   ======================================== */
+.status-badges {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.badge-row {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.badge-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: #626c7c;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.badge {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid;
+  word-break: break-word;
+}
+
+.badge-mold {
+  background: #eff6ff;
+  color: #1e40af;
+  border-color: #3b82f6;
+}
+
+.badge-mold-name {
+  background: #f0fdf4;
+  color: #15803d;
+  border-color: #22c55e;
+  font-size: 11px;
+}
+
+.badge-green {
+  background: #dcfce7;
+  color: #15803d;
+  border-color: #22c55e;
+}
+
+.badge-red {
+  background: #fee2e2;
+  color: #991b1b;
+  border-color: #ef4444;
+}
+
+/* Badge vị trí Giá-Tầng */
+.badge-group {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.badge-rack {
+  background: #fef3c7;
+  color: #92400e;
+  border-color: #f59e0b;
+  padding: 5px 8px;
+  font-weight: 700;
+}
+
+.badge-sep {
+  font-size: 14px;
+  font-weight: 700;
+  color: #92400e;
+}
+
+.badge-layer {
+  background: #fef3c7;
+  color: #92400e;
+  border-color: #f59e0b;
+  padding: 5px 8px;
+  font-weight: 700;
+}
+
+/* RackLocation */
+.rack-location {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 8px;
+  background: rgba(245, 158, 11, 0.08);
+  border-radius: 5px;
+  margin-top: 3px;
+  font-size: 11px;
+}
+
+.loc-label {
+  font-weight: 600;
+  color: #92400e;
+}
+
+.loc-value {
+  color: #134252;
+  font-weight: 500;
+}
+
+/* ========================================
+   NHẬP LIỆU - FORM
+   ======================================== */
+.form-group {
+  margin-bottom: 6px;
+}
+
+.form-group.hidden {
+  display: none;
+}
+
+.form-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: #134252;
+  margin-bottom: 3px;
+}
+
+.form-control {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid rgba(94, 82, 64, 0.2);
+  border-radius: 5px;
+  font-size: 12px;
+  background: white;
+  font-family: inherit;
+  transition: border-color 0.2s ease;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #22c55e;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+}
+
+textarea.form-control {
+  resize: vertical;
+  min-height: 40px;
+  max-height: 60px;
+}
+
+/* R7.0.5: Employee row - Fixed for iPhone layout */
+.employee-row {
+    display: flex;
+    flex-direction: column; /* Stack vertically on mobile */
+    gap: 8px;
+    align-items: stretch;
+}
+
+.employee-row .form-control {
+    flex: 1;
+    width: 100%; /* Full width on mobile */
+    min-width: 0; /* Prevent overflow */
+}
+
+.btn-face {
+    padding: 8px 12px;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    width: 100%; /* Full width on mobile */
+    text-align: center;
+}
+
+.btn-face:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.btn-face:active {
+    transform: translateY(0);
+}
+
+.face-status {
+    display: block;
+    margin-top: 3px;
+    font-size: 10px;
+    color: #626c7c;
+    text-align: center; /* Center on mobile */
+}
+
+/* iPad and larger: Horizontal layout */
+@media (min-width: 768px) {
+    .employee-row {
+        flex-direction: row; /* Side by side on iPad */
+        gap: 5px;
+    }
+    
+    .btn-face {
+        width: auto; /* Auto width on iPad */
+        padding: 6px 10px;
+        font-size: 11px;
+    }
+    
+    .face-status {
+        text-align: left; /* Left align on iPad */
+    }
+}
+
+
+/* ========================================
+   NÚT XÁC NHẬN / HỦY
+   ======================================== */
+.btn-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(94, 82, 64, 0.1);
+}
+
+.btn-confirm,
+.btn-cancel {
+  flex: 1;
+  padding: 7px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-confirm {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  color: white;
+}
+
+.btn-confirm:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+}
+
+.btn-confirm:active {
+  transform: translateY(0);
+}
+
+.btn-cancel {
+  background: rgba(148, 163, 184, 0.15);
+  color: #475569;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.btn-cancel:hover {
+  background: rgba(148, 163, 184, 0.25);
+}
+
+/* ========================================
+   TOAST NOTIFICATIONS
+   ======================================== */
+.cio-toast {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  padding: 12px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  z-index: 10000;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cio-toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.cio-toast-info {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+}
+
+.cio-toast-success {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+}
+
+.cio-toast-error {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+/* ========================================
+   DARK MODE
+   ======================================== */
+@media (prefers-color-scheme: dark) {
+  .checkio-panel {
+    background: var(--color-surface, #262828);
+    border-color: rgba(119, 124, 124, 0.3);
+  }
+
+  .cio-history,
+  .cio-status,
+  .cio-inputs {
+    background: rgba(119, 124, 124, 0.08);
+    border-color: rgba(119, 124, 124, 0.2);
+  }
+
+  .cio-history h4,
+  .cio-status h4,
+  .cio-inputs h4 {
+    color: var(--color-text, #f5f5f5);
+    border-bottom-color: rgba(119, 124, 124, 0.3);
+  }
+
+  .form-control,
+  .filter-row input {
+    background: rgba(119, 124, 124, 0.1);
+    border-color: rgba(119, 124, 124, 0.3);
+    color: #f5f5f5;
+  }
+
+  .history-table thead {
+    background: rgba(38, 40, 40, 0.95);
+  }
+
+  .history-table th,
+  .history-table td {
+    color: #f5f5f5;
+    border-color: rgba(119, 124, 124, 0.2);
+  }
+
+  .badge {
+    opacity: 0.95;
+  }
+
+  .status-badge {
+    opacity: 0.95;
+  }
+
+  .rack-location {
+    background: rgba(245, 158, 11, 0.15);
+  }
+
+  .btn-cancel {
+    background: rgba(148, 163, 184, 0.2);
+    color: #cbd5e1;
+  }
+}
+
+/* ========================================
+   SCROLLBAR STYLING
+   ======================================== */
+.history-wrap::-webkit-scrollbar,
+.cio-inputs::-webkit-scrollbar {
+  width: 5px;
+}
+
+.history-wrap::-webkit-scrollbar-track,
+.cio-inputs::-webkit-scrollbar-track {
+  background: rgba(94, 82, 64, 0.05);
+  border-radius: 3px;
+}
+
+.history-wrap::-webkit-scrollbar-thumb,
+.cio-inputs::-webkit-scrollbar-thumb {
+  background: rgba(94, 82, 64, 0.3);
+  border-radius: 3px;
+}
+
+.history-wrap::-webkit-scrollbar-thumb:hover,
+.cio-inputs::-webkit-scrollbar-thumb:hover {
+  background: rgba(94, 82, 64, 0.5);
+}
+
+/* SYNC STATUS INDICATOR */
+.sync-cell {
+    text-align: center;
+    padding: 5px;
+}
+
+.sync-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.sync-dot.pending {
+    background-color: #EF4444; /* Đỏ - chờ sync */
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+.sync-dot.synced {
+    background-color: #43A047; /* Xanh - đã sync */
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.9); }
+}
+
+/* ==========================================
+   ✅ SYNC INDICATOR STYLES - R6.2
+   ========================================== */
+
+/* Sync cell */
+.sync-cell {
+    text-align: center;
+    padding: 8px 4px;
+}
+
+/* Sync dots */
+.sync-dot {
+    display: inline-block;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+/* Pending state - rotating animation */
+.sync-dot.pending {
+    animation: rotate-sync 1.5s linear infinite;
+}
+
+/* Synced state - green checkmark */
+.sync-dot.synced {
+    color: #43A047;
+}
+
+/* Error state - red warning */
+.sync-dot.error {
+    color: #EF4444;
+    animation: shake-error 0.5s ease-in-out;
+}
+
+/* Animations */
+@keyframes rotate-sync {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes shake-error {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+}
+
+/* Pending row highlight */
+.row-pending {
+    background-color: #FFF9C4 !important;
+    border-left: 3px solid #FFC107;
+}
+
+.row-pending td {
+    font-style: italic;
+    opacity: 0.85;
+}
+
+/* Action cell */
+.action-cell {
+    text-align: center;
+    padding: 4px;
+}
+
+.btn-delete-history {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+}
+
+.btn-delete-history:hover {
+    opacity: 1;
+}
+
+/* Deleting state */
+.deleting {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+/* ==========================================
+   ✅ BADGE SYNC INDICATOR - R6.2
+   ========================================== */
+
+#detail-checkin-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 13px;
+    transition: all 0.3s ease;
+}
+
+.badge-text {
+    display: inline-block;
+}
+
+.sync-icon {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: normal;
+    transition: all 0.3s ease;
+}
+
+/* Pending state - rotating animation */
+.sync-icon.pending {
+    animation: rotate-sync 1.5s linear infinite;
+}
+
+/* Synced state - subtle checkmark */
+.sync-icon.synced {
+    color: rgba(0, 0, 0, 0.4);
+    font-size: 10px;
+}
+
+/* Badge pending state - pulsing */
+.badge-pending {
+    animation: pulse-badge 1.5s ease-in-out infinite;
+}
+
+/* Animations */
+@keyframes rotate-sync {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes pulse-badge {
+    0%, 100% { opacity: 0.8; }
+    50% { opacity: 1; }
+}
+
+/* Badge colors */
+.status-in {
+    background: #43A047;
+    color: white;
+}
+
+.status-out {
+    background: #EF4444;
+    color: white;
+}
+
+.status-in .sync-icon.synced,
+.status-out .sync-icon.synced {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.status-badge.no-history {
+    background-color: #6B7280;
+    color: white;
+    opacity: 0.7;
+}
+
+/* ✅ DESKTOP: Dropdown container */
+.form-group {
+  position: relative; /* Đảm bảo container có position */
+  margin-bottom: 14px;
+}
+
+.form-group.hidden {
+  display: none !important;
+}
+
+/* ✅ Employee select container - overflow visible */
+.form-group-employee {
+  position: relative;
+  overflow: visible !important; /* Không clip dropdown */
+}
+
+/* ✅ Destination group - overflow visible */
+.dest-group {
+  position: relative;
+  overflow: visible !important;
+}
+
+/* ✅ Searchable select wrapper */
+.searchable-select-wrapper {
+  position: relative;
+  width: 100%;
+  z-index: 1;
+}
+
+/* ✅ Input phải có z-index cao khi focus */
+.searchable-select-wrapper input.search-input:focus {
+  position: relative;
+  z-index: 100002 !important;
+}
+
+/* ✅ Dropdown icon */
+.searchable-select-wrapper .dropdown-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  font-size: 14px;
+  color: #64748b;
+  transition: transform 0.2s ease;
+  z-index: 2; /* Không bị che bởi input */
+}
+
+.searchable-select-wrapper.open .dropdown-icon {
+  transform: translateY(-50%) rotate(180deg);
+}
+/* ✅ DROPDOWN - Z-INDEX CỰC CAO */
+.searchable-select-wrapper .options-list {
+  position: absolute !important;
+  top: calc(100% + 4px) !important;
+  left: 0;
+  right: 0;
+  max-height: 300px;
+  overflow-y: auto;
+  background: white;
+  border: 1.5px solid rgba(94, 82, 64, 0.25);
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25) !important; /* Tăng shadow */
+  z-index: 99999 !important; /* ✅ TĂNG LÊN RẤT CAO */
+  display: none;
+}
+
+.searchable-select-wrapper .options-list.show {
+  display: block;
+}
+/* ✅ Z-INDEX MANAGEMENT - Form Groups */
+.form-group {
+  position: relative;
+  margin-bottom: 14px;
+  z-index: 1; /* Default thấp */
+  transition: z-index 0s; /* Không animate z-index */
+}
+
+/* ✅ Khi mở dropdown - Tăng z-index lên cao nhất */
+.form-group.dropdown-open {
+  z-index: 100000 !important; /* Cao hơn mọi thứ khác */
+}
+
+/* ✅ Wrapper cũng cần z-index cao */
+.form-group.dropdown-open .searchable-select-wrapper {
+  z-index: 100001 !important;
+}
+
+/* ✅ Đảm bảo dropdown không bị clip bởi overflow */
+.cio-inputs {
+  position: relative;
+  overflow: visible !important; /* ✅ Không clip dropdown */
+}
+
+/* ✅ Nếu cần scroll, chỉ áp dụng cho nội dung bên trong */
+.cio-inputs-inner {
+  overflow-y: auto;
+  overflow-x: visible;
+  flex: 1;
+  min-height: 0;
+}
+
+/* ✅ Face ID button - Z-index thấp mặc định */
+.btn-face {
+  position: relative;
+  z-index: 1; /* Thấp hơn dropdown */
+}
+
+/* ✅ Textarea ghi chú - Không được che dropdown */
+textarea.form-control {
+  position: relative;
+  z-index: 1;
+}
+
+/* ✅ Buttons confirm/cancel - Z-index thấp */
+.btn-row {
+  position: relative;
+  z-index: 1;
+}
+
+/* ✅ Đảm bảo dropdown luôn trên cùng */
+.checkio-panel .options-list {
+  z-index: 99999 !important;
+}
+
+/* ✅ MOBILE - DROPDOWN Z-INDEX */
+@media (max-width: 767px) {
+  .searchable-select-wrapper .options-list {
+    position: absolute !important;
+    top: calc(100% + 4px) !important;
+    left: 0;
+    right: 0;
+    max-height: 50vh !important;
+    overflow-y: auto;
+    background: white;
+    border: 1.5px solid rgba(94, 82, 64, 0.25);
+    border-radius: 8px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25) !important;
+    z-index: 99999 !important; /* ✅ CỰC CAO */
+    display: none;
+  }
+  
+  .form-group.dropdown-open {
+    z-index: 100000 !important;
+  }
+  
+  .searchable-select-wrapper.open {
+    z-index: 100001 !important;
+  }
+  
+  /* ✅ Body không clip dropdown */
+  .checkio-body {
+    overflow: visible !important;
+  }
+  
+  .cio-inputs {
+    overflow: visible !important;
+  }
+}

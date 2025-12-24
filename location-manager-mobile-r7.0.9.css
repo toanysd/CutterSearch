@@ -1,0 +1,711 @@
+/* =====================================================
+   LOCATION MANAGER MOBILE R7.0.9 - MOBILE STYLESHEET
+   =====================================================
+   Created: 2025.12.24
+   Version: 7.0.9 (Optimized for iPhone/Mobile)
+   Framework: Hybrid Architecture (V7.7.7 r6.4)
+
+   ✅ Features:
+   - Input section at top, history at bottom
+   - Fixed bottom buttons with safe area support
+   - Lock/Unlock history table
+   - Swipe to close gesture
+   - Consistent with checkin-checkout-mobile-r7.1.0.css
+
+   Layout Priority (Mobile):
+   1. Inputs section (top, always visible)
+   2. History section (bottom, scrollable)
+   3. Status section (hidden on mobile)
+   ===================================================== */
+
+@media (max-width: 768px) {
+    /* ===================================================
+       PANEL - FULL SCREEN ON MOBILE
+       =================================================== */
+    .location-panel {
+        position: fixed !important;
+        inset: 0 !important;
+        width: 100% !important;
+        height: 100dvh !important;
+        border-radius: 0 !important;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        z-index: 11000 !important;
+        background: var(--color-surface, #fcfcf9);
+        max-height: none !important;
+        border: none !important;
+    }
+
+    /* ===================================================
+       HEADER - COMPACT ON MOBILE
+       =================================================== */
+    .location-header {
+        padding: 10px 14px;
+        flex-shrink: 0;
+        z-index: 11001 !important;
+        background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .location-title {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
+    }
+
+    .location-title-main {
+        font-size: 14px;
+        font-weight: 700;
+        color: white;
+    }
+
+    .location-title-sub {
+        font-size: 11px;
+        opacity: 0.85;
+        font-style: italic;
+        margin-left: 0;
+    }
+
+    .location-title i {
+        display: none;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .btn-refresh {
+        width: 36px;
+        height: 36px;
+        font-size: 16px;
+    }
+
+    .btn-close-location {
+        width: 36px;
+        height: 36px;
+        font-size: 18px;
+    }
+
+    /* ===================================================
+       BODY - VERTICAL LAYOUT (Input Top, History Bottom)
+       =================================================== */
+    .location-body {
+        flex-direction: column !important;
+        gap: 12px !important;
+        padding: 12px !important;
+        padding-bottom: 80px !important; /* Space for fixed buttons */
+        overflow-y: auto;
+        overflow-x: hidden;
+        flex: 1;
+        min-height: 0;
+    }
+
+    /* ===================================================
+       INPUTS SECTION - TOP, ALWAYS VISIBLE
+       =================================================== */
+    .loc-inputs {
+        flex: 0 0 auto !important;
+        width: 100% !important;
+        order: 1 !important;
+        overflow-y: visible !important;
+        overflow-x: visible !important;
+        padding: 12px;
+        background: var(--color-bg-2, rgba(255, 152, 0, 0.08));
+        border: 1px solid var(--loc-border);
+        border-radius: 10px;
+        z-index: 10;
+    }
+
+    .loc-inputs h4 {
+        font-size: 13px;
+        margin-bottom: 10px;
+        color: #F57C00;
+        font-weight: 700;
+    }
+
+    .location-form-group {
+        margin-bottom: 14px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .location-form-group.hidden {
+        display: none !important;
+    }
+
+    .location-form-group.dropdown-open {
+        z-index: 100000 !important;
+    }
+
+    .location-form-label {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        color: #334155;
+        margin-bottom: 6px;
+    }
+
+    .location-form-control {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1.5px solid rgba(94, 82, 64, 0.25);
+        border-radius: 8px;
+        font-size: 14px;
+        background: white;
+        transition: all 0.2s ease;
+    }
+
+    .location-form-control:focus {
+        outline: none;
+        border-color: #FF9800;
+        box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.1);
+    }
+
+    textarea.location-form-control {
+        resize: none;
+        min-height: 60px;
+        max-height: 80px;
+        font-family: inherit;
+    }
+
+    /* ✅ Direct RackLayerID Input - PROMINENT */
+    #loc-direct-id {
+        font-size: 18px;
+        font-weight: 700;
+        text-align: center;
+        letter-spacing: 3px;
+        color: #F57C00;
+        border: 2px solid #FF9800;
+        background: linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%);
+        padding: 12px;
+    }
+
+    #loc-direct-id:focus {
+        border-color: #F57C00;
+        box-shadow: 0 0 0 4px rgba(255, 152, 0, 0.2);
+        background: white;
+    }
+
+    #loc-direct-id::placeholder {
+        font-size: 10px;
+        font-weight: 400;
+        letter-spacing: normal;
+    }
+
+    .form-hint {
+        display: block;
+        margin-top: 4px;
+        font-size: 10px;
+        color: #F57C00;
+        font-style: italic;
+        line-height: 1.3;
+    }
+
+    /* ===================================================
+       SEARCHABLE SELECT - MOBILE OPTIMIZED
+       =================================================== */
+    .searchable-select-wrapper {
+        position: relative;
+        z-index: 1;
+    }
+
+    .searchable-select-wrapper.open {
+        z-index: 100001 !important;
+    }
+
+    .searchable-select-wrapper input.search-input {
+        width: 100%;
+        padding: 10px 36px 10px 12px;
+        border: 1.5px solid rgba(94, 82, 64, 0.25);
+        border-radius: 8px;
+        font-size: 14px;
+        background: white;
+        transition: all 0.2s ease;
+    }
+
+    .searchable-select-wrapper input.search-input:focus {
+        border-color: #FF9800;
+        box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.1);
+    }
+
+    .searchable-select-wrapper .dropdown-icon {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        pointer-events: none;
+        font-size: 14px;
+        color: #64748b;
+        transition: transform 0.2s ease;
+    }
+
+    .searchable-select-wrapper.open .dropdown-icon {
+        transform: translateY(-50%) rotate(180deg);
+    }
+
+    .searchable-select-wrapper .options-list {
+        position: absolute !important;
+        top: calc(100% + 4px) !important;
+        bottom: auto !important;
+        left: 0;
+        right: 0;
+        max-height: 50vh !important;
+        overflow-y: auto;
+        background: white;
+        border: 1.5px solid rgba(94, 82, 64, 0.25);
+        border-radius: 8px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2) !important;
+        z-index: 99999 !important;
+        display: none;
+    }
+
+    .searchable-select-wrapper .options-list.show {
+        display: block;
+    }
+
+    .searchable-select-wrapper .option-item {
+        padding: 12px 14px;
+        cursor: pointer;
+        font-size: 14px;
+        border-bottom: 1px solid rgba(94, 82, 64, 0.08);
+        transition: background 0.15s ease;
+        background: white;
+    }
+
+    .searchable-select-wrapper .option-item:last-child {
+        border-bottom: none;
+    }
+
+    .searchable-select-wrapper .option-item.matched {
+        background: #fef9c3 !important;
+        font-weight: 500;
+        border-left: 3px solid #eab308;
+    }
+
+    .searchable-select-wrapper .option-item:hover,
+    .searchable-select-wrapper .option-item:active {
+        background: rgba(255, 152, 0, 0.12);
+    }
+
+    .searchable-select-wrapper .option-item.matched:hover {
+        background: #fde047 !important;
+    }
+
+    .searchable-select-wrapper .option-item.selected {
+        background: rgba(255, 152, 0, 0.18);
+        font-weight: 600;
+        color: #F57C00;
+        border-left: 3px solid #FF9800;
+    }
+
+    .searchable-select-wrapper .option-item.selected.matched {
+        background: #fed7aa !important;
+        border-left-color: #FF9800;
+    }
+
+    .searchable-select-wrapper .no-results {
+        padding: 16px;
+        text-align: center;
+        color: #94a3b8;
+        font-size: 13px;
+    }
+
+    /* ===================================================
+       HISTORY SECTION - BOTTOM, SCROLLABLE
+       =================================================== */
+    .loc-history {
+        flex: 0 0 auto !important;
+        width: 100% !important;
+        max-height: 35vh;
+        order: 2 !important;
+        display: flex;
+        flex-direction: column;
+        padding: 12px;
+        background: var(--color-bg-1, rgba(255, 152, 0, 0.05));
+        border: 1px solid var(--loc-border);
+        border-radius: 10px;
+        z-index: 1;
+    }
+
+    .loc-history h4 {
+        font-size: 12px;
+        margin-bottom: 6px;
+        color: #64748b;
+        font-weight: 600;
+    }
+
+    .history-controls {
+        margin-bottom: 8px;
+        flex-shrink: 0;
+        display: flex;
+        gap: 6px;
+    }
+
+    .history-controls input {
+        flex: 1;
+        padding: 7px 10px;
+        font-size: 13px;
+        border: 1px solid rgba(94, 82, 64, 0.2);
+        border-radius: 6px;
+        background: white;
+    }
+
+    .lock-toggle {
+        padding: 7px 12px;
+        background: rgba(255, 152, 0, 0.15);
+        border: 1px solid rgba(255, 152, 0, 0.4);
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 600;
+        color: #F57C00;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+
+    .lock-toggle:active {
+        transform: scale(0.95);
+        background: rgba(255, 152, 0, 0.25);
+    }
+
+    .location-history-wrap {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        min-height: 0;
+    }
+
+    /* When unlocked, allow horizontal scroll */
+    .location-history-wrap:has(.location-history-table.history-unlocked) {
+        overflow-x: auto !important;
+    }
+
+    /* History Table */
+    .location-history-table {
+        font-size: 10px;
+        width: 100%;
+        table-layout: auto;
+    }
+
+    /* When unlocked, table can grow wider */
+    .location-history-table.history-unlocked {
+        min-width: 600px;
+    }
+
+    .location-history-table th,
+    .location-history-table td {
+        padding: 6px 4px;
+        font-size: 10px;
+    }
+
+    .location-history-table th {
+        font-size: 9px;
+        white-space: nowrap;
+    }
+
+    /* Locked mode: 4 columns, compact */
+    .location-history-table.history-locked th:nth-child(1),
+    .location-history-table.history-locked td:nth-child(1) { 
+        width: 25%; 
+        min-width: 70px;
+    }
+
+    .location-history-table.history-locked th:nth-child(2),
+    .location-history-table.history-locked td:nth-child(2) { 
+        width: 35%; 
+        min-width: 90px;
+    }
+
+    .location-history-table.history-locked th:nth-child(3),
+    .location-history-table.history-locked td:nth-child(3) { 
+        width: 20%; 
+        min-width: 50px;
+    }
+
+    .location-history-table.history-locked th:nth-child(4),
+    .location-history-table.history-locked td:nth-child(4) { 
+        width: 20%; 
+        min-width: 60px;
+    }
+
+    /* Hide Sync and Delete columns when locked */
+    .location-history-table.history-locked th:nth-child(5),
+    .location-history-table.history-locked td:nth-child(5),
+    .location-history-table.history-locked th:nth-child(6),
+    .location-history-table.history-locked td:nth-child(6) {
+        display: none;
+    }
+
+    /* Unlocked mode: 6 columns, wider */
+    .location-history-table.history-unlocked th:nth-child(1),
+    .location-history-table.history-unlocked td:nth-child(1) { 
+        min-width: 100px; 
+    }
+
+    .location-history-table.history-unlocked th:nth-child(2),
+    .location-history-table.history-unlocked td:nth-child(2) { 
+        min-width: 140px; 
+    }
+
+    .location-history-table.history-unlocked th:nth-child(3),
+    .location-history-table.history-unlocked td:nth-child(3) { 
+        min-width: 90px; 
+    }
+
+    .location-history-table.history-unlocked th:nth-child(4),
+    .location-history-table.history-unlocked td:nth-child(4) { 
+        min-width: 100px; 
+    }
+
+    .location-history-table.history-unlocked th:nth-child(5),
+    .location-history-table.history-unlocked td:nth-child(5) { 
+        min-width: 50px; 
+        text-align: center;
+    }
+
+    .location-history-table.history-unlocked th:nth-child(6),
+    .location-history-table.history-unlocked td:nth-child(6) { 
+        min-width: 45px; 
+        text-align: center;
+    }
+
+    .location-badge {
+        font-size: 9px;
+        padding: 2px 4px;
+        white-space: nowrap;
+    }
+
+    .note-cell {
+        font-size: 9px;
+        max-width: none;
+    }
+
+    .btn-delete-history {
+        width: 28px;
+        height: 28px;
+        font-size: 16px;
+    }
+
+    .sync-dot {
+        font-size: 14px;
+    }
+
+    .no-history {
+        padding: 20px;
+        font-size: 11px;
+    }
+
+    /* ===================================================
+       STATUS SECTION - HIDDEN ON MOBILE
+       =================================================== */
+    .loc-status {
+        display: none !important;
+    }
+
+    /* ===================================================
+       FIXED BOTTOM BUTTONS
+       =================================================== */
+    .location-btn-row {
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        margin: 0 !important;
+        padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px)) 12px !important;
+        background: linear-gradient(to bottom,
+            rgba(255,255,255,0) 0%,
+            rgba(255,255,255,0.96) 15%,
+            rgba(255,255,255,0.99) 100%);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-top: 1px solid rgba(0,0,0,0.08);
+        display: flex !important;
+        gap: 10px !important;
+        z-index: 10002 !important;
+        box-shadow: 0 -3px 14px rgba(0,0,0,0.1);
+        border-radius: 0 !important;
+    }
+
+    .btn-confirm-location,
+    .btn-cancel-location {
+        flex: 1 !important;
+        padding: 13px 18px !important;
+        font-size: 15px !important;
+        font-weight: 700 !important;
+        border-radius: 10px !important;
+        min-height: 50px !important;
+        border: none !important;
+        cursor: pointer !important;
+        transition: all 0.2s ease !important;
+    }
+
+    .btn-confirm-location {
+        background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%) !important;
+        color: white !important;
+        box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+    }
+
+    .btn-confirm-location:active {
+        transform: scale(0.97) !important;
+    }
+
+    .btn-cancel-location {
+        background: rgba(148, 163, 184, 0.15) !important;
+        color: #475569 !important;
+        border: 1.5px solid rgba(148, 163, 184, 0.3) !important;
+    }
+
+    .btn-cancel-location:active {
+        transform: scale(0.97) !important;
+    }
+
+    /* ===================================================
+       SCROLLBAR - MINIMAL ON MOBILE
+       =================================================== */
+    .location-body::-webkit-scrollbar,
+    .location-history-wrap::-webkit-scrollbar,
+    .options-list::-webkit-scrollbar {
+        width: 3px;
+        height: 4px;
+    }
+
+    .location-body::-webkit-scrollbar-thumb,
+    .location-history-wrap::-webkit-scrollbar-thumb,
+    .options-list::-webkit-scrollbar-thumb {
+        background: rgba(0,0,0,0.2);
+        border-radius: 2px;
+    }
+
+    /* ===================================================
+       TOAST - MOBILE POSITION
+       =================================================== */
+    .loc-toast {
+        bottom: 90px;
+        right: 15px;
+        left: 15px;
+        text-align: center;
+        font-size: 12px;
+    }
+
+    /* ===================================================
+       SWIPE TO CLOSE GESTURE
+       =================================================== */
+    .location-panel.dragging {
+        transition: none !important;
+    }
+
+    /* ===================================================
+       BODY SCROLL LOCK WHEN MODAL OPEN
+       =================================================== */
+    body.modal-open {
+        overflow: hidden !important;
+        position: fixed !important;
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+    /* ===================================================
+       DROPDOWN Z-INDEX PRIORITY
+       =================================================== */
+    .location-form-group.dropdown-open {
+        z-index: 100000 !important;
+    }
+
+    .searchable-select-wrapper.open {
+        z-index: 100001 !important;
+    }
+
+    .location-body {
+        overflow: visible !important;
+    }
+
+    .loc-inputs {
+        overflow: visible !important;
+    }
+}
+
+/* ===================================================
+   TABLET OPTIMIZATION (768px - 1024px)
+   =================================================== */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .location-panel {
+        position: absolute !important;
+        inset: 0 !important;
+        max-height: 100% !important;
+    }
+
+    .location-body {
+        flex-direction: row !important;
+        padding: 16px !important;
+    }
+
+    .loc-history {
+        flex: 0 0 calc(40% - 8px) !important;
+        order: 1 !important;
+        max-height: none !important;
+    }
+
+    .loc-status {
+        flex: 0 0 calc(35% - 8px) !important;
+        display: flex !important;
+        order: 2 !important;
+    }
+
+    .loc-inputs {
+        flex: 0 0 calc(25% - 8px) !important;
+        order: 3 !important;
+    }
+
+    .location-btn-row {
+        position: relative !important;
+        background: none !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+        border-top: 1px solid rgba(94, 82, 64, 0.1) !important;
+        padding: 8px 0 0 0 !important;
+    }
+
+    .btn-confirm-location,
+    .btn-cancel-location {
+        padding: 8px 14px !important;
+        font-size: 13px !important;
+        min-height: auto !important;
+    }
+
+    .searchable-select-wrapper .options-list {
+        bottom: auto !important;
+        top: calc(100% + 4px) !important;
+        max-height: 300px !important;
+    }
+}
+
+/* ===================================================
+   LANDSCAPE MODE ON MOBILE
+   =================================================== */
+@media (max-width: 768px) and (orientation: landscape) {
+    .location-body {
+        padding-bottom: 70px !important;
+    }
+
+    .loc-history {
+        max-height: 25vh;
+    }
+
+    .location-btn-row {
+        padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px)) 12px !important;
+    }
+
+    .btn-confirm-location,
+    .btn-cancel-location {
+        min-height: 44px !important;
+        padding: 10px 16px !important;
+        font-size: 14px !important;
+    }
+}
