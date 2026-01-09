@@ -366,6 +366,12 @@
     return toCID ? ACTION.SHIP_OUT : ACTION.OTHER;
   }
 
+  function normalizeActionKey(key) {
+    // Normalize: "SHIP_OUT" == "SHIPOUT", "LOCATION_CHANGE" == "LOCATIONCHANGE"
+    return safeStr(key).toUpperCase().replace(/[^A-Z]/g, '');
+  }
+
+
   // ===========================================================================
   // MAIN MODULE
   // ===========================================================================
@@ -1297,13 +1303,20 @@ const itemName = itemObj
                 this.els.valueSelect.disabled = true;
               }
               
-                // ✅ Set filter based on badge preset BEFORE rendering
-              if (preset !== 'all') {
-                this.applyPreset(preset); // Sử dụng applyPreset cho tất cả
-                console.log('[HistoryView] Preset filter applied:', preset);
-              } else {
-                console.log('[HistoryView] Show all data');
-              }
+            // ✅ Set filter based on badge preset BEFORE rendering
+
+            // ✅ FIX: reset INOUT flag trước khi áp dụng preset mới
+            this.state.inoutFilterActive = false;
+
+            if (preset !== 'all') {
+              this.applyPreset(preset); // Sử dụng applyPreset cho tất cả
+              console.log('[HistoryView] Preset filter applied:', preset);
+
+            } else {
+              // ✅ FIX: preset=all cũng phải đảm bảo không bị kẹt IN/OUT
+              this.state.inoutFilterActive = false;
+              console.log('[HistoryView] Show all data');
+            }
 
               
               // ✅ Apply filters and render ONCE at the end
@@ -1573,7 +1586,9 @@ const itemName = itemObj
     // =========================================================================
     applyPreset(preset) {
       console.log('[HistoryView] Applying preset:', preset);
-      
+            // ✅ r7.2.0 FIX: always reset INOUT flag when applying any preset
+      this.state.inoutFilterActive = false;
+
       // Clear ALL filters
       if (this.els.dateFrom) this.els.dateFrom.value = '';
       if (this.els.dateTo) this.els.dateTo.value = '';
@@ -1605,14 +1620,14 @@ const itemName = itemObj
         if (this.els.actionSelect) this.els.actionSelect.value = ACTION.CHECKOUT;
       
       } else if (preset === 'inout') {
-        // r7.2.0: NEW - Handle IN/OUT badge click
-        // Show both SHIPIN and SHIPOUT - use keyword filter
-        if (this.els.keywordInput) {
-            this.els.keywordInput.value = ''; // Clear keyword
-        }
-        // Note: We'll filter programmatically in applyFiltersAndRender
-        this.state.filterField = 'inout'; // Custom flag
+        // 入出庫 (In/Out) = 入庫(CHECKIN) + 出庫(CHECKOUT)
+        this.state.inoutFilterActive = true;
+
+        // đảm bảo không bị actionSelect ràng buộc 1 giá trị đơn
+        if (this.els.actionSelect) this.els.actionSelect.value = '';
       }
+
+
     },
 
     // =========================================================================
@@ -1739,6 +1754,7 @@ const itemName = itemObj
       console.log('[HistoryView] Value dropdown populated:', sorted.length, 'options');
     },
 
+    
     // =========================================================================
     // APPLY FILTERS & RENDER - SMART DATE SEARCH
     // =========================================================================
@@ -1766,26 +1782,22 @@ const itemName = itemObj
           if (dateTo && ev.EventDateKey > dateTo) return false;
         }
         
-        // Action (r7.2.0: Support IN/OUT multi-filter)
+        // Action
+        const evActionNorm = normalizeActionKey(ev.ActionKey);
+        const checkinNorm = normalizeActionKey(ACTION.CHECKIN);
+        const checkoutNorm = normalizeActionKey(ACTION.CHECKOUT);
+
         if (this.state.inoutFilterActive) {
-            // Show both SHIPIN and SHIPOUT
-            if (ev.ActionKey !== ACTION.SHIPIN && ev.ActionKey !== ACTION.SHIPOUT) return false;
-        } else if (actionFilter && ev.ActionKey != actionFilter) {
-            return false;
+          // 入出庫 = 入庫 + 出庫
+          if (evActionNorm !== checkinNorm && evActionNorm !== checkoutNorm) return false;
+        } else if (actionFilter) {
+          // so sánh theo normalize để không bị lệch kiểu "SHIP_OUT" vs "SHIPOUT"
+          const filterNorm = normalizeActionKey(actionFilter);
+          if (evActionNorm !== filterNorm) return false;
         }
+
         // Employee
         if (employeeFilter && ev.Handler != employeeFilter) return false;
-
-          // ✅ r7.2.0 NEW: INOUT filter - Show SHIP_IN, SHIP_OUT, SHIP_MOVE, CHECKIN, CHECKOUT
-        if (this.state.inoutFilterActive) {
-          const isInOut = 
-            ev.ActionKey === ACTION.SHIP_IN ||
-            ev.ActionKey === ACTION.SHIP_OUT ||
-            ev.ActionKey === ACTION.SHIP_MOVE ||
-            ev.ActionKey === ACTION.CHECKIN ||
-            ev.ActionKey === ACTION.CHECKOUT;
-          if (!isInOut) return false;
-        }
         
         // Smart keyword search (including date formats)
         if (keyword) {
