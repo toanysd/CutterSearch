@@ -1120,3 +1120,22 @@ END OF STYLES
 .result-card .card-line-2{
   gap: 6px !important;
 }
+
+/* Card date styling - căn lề phải và màu cho hôm nay */
+.result-card .card-date {
+  text-align: right;
+  font-size: 11px;
+  font-weight: 600;
+  color: #757575;
+  white-space: nowrap;
+}
+
+/* Ngày hôm nay - màu xanh nổi bật */
+.result-card .card-date.date-today {
+  color: #00C853 !important;
+  font-weight: 800 !important;
+  background: rgba(0, 200, 83, 0.08);
+  padding: 1px 6px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 200, 83, 0.25);
+}

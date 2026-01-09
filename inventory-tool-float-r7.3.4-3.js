@@ -193,7 +193,7 @@
       document.addEventListener('inventorymodeChanged', (e) => this.handleModeChanged(e));
       document.addEventListener('inventory:modeChanged', (e) => this.handleModeChanged(e));
 
-      document.addEventListener('inventoryModeChanged', e => this.handleModeChanged(e));
+      //document.addEventListener('inventoryModeChanged', e => this.handleModeChanged(e));
 
       // Listen to selection changes (BOTH events)
       document.addEventListener('selectionchanged', () => {
